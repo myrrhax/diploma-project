@@ -1,3 +1,24 @@
 spring:
   application:
     name: diploma-project
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      schema: diploma_schema
+      connection-init-sql: CREATE SCHEMA IF NOT EXISTS diploma_schema
+      connection-timeout: 10000
+
+  jpa:
+    show-sql: true
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+      dialect: org.hibernate.dialect.PostgresSQLDialect
+
+  liquibase:
+    change-log: classpath:liquibase-master.yaml

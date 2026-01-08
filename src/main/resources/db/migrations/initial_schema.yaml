@@ -1,0 +1,244 @@
+databaseChangeLog:
+  - changeSet:
+      id: 090126_initial
+      author: Denis Sizintsev
+      changes:
+        - createTable:
+            tableName: t_users
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_t_users
+              - column:
+                  name: email
+                  type: varchar(50)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: password_hash
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_confirmed
+                  type: boolean
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: t_boards
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_t_boards
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: creator_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: t_authorities
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_t_authorities
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: board_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: t_schemes
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_t_schemes
+              - column:
+                  name: hash_sum
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: board_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tag
+                  type: varchar(50)
+              - column:
+                  name: file_path
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: parent_hash
+                  type: varchar(255)
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: t_ddl_scripts
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_t_ddl_scripts
+              - column:
+                  name: applied_on_scheme_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: requested_by_user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: script
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: dbms_type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: from_scheme_id
+                  type: int
+
+        # Составной уникальный ключ
+        - addUniqueConstraint:
+            tableName: t_authorities
+            columnNames: user_id, board_id, type
+            constraintName: uq_user_board_type
+
+        # Внешние ключи
+        - addForeignKeyConstraint:
+            baseTableName: t_boards
+            baseColumnNames: creator_id
+            referencedTableName: t_users
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_boards_users
+
+        - addForeignKeyConstraint:
+            baseTableName: t_authorities
+            baseColumnNames: user_id
+            referencedTableName: t_users
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_authorities_users
+
+        - addForeignKeyConstraint:
+            baseTableName: t_authorities
+            baseColumnNames: board_id
+            referencedTableName: t_boards
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_authorities_boards
+
+        - addForeignKeyConstraint:
+            baseTableName: t_schemes
+            baseColumnNames: board_id
+            referencedTableName: t_boards
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_schemes_boards
+
+        - addUniqueConstraint:
+            tableName: t_schemes
+            columnNames: hash_sum
+            constraintName: uq_schemes_hash_sum
+
+        - addForeignKeyConstraint:
+            baseTableName: t_schemes
+            baseColumnNames: parent_hash
+            referencedTableName: t_schemes
+            referencedColumnNames: hash_sum
+            onDelete: SET NULL
+            constraintName: fk_schemes_parent_hash_hash_sum
+
+        - addForeignKeyConstraint:
+            baseTableName: t_ddl_scripts
+            baseColumnNames: applied_on_scheme_id
+            referencedTableName: t_schemes
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_ddl_scripts_applied_on_schemes
+
+        - addForeignKeyConstraint:
+            baseTableName: t_ddl_scripts
+            baseColumnNames: requested_by_user_id
+            referencedTableName: t_users
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_ddl_scripts_users
+
+        - addForeignKeyConstraint:
+            baseTableName: t_ddl_scripts
+            baseColumnNames: from_scheme_id
+            referencedTableName: t_schemes
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_ddl_scripts_from_scheme_schemes
