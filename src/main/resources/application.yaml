@@ -22,3 +22,6 @@ spring:
 
   liquibase:
     change-log: classpath:liquibase-master.yaml
+
+server:
+  port: 8000
