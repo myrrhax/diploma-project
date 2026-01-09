@@ -20,7 +20,11 @@ class TestcontainersConfiguration {
 	@Bean
 	@ServiceConnection
 	PostgreSQLContainer<?> postgresContainer() {
-		return new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"));
+		return new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"))
+				.withDatabaseName("test_db")
+				.withUsername("test_user")
+				.withPassword("test_password")
+				.withExposedPorts(5432);
 	}
 
 	@Bean

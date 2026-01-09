@@ -17,7 +17,7 @@ spring:
     show-sql: true
     open-in-view: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
       dialect: org.hibernate.dialect.PostgresSQLDialect
 
   liquibase:

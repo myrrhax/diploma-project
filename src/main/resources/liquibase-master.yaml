@@ -1,3 +1,9 @@
 databaseChangeLog:
   - include:
       file: classpath:db/migrations/initial_schema.yaml
+  - include:
+      file: classpath:db/migrations/add_dtype_to_t_ddl_scripts.yaml
+  - include:
+      file: classpath:db/migrations/add_created_at_to_t_ddl_scripts.yaml
+  - include:
+      file: classpath:db/migrations/fix_auto_increment.yaml
