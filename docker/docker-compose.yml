@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres_db
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
+    volumes:
+      - pg_db:/var/lib/postgresql/data
+
+  app:
+    container_name: app
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  pg_db:

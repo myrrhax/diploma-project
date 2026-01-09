@@ -1,0 +1,73 @@
+name: build and deploy
+on: push
+
+env:
+  TARGET_DIR: /home/myrrhax/ermdev
+  JAR_DIR: /tmp/ermdev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+          cache: gradle
+      - name: Grant permissions to gradle
+        run: chmod +x ./gradlew
+      - name: Build
+        run: ./gradlew clean build
+      - name: Upload Jar
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v3
+        with:
+          name: jars
+          path: './build/libs/*.jar'
+
+  deploy:
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/main'
+    needs: [build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download JARS
+        uses: actions/download-artifact@v3
+        with:
+          name: jars
+          path: ${{ env.JAR_DIR }}
+
+      - name: Clean directories
+        run: sudo rm -rf ${{ env.TARGET_DIR }}
+
+      - name: Prepare directory
+        run: |
+          sudo mkdir -p ${{ env.TARGET_DIR }}/build/libs
+          sudo chown -R $USER:$USER ${{ env.TARGET_DIR }}
+
+      - name: Copy files
+        run: |
+          sudo cp -r ./ ${{ env.TARGET_DIR }}
+          sudo cp ${{ env.JAR_DIR }}/*.jar ${{ env.TARGET_DIR }}/build/libs
+          sudo rm -rf ${{ env.TARGET_DIR }}
+
+      - name: Start project
+        run: |
+          cd ${{ env.TARGET_DIR }}
+          docker compose -f ./docker/docker-compose.yml down
+          docker compose -f ./docker/docker-compose.yml up --build -d
+
+      - name: Validate # ToDo Заменить на проверку через актуатор
+        run: |
+          sleep 15
+          if [ "(docker compose ps --format json | grep -c "Exited")" -ne 0 ]; then
+            echo "Ошибка деплоя"
+            docker compose logs
+            exit
+          fi
+          echo "Деплой завершен"
