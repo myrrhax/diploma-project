@@ -26,7 +26,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: jars
-          path: './build/libs/*.jar'
+          path: '**/build/libs/*.jar'
 
   deploy:
     runs-on: self-hosted
@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Download JARS
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: jars
           path: ${{ env.JAR_DIR }}
