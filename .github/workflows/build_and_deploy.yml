@@ -42,32 +42,37 @@ jobs:
           name: jars
           path: ${{ env.JAR_DIR }}
 
-      - name: Clean directories
-        run: sudo rm -rf ${{ env.TARGET_DIR }}
-
       - name: Prepare directory
         run: |
+          # Сначала останавливаем старые контейнеры, пока старый docker-compose еще на месте
+          if [ -d "${{ env.TARGET_DIR }}/docker" ]; then
+            cd ${{ env.TARGET_DIR }}
+            docker compose -f ./docker/docker-compose.yml down || true
+          fi
+          sudo rm -rf ${{ env.TARGET_DIR }}
           sudo mkdir -p ${{ env.TARGET_DIR }}/build/libs
           sudo chown -R $USER:$USER ${{ env.TARGET_DIR }}
 
       - name: Copy files
         run: |
-          sudo cp -r ./ ${{ env.TARGET_DIR }}
-          sudo cp ${{ env.JAR_DIR }}/*.jar ${{ env.TARGET_DIR }}/build/libs
-          sudo rm -rf ${{ env.TARGET_DIR }}
+          # Копируем свежий код из воркспейса
+          cp -r ./* ${{ env.TARGET_DIR }}/
+          # Копируем JAR из временной папки
+          cp ${{ env.JAR_DIR }}/*.jar ${{ env.TARGET_DIR }}/build/libs/
 
       - name: Start project
         run: |
           cd ${{ env.TARGET_DIR }}
-          docker compose -f ./docker/docker-compose.yml down
           docker compose -f ./docker/docker-compose.yml up --build -d
 
-      - name: Validate # ToDo Заменить на проверку через актуатор
+      - name: Validate
         run: |
+          cd ${{ env.TARGET_DIR }}
           sleep 15
-          if [ "(docker compose ps --format json | grep -c "Exited")" -ne 0 ]; then
-            echo "Ошибка деплоя"
-            docker compose logs
-            exit
+          # Исправленный синтаксис проверки
+          if [ "$(docker compose -f ./docker/docker-compose.yml ps --format json | grep -c "Exited")" -ne 0 ]; then
+            echo "Ошибка: один из контейнеров упал!"
+            docker compose -f ./docker/docker-compose.yml logs
+            exit 1
           fi
-          echo "Деплой завершен"
+          echo "Деплой успешно завершен и проверен"
