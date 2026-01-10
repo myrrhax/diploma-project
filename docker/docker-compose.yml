@@ -12,11 +12,11 @@ services:
     volumes:
       - pg_db:/var/lib/postgresql
 
-  app:
-    container_name: app
+  core:
+    container_name: core
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/core.Dockerfile
     restart: unless-stopped
     env_file:
       - .env
