@@ -8,7 +8,8 @@ group = "com.github.myrrhax"
 version = "0.0.1-SNAPSHOT"
 
 val libVersions = mapOf(
-    "liquibase" to "5.0.1"
+    "liquibase" to "5.0.1",
+    "jjwt" to "0.13.0"
 )
 
 java {
@@ -36,9 +37,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
 
     implementation("org.liquibase:liquibase-core:${libVersions["liquibase"]}")
+    implementation("io.jsonwebtoken:jjwt-api:${libVersions["jjwt"]}")
 
     compileOnly("org.projectlombok:lombok")
     runtimeOnly("org.postgresql:postgresql")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:${libVersions["jjwt"]}")
+
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")

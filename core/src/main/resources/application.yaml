@@ -23,5 +23,9 @@ spring:
   liquibase:
     change-log: classpath:liquibase-master.yaml
 
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET}
+
 server:
   port: 8000
