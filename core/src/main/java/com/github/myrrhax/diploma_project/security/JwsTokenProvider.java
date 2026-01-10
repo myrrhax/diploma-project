@@ -1,4 +1,4 @@
-package com.github.myrrhax.diploma_project.security.jwt;
+package com.github.myrrhax.diploma_project.security;
 
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;

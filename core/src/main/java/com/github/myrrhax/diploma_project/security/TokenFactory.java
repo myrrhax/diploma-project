@@ -1,4 +1,4 @@
-package com.github.myrrhax.diploma_project.security.jwt;
+package com.github.myrrhax.diploma_project.security;
 
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -30,13 +30,16 @@ public class TokenFactory {
         );
     }
 
-    public Token accessToken(String subject, List<String> authorities) {
+    public Token accessToken(Token refreshToken) {
         var now = Instant.now();
 
         return new Token(
                 UUID.randomUUID(),
-                subject,
-                authorities,
+                refreshToken.subject(),
+                refreshToken.authorities().stream()
+                        .filter(authority -> authority.startsWith("GRANT_"))
+                        .map(authority -> authority.substring("GRANT_".length()))
+                        .toList(),
                 now,
                 now.plus(jwtProperties.getAccessTokenTtl())
         );

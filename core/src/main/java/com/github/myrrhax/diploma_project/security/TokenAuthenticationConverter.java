@@ -1,7 +1,5 @@
-package com.github.myrrhax.diploma_project.security.jwt.converter;
+package com.github.myrrhax.diploma_project.security;
 
-import com.github.myrrhax.diploma_project.security.jwt.Token;
-import com.github.myrrhax.diploma_project.security.jwt.JwsTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;

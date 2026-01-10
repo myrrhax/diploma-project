@@ -1,7 +1,5 @@
-package com.github.myrrhax.diploma_project.security.jwt;
+package com.github.myrrhax.diploma_project.security;
 
-import com.github.myrrhax.diploma_project.security.jwt.converter.RefreshTokenAuthenticationConverter;
-import com.github.myrrhax.diploma_project.security.jwt.converter.TokenAuthenticationConverter;
 import com.github.myrrhax.diploma_project.service.TokenAuthenticationDetailsService;
 import lombok.Setter;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,6 +13,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 @Setter
 public class JwtSecurityConfigurer extends AbstractHttpConfigurer<JwtSecurityConfigurer, HttpSecurity> {
     private JwsTokenProvider jwsTokenProvider;
+    private TokenFactory tokenFactory;
 
     @Override
     public void init(HttpSecurity builder) throws Exception {
@@ -24,20 +23,16 @@ public class JwtSecurityConfigurer extends AbstractHttpConfigurer<JwtSecurityCon
     }
 
     @Override
-    public void configure(HttpSecurity builder) throws Exception {
+    public void configure(HttpSecurity builder) {
         AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
-
-        var refreshFromCookieFilter = new AuthenticationFilter(authenticationManager,
-                new RefreshTokenAuthenticationConverter(jwsTokenProvider));
 
         var jwtFilter = new AuthenticationFilter(authenticationManager,
                 new TokenAuthenticationConverter(jwsTokenProvider));
 
         var provider = new PreAuthenticatedAuthenticationProvider();
-        provider.setPreAuthenticatedUserDetailsService(new TokenAuthenticationDetailsService());
+        provider.setPreAuthenticatedUserDetailsService(new TokenAuthenticationDetailsService(tokenFactory));
 
         builder.addFilterAfter(jwtFilter, ExceptionTranslationFilter.class)
-                .addFilterAfter(refreshFromCookieFilter, ExceptionTranslationFilter.class)
                 .authenticationProvider(provider);
     }
 }

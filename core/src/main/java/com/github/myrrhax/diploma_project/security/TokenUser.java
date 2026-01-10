@@ -1,4 +1,4 @@
-package com.github.myrrhax.diploma_project.security.jwt;
+package com.github.myrrhax.diploma_project.security;
 
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
