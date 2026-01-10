@@ -1,7 +1,6 @@
 package com.github.myrrhax.diploma_project.model.entity;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
@@ -18,7 +17,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class MigrationDDLScriptEntity extends DDLScriptEntity {
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_scheme_id")
-    SchemeEntity fromScheme;
+    @JoinColumn(name = "from_v_id")
+    @ManyToOne
+    VersionEntity fromVersion;
 }

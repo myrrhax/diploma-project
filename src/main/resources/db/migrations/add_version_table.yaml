@@ -1,0 +1,74 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100126_add_version_table
+      author: Denis Sizintsev
+      changes:
+        - createTable:
+            tableName: t_scheme_version
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_t_scheme_version
+              - column:
+                  name: scheme_id
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: hash_sum
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: parent_id
+                  type: int
+              - column:
+                  name: is_initial
+                  type: boolean
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tag
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: file_path
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: created_at
+                  type: timestamp
+
+        - addUniqueConstraint:
+            tableName: t_scheme_version
+            columnNames: scheme_id, hash_sum
+            constraintName: uq_scheme_id_hash_sum
+
+        - addUniqueConstraint:
+            tableName: t_scheme_version
+            columnNames: scheme_id, tag
+            constraintName: uq_scheme_id_tag
+
+        - addForeignKeyConstraint:
+            baseTableName: t_scheme_version
+            baseColumnNames: scheme_id
+            referencedTableName: t_schemes
+            referencedColumnNames: id
+            onDelete: CASCADE
+            constraintName: fk_t_scheme_version_t_scheme
+
+        - addForeignKeyConstraint:
+            baseTableName: t_scheme_version
+            baseColumnNames: parent_id
+            referencedTableName: t_scheme_version
+            referencedColumnNames: id
+            onDelete: RESTRICT
+            constraintName: fk_t_scheme_version_parent

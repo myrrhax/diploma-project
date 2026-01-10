@@ -1,0 +1,62 @@
+databaseChangeLog:
+  - changeSet:
+      id: 100126_restructure_scheme_table
+      author: Denis Sizintsev
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: t_schemes
+            constraintName: fk_schemes_boards
+
+        - dropForeignKeyConstraint:
+            baseTableName: t_schemes
+            constraintName: fk_schemes_parent_hash_hash_sum
+
+        - dropColumn:
+            tableName: t_schemes
+            columns:
+              - column:
+                  name: board_id
+              - column:
+                  name: hash_sum
+              - column:
+                  name: tag
+              - column:
+                  name: file_path
+              - column:
+                  name: parent_hash
+
+        - addColumn:
+            tableName: t_schemes
+            columns:
+              - column:
+                  name: name
+                  type: varchar(55)
+                  constraints:
+                    unique: true
+                    nullable: false
+
+              - column:
+                  name: creator_id
+                  type: bigint
+
+              - column:
+                  name: current_v_id
+                  type: int
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: t_schemes
+            baseColumnNames: creator_id
+            referencedTableName: t_users
+            referencedColumnNames: id
+            onDelete: SET NULL
+            constraintName: fk_schemes_creator
+
+        - addForeignKeyConstraint:
+            baseTableName: t_schemes
+            baseColumnNames: current_v_id
+            referencedTableName: t_scheme_version
+            referencedColumnNames: id
+            onDelete: RESTRICT
+            constraintName: fk_scheme_current_version

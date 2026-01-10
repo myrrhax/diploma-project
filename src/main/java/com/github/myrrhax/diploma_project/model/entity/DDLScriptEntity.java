@@ -28,12 +28,8 @@ import lombok.experimental.FieldDefaults;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class DDLScriptEntity extends BaseEntity<Integer> {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "applied_on_scheme_id")
-    SchemeEntity appliedOnScheme;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "requested_by_user_id")
-    UserEntity requestedBy;
+    @JoinColumn(name = "v_id")
+    VersionEntity version;
 
     @Column(nullable = false)
     String script;
