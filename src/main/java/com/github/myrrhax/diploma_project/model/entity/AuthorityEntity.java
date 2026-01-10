@@ -28,8 +28,8 @@ public class AuthorityEntity extends BaseEntity<Long> {
     UserEntity user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id", nullable = false)
-    BoardEntity board;
+    @JoinColumn(name = "scheme_id", nullable = false)
+    SchemeEntity scheme;
 
     @Enumerated(EnumType.STRING)
     AuthorityType type;

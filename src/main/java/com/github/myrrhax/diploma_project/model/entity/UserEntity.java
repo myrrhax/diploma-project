@@ -22,10 +22,13 @@ import java.util.Set;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserEntity extends BaseEntity<Long> {
+
     @Column(nullable = false, unique = true)
     String email;
+
     @Column(name = "password_hash", nullable = false)
     String password;
+
     @Column(name = "is_confirmed")
     Boolean isConfirmed;
 
@@ -33,5 +36,5 @@ public class UserEntity extends BaseEntity<Long> {
     Set<AuthorityEntity> authorities;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "creator")
-    Set<BoardEntity> boards;
+    Set<SchemeEntity> schemes;
 }

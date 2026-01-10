@@ -17,20 +17,33 @@ import lombok.experimental.FieldDefaults;
 import java.util.Set;
 
 @Entity
-@Table(name = "t_boards")
+@Table(name = "t_scheme_version")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BoardEntity extends BaseEntity<Integer> {
-    @Column(nullable = false, unique = true)
-    String name;
+public class VersionEntity extends BaseEntity<Integer> {
+    @Column(name = "hash_sum")
+    String hashSum;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "creator_id")
-    UserEntity creator;
+    @JoinColumn(name = "scheme_id")
+    SchemeEntity scheme;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "board", orphanRemoval = true)
-    Set<SchemeEntity> schemes;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    VersionEntity parent;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "version")
+    Set<DDLScriptEntity> ddlScripts;
+
+    @Column(name = "is_initial")
+    Boolean isInitial;
+
+    @Column(name = "tag")
+    String tag;
+
+    @Column(name = "file_path")
+    String filePath;
 }
