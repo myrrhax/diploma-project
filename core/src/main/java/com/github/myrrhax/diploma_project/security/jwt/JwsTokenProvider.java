@@ -10,8 +10,9 @@ import java.sql.Date;
 @Component
 @RequiredArgsConstructor
 public class JwsTokenProvider {
-    private final JwtProperties jwtProperties;
     private final SecretKey key;
+    private final TokenFactory tokenFactory;
+    private final JwtProperties jwtProperties;
 
     public String encodeToken(Token token) {
         try {
@@ -37,7 +38,7 @@ public class JwsTokenProvider {
                     .parseSignedClaims(stringifyToken)
                     .getPayload();
 
-            return TokenFactory.fromClaims(claimsSet);
+            return tokenFactory.fromClaims(claimsSet);
         } catch (Exception e) {
             throw new RuntimeException("Unable to parse token", e);
         }

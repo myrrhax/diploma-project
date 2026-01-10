@@ -1,14 +1,21 @@
 package com.github.myrrhax.diploma_project.security.jwt;
 
 import io.jsonwebtoken.Claims;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Component
+@RequiredArgsConstructor
 public class TokenFactory {
-    public static TokenUser fromToken(Token token) {
+    private final JwtProperties jwtProperties;
+
+    public TokenUser fromToken(Token token) {
         return new TokenUser(
                 token.subject(),
                 "nopass",
@@ -23,7 +30,38 @@ public class TokenFactory {
         );
     }
 
-    public static Token fromClaims(Claims claims) {
+    public Token accessToken(String subject, List<String> authorities) {
+        var now = Instant.now();
+
+        return new Token(
+                UUID.randomUUID(),
+                subject,
+                authorities,
+                now,
+                now.plus(jwtProperties.getAccessTokenTtl())
+        );
+    }
+
+    public Token refreshToken(String subject, List<String> authorities) {
+        var now = Instant.now();
+        List<String> refreshAuthorities = new ArrayList<>();
+
+        authorities.stream()
+                .map(authority -> "GRANT_" + authority)
+                .forEach(refreshAuthorities::add);
+        refreshAuthorities.add("REFRESH");
+        refreshAuthorities.add("LOGOUT");
+
+        return new Token(
+                UUID.randomUUID(),
+                subject,
+                refreshAuthorities,
+                now,
+                now.plus(jwtProperties.getAccessTokenTtl())
+        );
+    }
+
+    public Token fromClaims(Claims claims) {
         return new Token(
                 UUID.fromString(claims.getId()),
                 claims.getSubject(),
