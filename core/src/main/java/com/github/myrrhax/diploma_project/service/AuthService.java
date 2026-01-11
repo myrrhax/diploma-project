@@ -14,6 +14,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,6 +41,12 @@ public class AuthService implements UserDetailsService {
     private final JwsTokenProvider tokenProvider;
     private final TokenFactory tokenFactory;
     private final UserMapper userMapper;
+
+    @Value("${app.security.refresh-cookie-name}")
+    private String refreshCookieName;
+
+    @Value("${app.security.refresh-cookie-security}")
+    private boolean refreshCookieSecurity;
 
     public AuthResultDTO authenticate(String email, String password, HttpServletResponse response) {
         log.info("Trying to authenticate user with email: {}", email);
@@ -105,10 +112,10 @@ public class AuthService implements UserDetailsService {
     private void setRefreshCookie(HttpServletResponse servletResponse, String token, Long userId) {
         log.info("Setting refresh cookie for user {}", userId);
 
-        Cookie cookie = new Cookie("__Host-Refresh", token);
+        Cookie cookie = new Cookie(refreshCookieName, token);
         cookie.setMaxAge((int) jwtProperties.getRefreshTokenTtl().toSeconds());
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(refreshCookieSecurity);
 
         servletResponse.addCookie(cookie);
         log.info("Refresh cookie was set for user {}", userId);

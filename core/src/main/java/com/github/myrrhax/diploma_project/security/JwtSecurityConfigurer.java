@@ -13,11 +13,12 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 public class JwtSecurityConfigurer extends AbstractHttpConfigurer<JwtSecurityConfigurer, HttpSecurity> {
     private JwsTokenProvider jwsTokenProvider;
     private TokenFactory tokenFactory;
+    private String refreshCookieName = "Refresh-Token";
 
     @Override
     public void init(HttpSecurity builder) throws Exception {
         builder.logout(logout -> logout.addLogoutHandler(
-                new CookieClearingLogoutHandler("__Host-Refresh")
+                new CookieClearingLogoutHandler(refreshCookieName)
         ));
     }
 
