@@ -35,6 +35,7 @@ public class TokenFactory {
 
         return new Token(
                 UUID.randomUUID(),
+                refreshToken.userId(),
                 refreshToken.subject(),
                 refreshToken.authorities().stream()
                         .filter(authority -> authority.startsWith("GRANT_"))
@@ -45,7 +46,7 @@ public class TokenFactory {
         );
     }
 
-    public Token refreshToken(String subject, List<String> authorities) {
+    public Token refreshToken(Long userId, String subject, List<String> authorities) {
         var now = Instant.now();
         List<String> refreshAuthorities = new ArrayList<>();
 
@@ -57,6 +58,7 @@ public class TokenFactory {
 
         return new Token(
                 UUID.randomUUID(),
+                userId,
                 subject,
                 refreshAuthorities,
                 now,
@@ -67,6 +69,7 @@ public class TokenFactory {
     public Token fromClaims(Claims claims) {
         return new Token(
                 UUID.fromString(claims.getId()),
+                claims.get("userId", Long.class),
                 claims.getSubject(),
                 (List<String>) claims.get("authorities", List.class),
                 claims.getIssuedAt().toInstant(),

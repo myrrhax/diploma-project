@@ -69,6 +69,7 @@ jobs:
           echo SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${{ secrets.POSTGRES_DB }} >> .env
           echo SPRING_DATASOURCE_USERNAME=${{ secrets.POSTGRES_USER }} >> .env
           echo SPRING_DATASOURCE_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+          echo APP_JWT_SECRET=${{ secrets.APP_JWT_SECRET }} >> .env
           cat .env
 
       - name: Start project
