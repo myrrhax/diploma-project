@@ -2,6 +2,7 @@ package com.github.myrrhax.diploma_project.service;
 
 import com.github.myrrhax.diploma_project.mapper.UserMapper;
 import com.github.myrrhax.diploma_project.model.ApplicationException;
+import com.github.myrrhax.diploma_project.model.Tokens;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.JwsTokenProvider;
@@ -18,12 +19,15 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class AuthService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
@@ -45,30 +49,64 @@ public class AuthService {
         );
         log.info("User with id: {} was authenticated", user.getId());
 
-        log.info("Encoding token pair for user: {}", user.getId());
+        Tokens signedTokens = prepareTokens(email, user.getId());
+        setRefreshCookie(response, signedTokens.signedRefreshToken(), user.getId());
+
+        return new AuthResultDTO(signedTokens.signedAccessToken(),
+                signedTokens.accessToken().expiresAt(),
+                userMapper.toDto(user));
+    }
+
+    public AuthResultDTO register(String email, String password, HttpServletResponse response) {
+        if (userRepository.existsByEmail(email)) {
+            throw new ApplicationException(
+                    "User with email %s already exists".formatted(email),
+                    HttpStatus.CONFLICT
+            );
+        }
+        var user = new UserEntity(
+                email,
+                passwordEncoder.encode(password),
+                false,
+                Collections.emptySet(),
+                Collections.emptySet()
+        );
+
+        log.info("Registering user with email: {}", email);
+        UserEntity savedUser = userRepository.save(user);
+        log.info("User with id: {} was registered", savedUser.getId());
+
+        Tokens signedTokens = prepareTokens(email, savedUser.getId());
+        setRefreshCookie(response, signedTokens.signedAccessToken(), savedUser.getId());
+
+        return new AuthResultDTO(
+                signedTokens.signedAccessToken(),
+                signedTokens.accessToken().expiresAt(),
+                userMapper.toDto(savedUser)
+        );
+    }
+
+    private Tokens prepareTokens(String email, Long id) {
+        log.info("Encoding token pair for user: {}", id);
+
         Token refreshToken = tokenFactory.refreshToken(email, List.of("USER"));
         String signedRefresh = tokenProvider.encodeToken(refreshToken);
 
         Token accessToken = tokenFactory.accessToken(refreshToken);
         String signedAccess =  tokenProvider.encodeToken(accessToken);
 
-        log.info("Setting refresh cookie for user {}", user.getId());
-        setRefreshCookie(response, signedRefresh);
-        log.info("Refresh cookie was set for user {}", user.getId());
-
-        return new AuthResultDTO(signedAccess, accessToken.expiresAt(), userMapper.toDto(user));
+        return new Tokens(accessToken, signedAccess, refreshToken, signedRefresh);
     }
 
-    public AuthResultDTO register(String email, String password) {
-        return null;
-    }
+    private void setRefreshCookie(HttpServletResponse servletResponse, String token, Long userId) {
+        log.info("Setting refresh cookie for user {}", userId);
 
-    private void setRefreshCookie(HttpServletResponse servletResponse, String token) {
         Cookie cookie = new Cookie("__Host-Refresh", token);
         cookie.setMaxAge((int) jwtProperties.getRefreshTokenTtl().toSeconds());
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
 
         servletResponse.addCookie(cookie);
+        log.info("Refresh cookie was set for user {}", userId);
     }
 }
