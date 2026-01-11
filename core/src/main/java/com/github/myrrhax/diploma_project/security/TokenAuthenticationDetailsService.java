@@ -1,7 +1,5 @@
-package com.github.myrrhax.diploma_project.service;
+package com.github.myrrhax.diploma_project.security;
 
-import com.github.myrrhax.diploma_project.security.Token;
-import com.github.myrrhax.diploma_project.security.TokenFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.AuthenticationUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;

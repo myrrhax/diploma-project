@@ -9,7 +9,8 @@ version = "0.0.1-SNAPSHOT"
 
 val libVersions = mapOf(
     "liquibase" to "5.0.1",
-    "jjwt" to "0.13.0"
+    "jjwt" to "0.13.0",
+    "mapstruct" to "1.6.3"
 )
 
 java {
@@ -38,8 +39,11 @@ dependencies {
 
     implementation("org.liquibase:liquibase-core:${libVersions["liquibase"]}")
     implementation("io.jsonwebtoken:jjwt-api:${libVersions["jjwt"]}")
+    implementation("org.mapstruct:mapstruct:${libVersions["mapstruct"]}")
 
     compileOnly("org.projectlombok:lombok")
+    compileOnly("org.mapstruct:mapstruct-processor:${libVersions["mapstruct"]}")
+
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:${libVersions["jjwt"]}")
 

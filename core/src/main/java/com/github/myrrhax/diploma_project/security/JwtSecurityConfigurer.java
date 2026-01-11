@@ -1,6 +1,5 @@
 package com.github.myrrhax.diploma_project.security;
 
-import com.github.myrrhax.diploma_project.service.TokenAuthenticationDetailsService;
 import lombok.Setter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
