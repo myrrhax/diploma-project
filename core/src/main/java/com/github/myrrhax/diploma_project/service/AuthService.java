@@ -10,6 +10,7 @@ import com.github.myrrhax.diploma_project.security.JwtProperties;
 import com.github.myrrhax.diploma_project.security.Token;
 import com.github.myrrhax.diploma_project.security.TokenFactory;
 import com.github.myrrhax.diploma_project.web.dto.AuthResultDTO;
+import com.github.myrrhax.diploma_project.web.dto.UserDTO;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -102,6 +103,16 @@ public class AuthService implements UserDetailsService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public UserDTO getUserById(Long id) {
+        return userRepository.findById(id)
+                .map(userMapper::toDto)
+                .orElseThrow(() -> new ApplicationException(
+                        "User with id %d is not found".formatted(id),
+                        HttpStatus.NOT_FOUND
+                ));
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByEmail(username)
@@ -116,7 +127,7 @@ public class AuthService implements UserDetailsService {
     private Tokens prepareTokens(String email, Long id) {
         log.info("Encoding token pair for user: {}", id);
 
-        Token refreshToken = tokenFactory.refreshToken(email, List.of("ROLE_USER"));
+        Token refreshToken = tokenFactory.refreshToken(id, email, List.of("ROLE_USER"));
         String signedRefresh = tokenProvider.encodeToken(refreshToken);
 
         Token accessToken = tokenFactory.accessToken(refreshToken);

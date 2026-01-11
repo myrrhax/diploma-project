@@ -6,6 +6,7 @@ import java.util.UUID;
 
 public record Token(
         UUID id,
+        Long userId,
         String subject,
         List<String> authorities,
         Instant createdAt,

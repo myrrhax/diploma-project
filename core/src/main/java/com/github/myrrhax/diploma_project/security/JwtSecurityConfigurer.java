@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Setter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,6 +29,9 @@ public class JwtSecurityConfigurer extends AbstractHttpConfigurer<JwtSecurityCon
 
         var jwtFilter = new AuthenticationFilter(authenticationManager,
                 new TokenAuthenticationConverter(jwsTokenProvider));
+        jwtFilter.setSuccessHandler((req, resp, auth) -> {});
+        jwtFilter.setFailureHandler((req, resp, e) ->
+                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED));
 
         var provider = new PreAuthenticatedAuthenticationProvider();
         provider.setPreAuthenticatedUserDetailsService(new TokenAuthenticationDetailsService(tokenFactory));

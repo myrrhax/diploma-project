@@ -19,6 +19,7 @@ public class JwsTokenProvider {
             return Jwts.builder()
                     .id(token.id().toString())
                     .subject(token.subject())
+                    .claim("userId", token.userId())
                     .claim("authorities", token.authorities())
                     .issuer(jwtProperties.getIssuer())
                     .issuedAt(Date.from(token.createdAt()))

@@ -1,14 +1,18 @@
 package com.github.myrrhax.diploma_project.web;
 
+import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.AuthService;
 import com.github.myrrhax.diploma_project.web.dto.AuthResultDTO;
 import com.github.myrrhax.diploma_project.web.dto.AuthRequestDTO;
+import com.github.myrrhax.diploma_project.web.dto.UserDTO;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,5 +45,12 @@ public class AuthController {
                 .body(
                     authService.register(dto.email(), dto.password(), response)
                 );
+    }
+
+    @GetMapping("/whoami")
+    public ResponseEntity<UserDTO> whoami(@AuthenticationPrincipal TokenUser tokenUser) {
+        return ResponseEntity.ok(
+                authService.getUserById(tokenUser.getToken().userId())
+        );
     }
 }
