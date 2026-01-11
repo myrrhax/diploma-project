@@ -42,12 +42,15 @@ dependencies {
     implementation("org.mapstruct:mapstruct:${libVersions["mapstruct"]}")
 
     compileOnly("org.projectlombok:lombok")
-    compileOnly("org.mapstruct:mapstruct-processor:${libVersions["mapstruct"]}")
 
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:${libVersions["jjwt"]}")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:${libVersions["jjwt"]}")
 
+    annotationProcessor("org.mapstruct:mapstruct-processor:${libVersions["mapstruct"]}")
     annotationProcessor("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.springframework.security:spring-security-test")

@@ -14,7 +14,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,6 +28,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,12 +38,13 @@ import java.util.List;
 @Transactional
 public class AuthService implements UserDetailsService {
     private final UserRepository userRepository;
-    private final AuthenticationManager authenticationManager;
     private final JwtProperties jwtProperties;
     private final PasswordEncoder passwordEncoder;
     private final JwsTokenProvider tokenProvider;
     private final TokenFactory tokenFactory;
     private final UserMapper userMapper;
+
+    private AuthenticationManager authenticationManager;
 
     @Value("${app.security.refresh-cookie-name}")
     private String refreshCookieName;
@@ -82,6 +86,7 @@ public class AuthService implements UserDetailsService {
                 Collections.emptySet(),
                 Collections.emptySet()
         );
+        user.setCreatedAt(Instant.now());
 
         log.info("Registering user with email: {}", email);
         UserEntity savedUser = userRepository.save(user);
@@ -95,6 +100,17 @@ public class AuthService implements UserDetailsService {
                 signedTokens.accessToken().expiresAt(),
                 userMapper.toDto(savedUser)
         );
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByEmail(username)
+                .map(it -> User.builder()
+                        .username(it.getEmail())
+                        .password(it.getPassword())
+                        .authorities("ROLE_USER")
+                        .build())
+                .orElseThrow(() -> new UsernameNotFoundException(username));
     }
 
     private Tokens prepareTokens(String email, Long id) {
@@ -121,14 +137,9 @@ public class AuthService implements UserDetailsService {
         log.info("Refresh cookie was set for user {}", userId);
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByEmail(username)
-                .map(it -> User.builder()
-                        .username(it.getEmail())
-                        .password(it.getPassword())
-                        .authorities("ROLE_USER")
-                        .build())
-                .orElseThrow(() -> new UsernameNotFoundException(username));
+    @Autowired
+    @Lazy
+    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
     }
 }

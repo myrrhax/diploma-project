@@ -26,6 +26,10 @@ spring:
 app:
   jwt:
     secret: ${APP_JWT_SECRET}
+    issuer: myrrermdev.space
+    accessTokenTtl: 15m
+    refreshTokenTtl: 30d
+
   security:
     refresh-cookie-name: Refresh-Token
     refresh-cookie-security: false
