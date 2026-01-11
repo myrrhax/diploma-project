@@ -23,5 +23,12 @@ spring:
   liquibase:
     change-log: classpath:liquibase-master.yaml
 
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET}
+  security:
+    refresh-cookie-name: Refresh-Token
+    refresh-cookie-security: false
+
 server:
   port: 8000
