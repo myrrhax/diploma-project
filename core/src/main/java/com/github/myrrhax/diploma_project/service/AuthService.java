@@ -17,6 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +32,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional
-public class AuthService {
+public class AuthService implements UserDetailsService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtProperties jwtProperties;
@@ -89,7 +93,7 @@ public class AuthService {
     private Tokens prepareTokens(String email, Long id) {
         log.info("Encoding token pair for user: {}", id);
 
-        Token refreshToken = tokenFactory.refreshToken(email, List.of("USER"));
+        Token refreshToken = tokenFactory.refreshToken(email, List.of("ROLE_USER"));
         String signedRefresh = tokenProvider.encodeToken(refreshToken);
 
         Token accessToken = tokenFactory.accessToken(refreshToken);
@@ -108,5 +112,16 @@ public class AuthService {
 
         servletResponse.addCookie(cookie);
         log.info("Refresh cookie was set for user {}", userId);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByEmail(username)
+                .map(it -> User.builder()
+                        .username(it.getEmail())
+                        .password(it.getPassword())
+                        .authorities("ROLE_USER")
+                        .build())
+                .orElseThrow(() -> new UsernameNotFoundException(username));
     }
 }
