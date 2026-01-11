@@ -17,12 +17,15 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<ErrorResponseDTO> handle(ApplicationException ex) {
+        log.error("An application error occurred while processing the request: {}", ex.getMessage(), ex);
+
         return ResponseEntity.status(ex.getStatus())
                 .body(new ErrorResponseDTO(ex.getMessage(), null));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponseDTO> handle(ConstraintViolationException ex) {
+        log.error("Validation exception occurred while processing the request: {}", ex.getMessage(), ex);
         var violations = ex.getConstraintViolations().stream()
                 .collect(Collectors.groupingBy(
                         violation -> {
