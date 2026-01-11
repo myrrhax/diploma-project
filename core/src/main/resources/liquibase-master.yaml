@@ -17,3 +17,7 @@ databaseChangeLog:
       file: classpath:db/migrations/drop_board_table.yaml
   - include:
       file: classpath:db/migrations/change_filepath_nullability.yaml
+  - include:
+      file: classpath:db/migrations/add_serialized_schema_field.yaml
+  - include:
+      file: classpath:db/migrations/drop_file_path.yaml

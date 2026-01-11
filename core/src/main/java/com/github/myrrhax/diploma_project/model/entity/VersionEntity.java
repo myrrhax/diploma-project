@@ -1,6 +1,9 @@
 package com.github.myrrhax.diploma_project.model.entity;
 
+import com.github.myrrhax.diploma_project.model.Schema;
+import com.github.myrrhax.diploma_project.util.SchemaAttributeConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -44,6 +47,10 @@ public class VersionEntity extends BaseEntity<Integer> {
     @Column(name = "tag")
     String tag;
 
-    @Column(name = "file_path")
-    String filePath;
+    @Convert(converter = SchemaAttributeConverter.class)
+    @Column(name = "schema")
+    Schema schema;
+
+    @Column(name = "is_working_copy")
+    Boolean isWorkingCopy;
 }
