@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
 import lombok.Data;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -21,6 +22,8 @@ public class SchemaStateMetadata {
 
     @JsonIgnore
     private Lock lock = new ReentrantLock();
+    @JsonIgnore
+    private Instant lastModificationTime = Instant.now();
 
     public SchemaStateMetadata(VersionEntity versionEntity) {
         this.schemaId = versionEntity.getScheme().getId();
