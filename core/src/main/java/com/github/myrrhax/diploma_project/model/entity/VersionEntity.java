@@ -1,6 +1,6 @@
 package com.github.myrrhax.diploma_project.model.entity;
 
-import com.github.myrrhax.diploma_project.model.Schema;
+import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.util.SchemaAttributeConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -49,7 +49,7 @@ public class VersionEntity extends BaseEntity<Integer> {
 
     @Convert(converter = SchemaAttributeConverter.class)
     @Column(name = "schema")
-    Schema schema;
+    SchemaStateMetadata schema;
 
     @Column(name = "is_working_copy")
     Boolean isWorkingCopy;
