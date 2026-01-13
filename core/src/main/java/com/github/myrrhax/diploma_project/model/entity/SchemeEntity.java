@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.model.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -36,7 +37,7 @@ public class SchemeEntity extends BaseEntity<Integer> {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "scheme", orphanRemoval = true)
     Set<AuthorityEntity> userAuthorities;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "current_v_id")
     VersionEntity currentVersion;
 

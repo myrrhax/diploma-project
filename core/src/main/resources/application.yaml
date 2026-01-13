@@ -34,5 +34,8 @@ app:
     refresh-cookie-name: Refresh-Token
     refresh-cookie-security: false
 
+  cache:
+    schema-ttl: 15m
+
 server:
   port: 8000

@@ -1,8 +1,12 @@
 package com.github.myrrhax.diploma_project.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
+import com.github.myrrhax.diploma_project.util.ReferenceKeyFromStringDeserializer;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -11,6 +15,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class SchemaStateMetadata {
     private int schemaId;
     private int versionId;
@@ -18,7 +24,8 @@ public class SchemaStateMetadata {
     private boolean isWorkingCopy;
 
     private Map<String, TableMetadata> tables = new HashMap<>();
-    private Map<ReferenceKey, ReferenceMetadata> references = new HashMap<>();
+    @JsonDeserialize(keyUsing = ReferenceKeyFromStringDeserializer.class)
+    private Map<ReferenceMetadata.ReferenceKey, ReferenceMetadata> references = new HashMap<>();
 
     @JsonIgnore
     private Lock lock = new ReentrantLock();

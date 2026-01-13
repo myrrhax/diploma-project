@@ -1,8 +1,9 @@
 package com.github.myrrhax.diploma_project.service;
 
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
+import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
-import com.github.myrrhax.diploma_project.repository.VersionRepository;
+import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,15 +20,16 @@ import java.util.concurrent.locks.Lock;
 @Slf4j
 @RequiredArgsConstructor
 public class SchemaStateCacheStorageService {
-    private final VersionRepository versionRepository;
-    private ConcurrentHashMap<Integer, SchemaStateMetadata> schemaStateCache = new ConcurrentHashMap<>();
+    private final SchemeRepository schemeRepository;
+    private final ConcurrentHashMap<Integer, SchemaStateMetadata> schemaStateCache = new ConcurrentHashMap<>();
     @Value("${app.cache.schema-ttl}")
     private Duration ttl = Duration.ofMinutes(15);
 
     @Transactional(readOnly = true)
     public void getSchemaState(Integer id) {
         schemaStateCache.computeIfAbsent(id, (schemeId) -> {
-           var version = versionRepository.findWorkingCopyForScheme(schemeId)
+           var version = schemeRepository.findByIdLocking(schemeId)
+                   .map(SchemeEntity::getCurrentVersion)
                    .orElseThrow(() -> new SchemaNotFoundException(schemeId));
 
            return version.getSchema();
@@ -45,10 +47,10 @@ public class SchemaStateCacheStorageService {
                     lock = state.getLock();
                     lock.lock();
 
-                    versionRepository.findWorkingCopyForScheme(id)
+                    schemeRepository.findByIdLocking(id)
                             .ifPresentOrElse(it -> {
-                                it.setSchema(state);
-                                versionRepository.flush();
+                                it.getCurrentVersion().setSchema(state);
+                                schemeRepository.flush();
                                 state.setLastModificationTime(Instant.now());
                             }, () -> {
                                 throw new SchemaNotFoundException(id);
