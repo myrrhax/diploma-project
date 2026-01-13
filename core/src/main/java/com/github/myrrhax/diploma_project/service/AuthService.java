@@ -1,7 +1,7 @@
 package com.github.myrrhax.diploma_project.service;
 
 import com.github.myrrhax.diploma_project.mapper.UserMapper;
-import com.github.myrrhax.diploma_project.model.ApplicationException;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.model.Tokens;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.repository.UserRepository;

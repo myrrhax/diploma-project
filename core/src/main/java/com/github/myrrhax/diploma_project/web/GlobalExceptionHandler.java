@@ -1,6 +1,6 @@
 package com.github.myrrhax.diploma_project.web;
 
-import com.github.myrrhax.diploma_project.model.ApplicationException;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.web.dto.ErrorResponseDTO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;

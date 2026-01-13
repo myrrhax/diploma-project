@@ -23,5 +23,5 @@ public abstract class BaseEntity<K extends Serializable> {
     K id;
 
     @Column(name = "created_at")
-    Instant createdAt;
+    Instant createdAt = Instant.now();
 }

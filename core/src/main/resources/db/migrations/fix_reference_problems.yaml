@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 130126_fix_t_scheme_version_autoincrement
+      author: Denis Sizintsev
+      changes:
+        - dropNotNullConstraint:
+            tableName: t_scheme_version
+            columnName: scheme_id
+
+        - dropNotNullConstraint:
+            tableName: t_scheme_version
+            columnName: tag
+
+        - dropNotNullConstraint:
+            tableName: t_scheme_version
+            columnName: hash_sum
+
+        - addAutoIncrement:
+            tableName: t_scheme_version
+            columnName: id
+            columDataType: int
+            incrementBy: 1
+            startWith: 1
