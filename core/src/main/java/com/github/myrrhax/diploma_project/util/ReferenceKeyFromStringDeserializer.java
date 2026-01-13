@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.KeyDeserializer;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-
 @Slf4j
 public class ReferenceKeyFromStringDeserializer extends KeyDeserializer {
     @Override
