@@ -77,12 +77,20 @@ public class SchemeService {
         return schemaMapper.toDto(savedScheme);
     }
 
-    @Transactional
     public SchemeDTO getScheme(int schemeId) {
         VersionDTO currentSchemaVersion = currentVersionStateCacheStorage.getSchemaVersion(schemeId);
 
         return this.schemeRepository.findByIdLocking(schemeId)
                 .map(it -> schemaMapper.toDtoWithState(it, currentSchemaVersion))
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
+    }
+
+    public void deleteScheme(int schemeId) {
+        if (!this.schemeRepository.existsById(schemeId)) {
+            throw new SchemaNotFoundException(schemeId);
+        }
+
+        schemeRepository.deleteById(schemeId);
+        currentVersionStateCacheStorage.deleteFromCache(schemeId);
     }
 }

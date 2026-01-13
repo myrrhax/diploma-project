@@ -25,7 +25,7 @@ import java.util.concurrent.locks.Lock;
 public class CurrentVersionStateCacheStorage {
     private final SchemeRepository schemeRepository;
     private final SchemaMapper schemaMapper;
-    private JsonSchemaStateMapper schemaStateMapper;
+    private final JsonSchemaStateMapper schemaStateMapper;
     private final ConcurrentHashMap<Integer, VersionDTO> schemaStateCache = new ConcurrentHashMap<>();
     @Value("${app.cache.schema-ttl}")
     private Duration ttl = Duration.ofMinutes(15);
@@ -36,7 +36,7 @@ public class CurrentVersionStateCacheStorage {
             log.info("Loading schema version from database for scheme {}", id);
             VersionDTO dto = schemeRepository.findByIdLocking(schemeId)
                 .map(SchemeEntity::getCurrentVersion)
-                .map(schemaMapper::toDto)
+                .map(it -> schemaMapper.toDto(it, schemaStateMapper.schemaStateMetadata(it.getSchema())))
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
 
             dto.currentState().setLastModificationTime(Instant.now());
@@ -64,12 +64,17 @@ public class CurrentVersionStateCacheStorage {
                             }, () -> {
                                 throw new SchemaNotFoundException(id);
                             });
+                    schemeRepository.flush();
 
                     // Удаляем при не принудительном флаше
                     if (!force) {
                         deleteFromCache(id);
                     }
                 }
+            } catch (Exception e) {
+                log.error("Unable to flush state for scheme {}", id, e);
+
+                throw new RuntimeException(e);
             } finally {
                 if (lock != null) {
                     lock.unlock();
@@ -96,6 +101,10 @@ public class CurrentVersionStateCacheStorage {
                             flush(key, false);
                         }
                     }
+                } catch (Exception e) {
+                    log.error("Unable to evict schema version from database for scheme {}", key, e);
+
+                    throw new RuntimeException(e);
                 } finally {
                     if (locked) {
                         lock.unlock();
@@ -114,6 +123,7 @@ public class CurrentVersionStateCacheStorage {
                 lock = state.getLock();
                 lock.lock();
 
+                log.info("Deleting scheme info from cache for scheme {}", id);
                 schemaStateCache.remove(id);
             } finally {
                 if (lock != null) {

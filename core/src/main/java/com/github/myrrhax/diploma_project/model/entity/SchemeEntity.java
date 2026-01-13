@@ -34,7 +34,7 @@ public class SchemeEntity extends BaseEntity<Integer> {
     @JoinColumn(name = "creator_id")
     UserEntity creator;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "scheme", orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "scheme")
     Set<AuthorityEntity> userAuthorities;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
