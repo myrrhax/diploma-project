@@ -3,6 +3,8 @@ package com.github.myrrhax.diploma_project.model.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -21,6 +23,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@NamedEntityGraph(name = "withAuthorities", attributeNodes = { @NamedAttributeNode("authorities") })
 public class UserEntity extends BaseEntity<Long> {
 
     @Column(nullable = false, unique = true)

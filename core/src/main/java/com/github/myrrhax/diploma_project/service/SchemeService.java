@@ -2,10 +2,13 @@ package com.github.myrrhax.diploma_project.service;
 
 import com.github.myrrhax.diploma_project.mapper.SchemaMapper;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
+import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
 import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
+import com.github.myrrhax.diploma_project.model.enums.AuthorityType;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
+import com.github.myrrhax.diploma_project.repository.AuthorityRepository;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.TokenUser;
@@ -26,12 +29,13 @@ public class SchemeService {
     private final SchemaStateCacheStorageService schemaStateCacheStorageService;
     private final SchemeRepository schemeRepository;
     private final UserRepository userRepository;
+    private final AuthorityRepository authorityRepository;
     private final SchemaMapper schemaMapper;
 
     public SchemeDTO createScheme(String name, TokenUser tokenUser) {
         Long userId = tokenUser.getToken().userId();
         log.info("Processing create scheme request for user with id {}", userId);
-        UserEntity user = userRepository.findById(userId).get();
+        UserEntity user = userRepository.findByIdWithAuthorities(userId).get();
 
         if (schemeRepository.existsByNameAndCreator_Id(name, userId)) {
             throw new ApplicationException(
@@ -60,6 +64,11 @@ public class SchemeService {
         VersionEntity savedVersion = savedScheme.getCurrentVersion();
         log.info("Applying schema state metadata for scheme {}", savedScheme.getId());
         savedVersion.setSchema(new SchemaStateMetadata(savedVersion));
+
+        log.info("Grant user {} full access for created scheme {}", userId, savedScheme.getId());
+        AuthorityEntity authority = new AuthorityEntity(user, savedScheme, AuthorityType.ALL);
+        authorityRepository.save(authority);
+        log.info("Full access to scheme {} for user {} was granted", user,  savedScheme.getId());
 
         return schemaMapper.toDto(savedScheme);
     }
