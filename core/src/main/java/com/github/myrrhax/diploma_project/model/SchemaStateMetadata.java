@@ -20,7 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class SchemaStateMetadata {
     private int schemaId;
     private int versionId;
-    private String hash_sum;
+    private String hashSum;
     private boolean isWorkingCopy;
 
     private Map<String, TableMetadata> tables = new HashMap<>();
@@ -35,7 +35,7 @@ public class SchemaStateMetadata {
     public SchemaStateMetadata(VersionEntity versionEntity) {
         this.schemaId = versionEntity.getScheme().getId();
         this.versionId = versionEntity.getId();
-        this.hash_sum = versionEntity.getHashSum();
+        this.hashSum = versionEntity.getHashSum();
         this.isWorkingCopy = versionEntity.getIsWorkingCopy();
     }
 }

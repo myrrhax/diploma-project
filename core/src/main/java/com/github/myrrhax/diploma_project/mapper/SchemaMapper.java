@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.mapper;
 
+import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
 import com.github.myrrhax.diploma_project.web.dto.SchemeDTO;
@@ -11,7 +12,11 @@ import org.mapstruct.Mapping;
 public interface SchemaMapper {
     SchemeDTO toDto(SchemeEntity scheme);
 
-    @Mapping(target = "versionId", source = "id")
-    @Mapping(target = "currentState", source = "schema")
-    VersionDTO toDto(VersionEntity entity);
+    @Mapping(target = "currentVersion", source = "dto")
+    SchemeDTO toDtoWithState(SchemeEntity scheme, VersionDTO dto);
+
+    @Mapping(target = "versionId", source = "entity.id")
+    @Mapping(target = "schemeId", source = "entity.scheme.id")
+    @Mapping(target = "currentState", source = "state")
+    VersionDTO toDto(VersionEntity entity, SchemaStateMetadata state);
 }

@@ -2,14 +2,20 @@ package com.github.myrrhax.diploma_project.service;
 
 import com.github.myrrhax.diploma_project.mapper.SchemaMapper;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
+import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
 import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
+import com.github.myrrhax.diploma_project.model.enums.AuthorityType;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
+import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
+import com.github.myrrhax.diploma_project.repository.AuthorityRepository;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.TokenUser;
+import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
 import com.github.myrrhax.diploma_project.web.dto.SchemeDTO;
+import com.github.myrrhax.diploma_project.web.dto.VersionDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,10 +29,12 @@ import java.time.Instant;
 @Transactional
 @RequiredArgsConstructor
 public class SchemeService {
-    private final SchemaStateCacheStorageService schemaStateCacheStorageService;
+    private final CurrentVersionStateCacheStorage currentVersionStateCacheStorage;
     private final SchemeRepository schemeRepository;
     private final UserRepository userRepository;
+    private final AuthorityRepository authorityRepository;
     private final SchemaMapper schemaMapper;
+    private final JsonSchemaStateMapper schemaStateMapper;
 
     public SchemeDTO createScheme(String name, TokenUser tokenUser) {
         Long userId = tokenUser.getToken().userId();
@@ -59,8 +67,30 @@ public class SchemeService {
 
         VersionEntity savedVersion = savedScheme.getCurrentVersion();
         log.info("Applying schema state metadata for scheme {}", savedScheme.getId());
-        savedVersion.setSchema(new SchemaStateMetadata(savedVersion));
+        savedVersion.setSchema(schemaStateMapper.toJson(new SchemaStateMetadata(savedVersion)));
+
+        log.info("Grant user {} full access for created scheme {}", userId, savedScheme.getId());
+        AuthorityEntity authority = new AuthorityEntity(user, savedScheme, AuthorityType.ALL);
+        authorityRepository.save(authority);
+        log.info("Full access to scheme {} for user {} was granted", userId,  savedScheme.getId());
 
         return schemaMapper.toDto(savedScheme);
+    }
+
+    public SchemeDTO getScheme(int schemeId) {
+        VersionDTO currentSchemaVersion = currentVersionStateCacheStorage.getSchemaVersion(schemeId);
+
+        return this.schemeRepository.findByIdLocking(schemeId)
+                .map(it -> schemaMapper.toDtoWithState(it, currentSchemaVersion))
+                .orElseThrow(() -> new SchemaNotFoundException(schemeId));
+    }
+
+    public void deleteScheme(int schemeId) {
+        if (!this.schemeRepository.existsById(schemeId)) {
+            throw new SchemaNotFoundException(schemeId);
+        }
+
+        schemeRepository.deleteById(schemeId);
+        currentVersionStateCacheStorage.deleteFromCache(schemeId);
     }
 }

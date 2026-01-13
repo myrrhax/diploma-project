@@ -23,3 +23,5 @@ databaseChangeLog:
       file: classpath:db/migrations/drop_file_path.yaml
   - include:
       file: classpath:db/migrations/fix_reference_problems.yaml
+  - include:
+      file: classpath:db/migrations/drop_current_version_constraint.yaml

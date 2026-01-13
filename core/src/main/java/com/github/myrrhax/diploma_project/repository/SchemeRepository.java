@@ -9,13 +9,18 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 
 public interface SchemeRepository extends JpaRepository<SchemeEntity, Integer> {
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("""
+    String FIND_SCHEME_BY_ID_JPQL = """
         select se from SchemeEntity se
-                join fetch se.currentVersion ve
                 join fetch se.creator c
+                join fetch se.currentVersion
         where se.id = :id
-        """)
+        """;
+
+    @Query(value = FIND_SCHEME_BY_ID_JPQL)
+    Optional<SchemeEntity> findById(Integer id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query(FIND_SCHEME_BY_ID_JPQL)
     Optional<SchemeEntity> findByIdLocking(int id);
 
     boolean existsByNameAndCreator_Id(String name, Long creatorId);
