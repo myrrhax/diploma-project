@@ -58,7 +58,6 @@ public class SchemeService {
         version.setScheme(scheme);
         version.setIsInitial(true);
         version.setIsWorkingCopy(true);
-        version.setCreatedAt(Instant.now());
         scheme.setCurrentVersion(version);
 
         log.info("Saving schema with default version");
