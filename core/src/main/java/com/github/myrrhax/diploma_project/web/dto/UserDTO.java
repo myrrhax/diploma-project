@@ -1,7 +1,9 @@
 package com.github.myrrhax.diploma_project.web.dto;
 
+import java.util.UUID;
+
 public record UserDTO(
-        Long id,
+        UUID id,
         String email,
-        Boolean isConfirmed
+        boolean isConfirmed
 ) { }

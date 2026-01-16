@@ -1,9 +1,7 @@
 package com.github.myrrhax.diploma_project.model.entity;
 
-import com.github.myrrhax.diploma_project.model.enums.AuthorityType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,33 +11,43 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
-@Table(name = "t_authorities")
+@Table(name = "t_invitation")
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AuthorityEntity extends BaseEntity {
+public class InvitationEntity extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    UserEntity user;
+    @JoinColumn(name = "initiator_id")
+    UserEntity initiator;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "scheme_id", nullable = false)
+    @JoinColumn(name = "scheme_id")
     SchemeEntity scheme;
 
-    @Enumerated(EnumType.STRING)
-    AuthorityType type;
+    @Column(name = "is_confirmed")
+    boolean isConfirmed;
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "authorities")
+    String[] authorities;
+
+    @Column(name = "confirmed_at")
+    LocalDateTime confirmedAt;
 }

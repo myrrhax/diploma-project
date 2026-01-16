@@ -10,13 +10,11 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", imports = {UserMapper.class})
 public interface SchemaMapper {
-    SchemeDTO toDto(SchemeEntity scheme);
-
     @Mapping(target = "currentVersion", source = "dto")
-    SchemeDTO toDtoWithState(SchemeEntity scheme, VersionDTO dto);
+    SchemeDTO toSchemeDTO(SchemeEntity scheme, VersionDTO dto);
 
     @Mapping(target = "versionId", source = "entity.id")
     @Mapping(target = "schemeId", source = "entity.scheme.id")
     @Mapping(target = "currentState", source = "state")
-    VersionDTO toDto(VersionEntity entity, SchemaStateMetadata state);
+    VersionDTO toVersionDTO(VersionEntity entity, SchemaStateMetadata state);
 }

@@ -1,16 +1,15 @@
 package com.github.myrrhax.diploma_project.service;
 
 import com.github.myrrhax.diploma_project.mapper.UserMapper;
-import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.model.Tokens;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.JwsTokenProvider;
 import com.github.myrrhax.diploma_project.security.JwtProperties;
 import com.github.myrrhax.diploma_project.security.Token;
 import com.github.myrrhax.diploma_project.security.TokenFactory;
 import com.github.myrrhax.diploma_project.web.dto.AuthResultDTO;
-import com.github.myrrhax.diploma_project.web.dto.UserDTO;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -29,9 +28,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -80,14 +78,11 @@ public class AuthService implements UserDetailsService {
                     HttpStatus.CONFLICT
             );
         }
-        var user = new UserEntity(
-                email,
-                passwordEncoder.encode(password),
-                false,
-                Collections.emptySet(),
-                Collections.emptySet()
-        );
-        user.setCreatedAt(Instant.now());
+        var user = UserEntity.builder()
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .isConfirmed(false)
+                .build();
 
         log.info("Registering user with email: {}", email);
         UserEntity savedUser = userRepository.save(user);
@@ -103,17 +98,8 @@ public class AuthService implements UserDetailsService {
         );
     }
 
-    @Transactional(readOnly = true)
-    public UserDTO getUserById(Long id) {
-        return userRepository.findById(id)
-                .map(userMapper::toDto)
-                .orElseThrow(() -> new ApplicationException(
-                        "User with id %d is not found".formatted(id),
-                        HttpStatus.NOT_FOUND
-                ));
-    }
-
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByEmail(username)
                 .map(it -> User.builder()
@@ -124,7 +110,7 @@ public class AuthService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException(username));
     }
 
-    private Tokens prepareTokens(String email, Long id) {
+    private Tokens prepareTokens(String email, UUID id) {
         log.info("Encoding token pair for user: {}", id);
 
         Token refreshToken = tokenFactory.refreshToken(id, email, List.of("ROLE_USER"));
@@ -136,7 +122,7 @@ public class AuthService implements UserDetailsService {
         return new Tokens(accessToken, signedAccess, refreshToken, signedRefresh);
     }
 
-    private void setRefreshCookie(HttpServletResponse servletResponse, String token, Long userId) {
+    private void setRefreshCookie(HttpServletResponse servletResponse, String token, UUID userId) {
         log.info("Setting refresh cookie for user {}", userId);
 
         Cookie cookie = new Cookie(refreshCookieName, token);

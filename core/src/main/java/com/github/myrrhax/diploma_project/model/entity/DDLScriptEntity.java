@@ -6,6 +6,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
@@ -18,6 +21,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "t_ddl_scripts")
 @Getter
@@ -26,7 +31,11 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public class DDLScriptEntity extends BaseEntity<Integer> {
+public class DDLScriptEntity extends BaseEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    UUID id;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "v_id")
     VersionEntity version;
