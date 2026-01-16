@@ -51,10 +51,9 @@ public class CurrentVersionStateCacheStorage {
         if (state != null) {
             Lock lock = null;
             try {
-                if (state != null) {
-                    lock = state.getLock();
-                    lock.lock();
-
+                lock = state.getLock();
+                lock.lock();
+                if (schemaStateCache.containsKey(id)) {
                     log.info("Flushing state for scheme {}", id);
                     schemeRepository.findByIdLocking(id)
                             .ifPresentOrElse(it -> {
