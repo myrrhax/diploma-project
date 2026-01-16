@@ -2,14 +2,12 @@ package com.github.myrrhax.diploma_project.service;
 
 import com.github.myrrhax.diploma_project.mapper.SchemaMapper;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
-import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
 import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
 import com.github.myrrhax.diploma_project.model.enums.AuthorityType;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
-import com.github.myrrhax.diploma_project.repository.AuthorityRepository;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.TokenUser;
@@ -22,7 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -32,7 +30,7 @@ public class SchemeService {
     private final CurrentVersionStateCacheStorage currentVersionStateCacheStorage;
     private final SchemeRepository schemeRepository;
     private final UserRepository userRepository;
-    private final AuthorityRepository authorityRepository;
+    private final AuthorityService authorityService;
     private final SchemaMapper schemaMapper;
     private final JsonSchemaStateMapper schemaStateMapper;
 
@@ -69,8 +67,7 @@ public class SchemeService {
         savedVersion.setSchema(schemaStateMapper.toJson(new SchemaStateMetadata(savedVersion)));
 
         log.info("Grant user {} full access for created scheme {}", userId, savedScheme.getId());
-        AuthorityEntity authority = new AuthorityEntity(user, savedScheme, AuthorityType.ALL);
-        authorityRepository.save(authority);
+        authorityService.grantUser(userId, savedScheme.getId(), List.of(AuthorityType.ALL));
         log.info("Full access to scheme {} for user {} was granted", userId,  savedScheme.getId());
 
         return schemaMapper.toDto(savedScheme);
