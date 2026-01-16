@@ -57,6 +57,24 @@ public class AuthorityService {
         authorityRepository.saveAll(authorities);
     }
 
+    public void discardUser(long userId, int schemeId, Set<AuthorityType> types) {
+        if (types.contains(AuthorityType.READ_SCHEME)) {
+            throw new ApplicationException("Can't discard READ_SCHEME authority from user, kick user instead",
+                    HttpStatus.BAD_REQUEST);
+        }
+        if (!schemeRepository.existsById(schemeId)) {
+            throw new SchemaNotFoundException(schemeId);
+        }
+        log.info("Removing authorities {} for user {} and scheme {}", types, userId, schemeId);
+
+        Set<AuthorityEntity> authorities = authorityRepository.findAllAuthoritiesForUserAndScheme(userId, schemeId);
+        authorityRepository.deleteAll(
+            authorities.stream()
+                .filter(entity -> types.contains(entity.getType()))
+                .collect(Collectors.toList())
+        );
+    }
+
     @Transactional(readOnly = true)
     public boolean hasAccess(long userId, int schemeId) {
         return hasAuthority(userId, schemeId, AuthorityType.READ_SCHEME.name());

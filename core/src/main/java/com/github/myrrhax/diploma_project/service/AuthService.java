@@ -103,17 +103,8 @@ public class AuthService implements UserDetailsService {
         );
     }
 
-    @Transactional(readOnly = true)
-    public UserDTO getUserById(Long id) {
-        return userRepository.findById(id)
-                .map(userMapper::toDto)
-                .orElseThrow(() -> new ApplicationException(
-                        "User with id %d is not found".formatted(id),
-                        HttpStatus.NOT_FOUND
-                ));
-    }
-
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByEmail(username)
                 .map(it -> User.builder()

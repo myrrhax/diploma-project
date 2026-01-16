@@ -46,11 +46,4 @@ public class AuthController {
                     authService.register(dto.email(), dto.password(), response)
                 );
     }
-
-    @GetMapping("/whoami")
-    public ResponseEntity<UserDTO> whoami(@AuthenticationPrincipal TokenUser tokenUser) {
-        return ResponseEntity.ok(
-                authService.getUserById(tokenUser.getToken().userId())
-        );
-    }
 }
