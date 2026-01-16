@@ -33,7 +33,7 @@ public class SchemaController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("@userAuthorityChecker.hasAccess(#tokenUser.token.userId, #id)")
+    @PreAuthorize("@authorityService.hasAccess(#tokenUser.token.userId, #id)")
     public ResponseEntity<SchemeDTO> getScheme(@PathVariable int id,
                                                @AuthenticationPrincipal TokenUser tokenUser) {
         return ResponseEntity
@@ -41,7 +41,7 @@ public class SchemaController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("@userAuthorityChecker.hasAuthority(#tokenUser.token.userId, #id, 'ALL')")
+    @PreAuthorize("@authorityService.hasAuthority(#tokenUser.token.userId, #id, 'ALL')")
     public ResponseEntity<Void> deleteScheme(@PathVariable int id,
                                              @AuthenticationPrincipal TokenUser tokenUser) {
         this.schemeService.deleteScheme(id);
