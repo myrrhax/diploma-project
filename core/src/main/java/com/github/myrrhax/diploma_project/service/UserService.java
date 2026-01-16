@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Slf4j
 @Service
 @Transactional
@@ -19,11 +21,11 @@ public class UserService {
     private final UserMapper userMapper;
 
     @Transactional(readOnly = true)
-    public UserDTO getUserById(Long id) {
+    public UserDTO getUserById(UUID id) {
         return userRepository.findById(id)
                 .map(userMapper::toDto)
                 .orElseThrow(() -> new ApplicationException(
-                        "User with id %d is not found".formatted(id),
+                        "User with id %s is not found".formatted(id.toString()),
                         HttpStatus.NOT_FOUND
                 ));
     }

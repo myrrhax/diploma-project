@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -18,8 +19,8 @@ import java.util.concurrent.locks.ReentrantLock;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SchemaStateMetadata {
-    private int schemaId;
-    private int versionId;
+    private UUID schemaId;
+    private long versionId;
     private String hashSum;
     private boolean isWorkingCopy;
 

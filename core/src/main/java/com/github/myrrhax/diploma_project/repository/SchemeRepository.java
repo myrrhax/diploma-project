@@ -7,8 +7,9 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
+import java.util.UUID;
 
-public interface SchemeRepository extends JpaRepository<SchemeEntity, Integer> {
+public interface SchemeRepository extends JpaRepository<SchemeEntity, UUID> {
     String FIND_SCHEME_BY_ID_JPQL = """
         select se from SchemeEntity se
                 join fetch se.creator c
@@ -17,11 +18,11 @@ public interface SchemeRepository extends JpaRepository<SchemeEntity, Integer> {
         """;
 
     @Query(value = FIND_SCHEME_BY_ID_JPQL)
-    Optional<SchemeEntity> findById(Integer id);
+    Optional<SchemeEntity> findById(UUID id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query(FIND_SCHEME_BY_ID_JPQL)
-    Optional<SchemeEntity> findByIdLocking(int id);
+    Optional<SchemeEntity> findByIdLocking(UUID id);
 
-    boolean existsByNameAndCreator_Id(String name, Long creatorId);
+    boolean existsByNameAndCreator_Id(String name, UUID creatorId);
 }

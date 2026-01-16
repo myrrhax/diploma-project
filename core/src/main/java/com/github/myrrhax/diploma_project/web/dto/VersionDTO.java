@@ -2,11 +2,13 @@ package com.github.myrrhax.diploma_project.web.dto;
 
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 
+import java.util.UUID;
+
 public record VersionDTO(
-        int schemeId,
-        int versionId,
+        UUID schemeId,
+        long versionId,
         String tag,
         SchemaStateMetadata currentState,
-        Boolean isInitial,
-        Boolean isWorkingCopy
+        boolean isInitial,
+        boolean isWorkingCopy
 ) { }

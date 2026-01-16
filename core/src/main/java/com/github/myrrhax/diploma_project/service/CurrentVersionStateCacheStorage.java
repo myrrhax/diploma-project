@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 
@@ -26,17 +27,17 @@ public class CurrentVersionStateCacheStorage {
     private final SchemeRepository schemeRepository;
     private final SchemaMapper schemaMapper;
     private final JsonSchemaStateMapper schemaStateMapper;
-    private final ConcurrentHashMap<Integer, VersionDTO> schemaStateCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, VersionDTO> schemaStateCache = new ConcurrentHashMap<>();
     @Value("${app.cache.schema-ttl}")
     private Duration ttl = Duration.ofMinutes(15);
 
     @Transactional
-    public VersionDTO getSchemaVersion(Integer id) {
+    public VersionDTO getSchemaVersion(UUID id) {
         return schemaStateCache.computeIfAbsent(id, (schemeId) -> {
             log.info("Loading schema version from database for scheme {}", id);
             VersionDTO dto = schemeRepository.findByIdLocking(schemeId)
                 .map(SchemeEntity::getCurrentVersion)
-                .map(it -> schemaMapper.toDto(it, schemaStateMapper.schemaStateMetadata(it.getSchema())))
+                .map(it -> schemaMapper.toVersionDTO(it, schemaStateMapper.schemaStateMetadata(it.getSchema())))
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
 
             dto.currentState().setLastModificationTime(Instant.now());
@@ -45,7 +46,7 @@ public class CurrentVersionStateCacheStorage {
     }
 
     @Transactional
-    public void flush(int id, boolean force) {
+    public void flush(UUID id, boolean force) {
         VersionDTO version = schemaStateCache.get(id);
         SchemaStateMetadata state = version.currentState();
         if (state != null) {
@@ -85,7 +86,7 @@ public class CurrentVersionStateCacheStorage {
 
     @Scheduled(cron = "*/15 * * * *")
     public void evictCache() {
-        for (int key : schemaStateCache.keySet()) {
+        for (UUID key : schemaStateCache.keySet()) {
             VersionDTO version = schemaStateCache.get(key);
             SchemaStateMetadata state = version.currentState();
             if (state != null) {
@@ -113,7 +114,7 @@ public class CurrentVersionStateCacheStorage {
         }
     }
 
-    public void deleteFromCache(int id) {
+    public void deleteFromCache(UUID id) {
         VersionDTO version = schemaStateCache.get(id);
         SchemaStateMetadata state = version.currentState();
         if (state != null) {

@@ -46,7 +46,7 @@ public class TokenFactory {
         );
     }
 
-    public Token refreshToken(Long userId, String subject, List<String> authorities) {
+    public Token refreshToken(UUID userId, String subject, List<String> authorities) {
         var now = Instant.now();
         List<String> refreshAuthorities = new ArrayList<>();
 
@@ -69,7 +69,7 @@ public class TokenFactory {
     public Token fromClaims(Claims claims) {
         return new Token(
                 UUID.fromString(claims.getId()),
-                claims.get("userId", Long.class),
+                UUID.fromString(claims.get("userId", String.class)),
                 claims.getSubject(),
                 (List<String>) claims.get("authorities", List.class),
                 claims.getIssuedAt().toInstant(),

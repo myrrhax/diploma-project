@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/schema")
 @RequiredArgsConstructor
@@ -40,7 +42,7 @@ public class SchemaController {
 
     @GetMapping("/{id}")
     @PreAuthorize("@authorityService.hasAccess(#tokenUser.token.userId, #id)")
-    public ResponseEntity<SchemeDTO> getScheme(@PathVariable int id,
+    public ResponseEntity<SchemeDTO> getScheme(@PathVariable UUID id,
                                                @AuthenticationPrincipal TokenUser tokenUser) {
         return ResponseEntity
                 .ok(this.schemeService.getScheme(id));
@@ -48,7 +50,7 @@ public class SchemaController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@authorityService.hasAuthority(#tokenUser.token.userId, #id, 'ALL')")
-    public ResponseEntity<Void> deleteScheme(@PathVariable int id,
+    public ResponseEntity<Void> deleteScheme(@PathVariable UUID id,
                                              @AuthenticationPrincipal TokenUser tokenUser) {
         this.schemeService.deleteScheme(id);
 

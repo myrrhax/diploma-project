@@ -5,7 +5,6 @@ import com.github.myrrhax.diploma_project.model.UserAuthority;
 import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
 import com.github.myrrhax.diploma_project.model.enums.AuthorityType;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
-import com.github.myrrhax.diploma_project.model.exception.ForbiddenException;
 import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
 import com.github.myrrhax.diploma_project.repository.AuthorityRepository;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
@@ -19,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,18 +32,15 @@ public class AuthorityService {
     private final AuthorityMapper authorityMapper;
 
     @Transactional(readOnly = true)
-    public Set<UserAuthority> getAuthorities(long userId, int schemeId) {
+    public Set<UserAuthority> getAuthorities(UUID userId, UUID schemeId) {
         var authoritiesFromDb = authorityRepository.findAllAuthoritiesForUserAndScheme(userId, schemeId);
-        if (authoritiesFromDb.isEmpty()) {
-            throw new ForbiddenException(userId, schemeId);
-        }
 
         return authoritiesFromDb.stream()
                 .map(authorityMapper::toAuthority)
                 .collect(Collectors.toSet());
     }
 
-    public void grantUser(long userId, int schemeId, List<AuthorityType> types) {
+    public void grantUser(UUID userId, UUID schemeId, List<AuthorityType> types) {
         var scheme = schemeRepository.findById(schemeId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
         var user = userRepository.findById(userId).get();
@@ -51,13 +48,17 @@ public class AuthorityService {
 
         List<AuthorityEntity> authorities = new LinkedList<>();
         types.stream()
-                .map(type -> new AuthorityEntity(user, scheme, type))
+                .map(type -> AuthorityEntity.builder()
+                        .user(user)
+                        .scheme(scheme)
+                        .type(type)
+                        .build())
                 .forEach(authorities::add);
 
         authorityRepository.saveAll(authorities);
     }
 
-    public void discardUser(long userId, int schemeId, Set<AuthorityType> types) {
+    public void discardUser(UUID userId, UUID schemeId, Set<AuthorityType> types) {
         if (types.contains(AuthorityType.READ_SCHEME)) {
             throw new ApplicationException("Can't discard READ_SCHEME authority from user, kick user instead",
                     HttpStatus.BAD_REQUEST);
@@ -76,12 +77,12 @@ public class AuthorityService {
     }
 
     @Transactional(readOnly = true)
-    public boolean hasAccess(long userId, int schemeId) {
+    public boolean hasAccess(UUID userId, UUID schemeId) {
         return hasAuthority(userId, schemeId, AuthorityType.READ_SCHEME.name());
     }
 
     @Transactional(readOnly = true)
-    public boolean hasAuthority(long userId, int schemeId, String authority) {
+    public boolean hasAuthority(UUID userId, UUID schemeId, String authority) {
         log.info("Checking user {} access to scheme {} with authority {}", userId, schemeId, authority);
         try {
             AuthorityType type = AuthorityType.valueOf(authority.toUpperCase());

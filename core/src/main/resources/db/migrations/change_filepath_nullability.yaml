@@ -1,8 +1,0 @@
-databaseChangeLog:
-  - changeSet:
-      id: 100126_change_filepath_nullability
-      author: Denis Sizintsev
-      changes:
-        - dropNotNullConstraint:
-            tableName: t_scheme_version
-            columnName: file_path

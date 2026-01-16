@@ -1,8 +1,0 @@
-databaseChangeLog:
-  - changeSet:
-      id: 120126_drop_file_path_column.yaml
-      author: Denis Sizintsev
-      changes:
-        - dropColumn:
-            tableName: t_scheme_version
-            columnName: file_path
