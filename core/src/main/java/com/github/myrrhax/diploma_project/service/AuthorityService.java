@@ -41,6 +41,10 @@ public class AuthorityService {
     }
 
     public void grantUser(UUID userId, UUID schemeId, List<AuthorityType> types) {
+        if (getAuthorities(userId, schemeId).isEmpty()) {
+            throw new ApplicationException("Can't grant user authorities, invite user instead", HttpStatus.BAD_REQUEST);
+        }
+
         var scheme = schemeRepository.findById(schemeId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
         var user = userRepository.findById(userId).get();
