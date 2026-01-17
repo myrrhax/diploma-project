@@ -19,3 +19,6 @@ spring:
 app:
   rabbitmq:
     send-mail-queue: mails
+
+  concurrent:
+    email-executor-thread-count: 5

@@ -1,6 +1,6 @@
 package com.github.myrrhax.shared.payload;
 
-import com.github.myrrhax.diploma_project.model.enums.MailType;
+import com.github.myrrhax.shared.model.MailType;
 
 public record SchemeInvitationMailPayload(
     String schemeName,
