@@ -25,4 +25,14 @@ public interface SchemeRepository extends JpaRepository<SchemeEntity, UUID> {
     Optional<SchemeEntity> findByIdLocking(UUID id);
 
     boolean existsByNameAndCreator_Id(String name, UUID creatorId);
+
+    @Query("""
+            select count(se) > 0
+            from SchemeEntity se
+            join se.userAuthorities ua
+            join ua.user u
+            where se.id = :schemeId
+                and u.email = :email
+    """)
+    boolean containsUserWithEmailInScheme(String email, UUID schemeId);
 }

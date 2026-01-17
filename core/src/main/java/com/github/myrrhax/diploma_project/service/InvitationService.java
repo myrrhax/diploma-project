@@ -5,13 +5,17 @@ import com.github.myrrhax.diploma_project.model.entity.InvitationEntity;
 import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.enums.AuthorityType;
+import com.github.myrrhax.diploma_project.model.enums.MailType;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
+import com.github.myrrhax.diploma_project.model.payload.SchemeInvitationMailPayload;
 import com.github.myrrhax.diploma_project.repository.InvitationRepository;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,21 +35,37 @@ public class InvitationService {
     public void sendInvitation(UUID sender, UUID schemeId, String email, List<AuthorityType> authorities) {
         SchemeEntity scheme = schemeRepository.findById(schemeId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
+        if (schemeRepository.containsUserWithEmailInScheme(email, schemeId)) {
+            throw new ApplicationException("User already participating in scheme " + schemeId, HttpStatus.BAD_REQUEST);
+        }
         UserEntity initiator = userRepository.findById(sender).get();
-        publisher.publishEvent(new SendMailEvent(this,
-                scheme,
-                initiator,
-                email,
-                buildAuthorities(authorities)));
-    }
+        String[] parsedAuthorities = buildAuthorities(authorities);
 
-    public void saveInvitation(InvitationEntity invitationEntity) {
-        invitationRepository.save(invitationEntity);
+        InvitationEntity invitation = InvitationEntity.builder()
+                .scheme(scheme)
+                .initiator(initiator)
+                .authorities(parsedAuthorities)
+                .build();
+        invitationRepository.saveAndFlush(invitation);
+
+        publisher.publishEvent(new SendMailEvent<>(this,
+                email,
+                MailType.SCHEME_INVITATION,
+                new SchemeInvitationMailPayload(
+                        scheme.getName(),
+                        initiator.getEmail(),
+                        parsedAuthorities,
+                        "")
+        ));
     }
 
     private String[] buildAuthorities(List<AuthorityType> authorities) {
         return (String[]) authorities.stream()
                 .map(AuthorityType::name)
                 .toArray();
+    }
+
+    private String buildInvitationUrl() {
+        return "";
     }
 }
