@@ -1,7 +1,7 @@
 package com.github.myrrhax.diploma_project.event.listener;
 
 import com.github.myrrhax.diploma_project.event.SendMailEvent;
-import com.github.myrrhax.diploma_project.model.dto.SendMailDto;
+import com.github.myrrhax.shared.model.SendMailDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

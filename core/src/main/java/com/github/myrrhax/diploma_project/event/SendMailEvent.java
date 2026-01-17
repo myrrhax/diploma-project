@@ -1,7 +1,7 @@
 package com.github.myrrhax.diploma_project.event;
 
-import com.github.myrrhax.diploma_project.model.enums.MailType;
-import com.github.myrrhax.diploma_project.model.payload.MailPayload;
+import com.github.myrrhax.shared.model.MailType;
+import com.github.myrrhax.shared.payload.MailPayload;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

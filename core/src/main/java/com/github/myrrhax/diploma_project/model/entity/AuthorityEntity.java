@@ -1,6 +1,6 @@
 package com.github.myrrhax.diploma_project.model.entity;
 
-import com.github.myrrhax.diploma_project.model.enums.AuthorityType;
+import com.github.myrrhax.shared.model.AuthorityType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

@@ -1,6 +1,6 @@
 package com.github.myrrhax.diploma_project.model.dto;
 
-import com.github.myrrhax.diploma_project.model.enums.AuthorityType;
+import com.github.myrrhax.shared.model.AuthorityType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -20,5 +20,4 @@ public record InviteUserDTO(
         @NotNull
         @NotEmpty
         List<AuthorityType> authorities
-) {
-}
+) { }

@@ -1,4 +1,4 @@
-package com.github.myrrhax.diploma_project.model.payload;
+package com.github.myrrhax.shared.payload;
 
 import com.github.myrrhax.diploma_project.model.enums.MailType;
 

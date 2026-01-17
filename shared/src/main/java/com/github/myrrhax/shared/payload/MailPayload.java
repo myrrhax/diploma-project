@@ -1,8 +1,8 @@
-package com.github.myrrhax.diploma_project.model.payload;
+package com.github.myrrhax.shared.payload;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.github.myrrhax.diploma_project.model.enums.MailType;
+import com.github.myrrhax.shared.model.MailType;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({

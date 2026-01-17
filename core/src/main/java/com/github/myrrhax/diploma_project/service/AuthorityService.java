@@ -3,7 +3,6 @@ package com.github.myrrhax.diploma_project.service;
 import com.github.myrrhax.diploma_project.mapper.AuthorityMapper;
 import com.github.myrrhax.diploma_project.model.UserAuthority;
 import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
-import com.github.myrrhax.diploma_project.model.enums.AuthorityType;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
 import com.github.myrrhax.diploma_project.repository.AuthorityRepository;
