@@ -33,6 +33,7 @@ public class InvitationService {
     private final ApplicationEventPublisher publisher;
 
     public void sendInvitation(UUID sender, UUID schemeId, String email, List<AuthorityType> authorities) {
+        log.info("Sending invitation for user {} and scheme {} from user {}", email, schemeId, sender);
         SchemeEntity scheme = schemeRepository.findById(schemeId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
         if (schemeRepository.containsUserWithEmailInScheme(email, schemeId)) {
@@ -40,6 +41,7 @@ public class InvitationService {
         }
         UserEntity initiator = userRepository.findById(sender).get();
         String[] parsedAuthorities = buildAuthorities(authorities);
+        log.info("Applying authorities [{}]", String.join(",", parsedAuthorities));
 
         InvitationEntity invitation = InvitationEntity.builder()
                 .scheme(scheme)
@@ -47,6 +49,7 @@ public class InvitationService {
                 .authorities(parsedAuthorities)
                 .build();
         invitationRepository.saveAndFlush(invitation);
+        log.info("Invitation {} was saved in database", invitation.getId());
 
         publisher.publishEvent(new SendMailEvent<>(this,
                 email,
@@ -60,9 +63,9 @@ public class InvitationService {
     }
 
     private String[] buildAuthorities(List<AuthorityType> authorities) {
-        return (String[]) authorities.stream()
+        return authorities.stream()
                 .map(AuthorityType::name)
-                .toArray();
+                .toArray(String[]::new);
     }
 
     private String buildInvitationUrl() {

@@ -12,6 +12,19 @@ services:
     volumes:
       - pg_db:/var/lib/postgresql
 
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:management
+    hostname: rabbitmq
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+
   core:
     container_name: core
     build:
@@ -33,3 +46,4 @@ networks:
 
 volumes:
   pg_db:
+  rabbitmq:
