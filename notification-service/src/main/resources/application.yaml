@@ -9,6 +9,8 @@ spring:
         smtp:
           auth: true
           starttls.enable: true
+        ssl:
+          trust: smtp.gmail.com
 
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:localhost}
@@ -19,6 +21,9 @@ spring:
 app:
   rabbitmq:
     send-mail-queue: mails
+
+  mail:
+    schema-invite-subject: Приглашение для кооперативной разработки
 
   concurrent:
     email-executor-thread-count: 5

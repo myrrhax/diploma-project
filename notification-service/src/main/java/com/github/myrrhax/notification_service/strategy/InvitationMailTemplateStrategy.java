@@ -4,6 +4,7 @@ import com.github.myrrhax.notification_service.utils.MailMessageBuilderUtils;
 import com.github.myrrhax.shared.model.MailType;
 import com.github.myrrhax.shared.payload.MailPayload;
 import com.github.myrrhax.shared.payload.SchemeInvitationMailPayload;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -59,6 +60,9 @@ public class InvitationMailTemplateStrategy implements MailTemplateStrategy {
         </html>
         """;
 
+    @Value("${app.mail.schema-invite-subject}")
+    private String inviteSubject;
+
     @Override
     public MailType getSupportedType() {
         return MailType.SCHEME_INVITATION;
@@ -77,5 +81,10 @@ public class InvitationMailTemplateStrategy implements MailTemplateStrategy {
         }
 
         throw new RuntimeException("Unsupported payload type");
+    }
+
+    @Override
+    public String getSubject() {
+        return inviteSubject;
     }
 }

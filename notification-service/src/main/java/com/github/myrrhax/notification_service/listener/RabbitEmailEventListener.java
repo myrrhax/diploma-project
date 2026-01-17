@@ -4,17 +4,18 @@ import com.github.myrrhax.notification_service.strategy.MailTemplateStrategy;
 import com.github.myrrhax.shared.model.MailType;
 import com.github.myrrhax.shared.model.SendMailDto;
 import jakarta.annotation.PostConstruct;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -28,14 +29,31 @@ public class RabbitEmailEventListener {
     private final List<MailTemplateStrategy> mailTemplateStrategies;
     private Map<MailType, MailTemplateStrategy> strategies;
 
+    @Value("${spring.mail.username}")
+    private String fromUser;
+
     @Async("emailTaskExecutor")
     @RabbitListener(queues = {"${app.rabbitmq.send-mail-queue}"})
     public void processEmail(@Payload SendMailDto dto) {
         log.info("Processing new email update from queue: {}", dto);
         MailTemplateStrategy messageStrategy = strategies.get(MailType.SCHEME_INVITATION);
         String message = messageStrategy.buildMessage(dto.to(), dto.payload());
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setFrom("");
+        MimeMessage mailMessage = mailSender.createMimeMessage();
+        try {
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mailMessage, true, "UTF-8");
+            messageHelper.setFrom(fromUser);
+            messageHelper.setTo(dto.to());
+            messageHelper.setSubject(messageStrategy.getSubject());
+            messageHelper.setText(message, true);
+            messageHelper.setReplyTo("no-reply@myrrermvdev.space");
+
+            log.info("Sending new email...");
+            mailSender.send(mailMessage);
+            log.info("Email was sent successfully!");
+        } catch (MessagingException e) {
+            log.error("Unable to send message", e);
+            throw new RuntimeException(e);
+        }
     }
 
     @PostConstruct

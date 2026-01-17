@@ -13,6 +13,7 @@ import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
 import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
+import com.github.myrrhax.shared.model.AuthorityType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

@@ -12,6 +12,7 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":shared"))
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.springframework.boot:spring-boot-starter-mail")
 
