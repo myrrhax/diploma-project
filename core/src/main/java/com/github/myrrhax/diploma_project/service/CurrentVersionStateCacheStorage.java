@@ -6,7 +6,7 @@ import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
-import com.github.myrrhax.diploma_project.web.dto.VersionDTO;
+import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

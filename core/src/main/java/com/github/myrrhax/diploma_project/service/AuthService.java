@@ -9,7 +9,7 @@ import com.github.myrrhax.diploma_project.security.JwsTokenProvider;
 import com.github.myrrhax.diploma_project.security.JwtProperties;
 import com.github.myrrhax.diploma_project.security.Token;
 import com.github.myrrhax.diploma_project.security.TokenFactory;
-import com.github.myrrhax.diploma_project.web.dto.AuthResultDTO;
+import com.github.myrrhax.diploma_project.model.dto.AuthResultDTO;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

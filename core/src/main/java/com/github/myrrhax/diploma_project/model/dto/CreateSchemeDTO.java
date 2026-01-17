@@ -1,4 +1,4 @@
-package com.github.myrrhax.diploma_project.web.dto;
+package com.github.myrrhax.diploma_project.model.dto;
 
 import jakarta.validation.constraints.NotEmpty;
 

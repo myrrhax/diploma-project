@@ -1,8 +1,8 @@
 package com.github.myrrhax.diploma_project.web;
 
 import com.github.myrrhax.diploma_project.service.AuthService;
-import com.github.myrrhax.diploma_project.web.dto.AuthRequestDTO;
-import com.github.myrrhax.diploma_project.web.dto.AuthResultDTO;
+import com.github.myrrhax.diploma_project.model.dto.AuthRequestDTO;
+import com.github.myrrhax.diploma_project.model.dto.AuthResultDTO;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

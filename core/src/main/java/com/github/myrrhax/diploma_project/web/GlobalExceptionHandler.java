@@ -1,7 +1,7 @@
 package com.github.myrrhax.diploma_project.web;
 
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
-import com.github.myrrhax.diploma_project.web.dto.ErrorResponseDTO;
+import com.github.myrrhax.diploma_project.model.dto.ErrorResponseDTO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
