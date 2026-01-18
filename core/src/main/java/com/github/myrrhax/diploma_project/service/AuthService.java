@@ -6,6 +6,7 @@ import com.github.myrrhax.diploma_project.model.Tokens;
 import com.github.myrrhax.diploma_project.model.dto.AuthResultDTO;
 import com.github.myrrhax.diploma_project.model.entity.ConfirmationEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
+import com.github.myrrhax.diploma_project.model.enums.JwtRole;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.JwsTokenProvider;
@@ -87,15 +88,21 @@ public class AuthService implements UserDetailsService {
             sendConfirmationEvent(user, code);
         }
 
-        Tokens signedTokens = prepareTokens(email, user.getId());
-        setRefreshCookie(response, signedTokens.signedRefreshToken(), user.getId());
+        String authority = user.getIsConfirmed()
+                ? JwtRole.ROLE_USER.name()
+                : JwtRole.ROLE_PRE_VERIFIED.name();
+        Tokens signedTokens = prepareTokens(email, user.getId(), List.of(authority));
+
+        if (user.getIsConfirmed()) {
+            setRefreshCookie(response, signedTokens.signedRefreshToken(), user.getId());
+        }
 
         return new AuthResultDTO(signedTokens.signedAccessToken(),
                 signedTokens.accessToken().expiresAt(),
                 userMapper.toDto(user));
     }
 
-    public AuthResultDTO register(String email, String password, HttpServletResponse response) {
+    public AuthResultDTO register(String email, String password) {
         if (userRepository.existsByEmail(email)) {
             throw new ApplicationException(
                     "User with email %s already exists".formatted(email),
@@ -123,9 +130,7 @@ public class AuthService implements UserDetailsService {
 
         log.info("User with id: {} was registered, sending confirmation code", savedUser.getId());
         sendConfirmationEvent(user, code);
-
-        Tokens signedTokens = prepareTokens(email, savedUser.getId());
-        setRefreshCookie(response, signedTokens.signedAccessToken(), savedUser.getId());
+        Tokens signedTokens = prepareTokens(email, savedUser.getId(), List.of(JwtRole.ROLE_PRE_VERIFIED.name()));
 
         return new AuthResultDTO(
                 signedTokens.signedAccessToken(),
@@ -134,7 +139,8 @@ public class AuthService implements UserDetailsService {
         );
     }
 
-    public void confirmEmail(String code, UUID userId) {
+    public AuthResultDTO confirmEmail(String code, UUID userId, HttpServletResponse response) {
+        log.info("Trying to confirm email for user: {}", userId);
         UserEntity user = userRepository.findById(userId).get();
         if (user.getIsConfirmed()) {
             throw new ApplicationException("Account is already confirmed", HttpStatus.BAD_REQUEST);
@@ -144,7 +150,17 @@ public class AuthService implements UserDetailsService {
             throw new ApplicationException("Invalid confirmation code", HttpStatus.BAD_REQUEST);
         }
         user.setIsConfirmed(true);
-        userRepository.save(user);
+        userRepository.saveAndFlush(user);
+        log.info("Confirmation code was updated for user {}", user.getId());
+
+        Tokens tokens = prepareTokens(user.getEmail(), user.getId(), List.of(JwtRole.ROLE_USER.name()));
+        setRefreshCookie(response, tokens.signedRefreshToken(), user.getId());
+
+        return new AuthResultDTO(
+                tokens.signedAccessToken(),
+                tokens.accessToken().expiresAt(),
+                userMapper.toDto(user)
+        );
     }
 
     @Override
@@ -172,10 +188,10 @@ public class AuthService implements UserDetailsService {
         return String.format("%06d", new Random().nextInt(1000000));
     }
 
-    private Tokens prepareTokens(String email, UUID id) {
+    private Tokens prepareTokens(String email, UUID id, List<String> authorities) {
         log.info("Encoding token pair for user: {}", id);
 
-        Token refreshToken = tokenFactory.refreshToken(id, email, List.of("ROLE_USER"));
+        Token refreshToken = tokenFactory.refreshToken(id, email, authorities);
         String signedRefresh = tokenProvider.encodeToken(refreshToken);
 
         Token accessToken = tokenFactory.accessToken(refreshToken);

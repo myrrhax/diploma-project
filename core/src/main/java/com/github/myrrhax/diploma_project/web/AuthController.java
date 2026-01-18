@@ -35,22 +35,24 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResultDTO> register(@RequestBody @Validated AuthRequestDTO dto,
-                                                  HttpServletResponse response) {
+    public ResponseEntity<AuthResultDTO> register(@RequestBody @Validated AuthRequestDTO dto) {
         log.info("Processing registration request for user: {}", dto.email());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
-                    authService.register(dto.email(), dto.password(), response)
+                    authService.register(dto.email(), dto.password())
                 );
     }
 
     @PostMapping("/confirm")
-    public ResponseEntity<Void> confirmEmail(@RequestBody @Validated ConfirmMailDTO dto,
-                                             @AuthenticationPrincipal TokenUser user) {
-        this.authService.confirmEmail(dto.confirmationCode(), user.getToken().userId());
+    public ResponseEntity<AuthResultDTO> confirmEmail(@RequestBody @Validated ConfirmMailDTO dto,
+                                                      @AuthenticationPrincipal TokenUser user,
+                                                      HttpServletResponse response) {
 
-        return ResponseEntity.ok().build();
+
+        return ResponseEntity.ok(
+                this.authService.confirmEmail(dto.confirmationCode(), user.getToken().userId(), response)
+        );
     }
 }
