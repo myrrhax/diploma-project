@@ -1,7 +1,9 @@
 package com.github.myrrhax.diploma_project.service;
 
+import com.github.myrrhax.diploma_project.event.SendMailEvent;
 import com.github.myrrhax.diploma_project.mapper.UserMapper;
 import com.github.myrrhax.diploma_project.model.Tokens;
+import com.github.myrrhax.diploma_project.model.entity.ConfirmationEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
@@ -10,12 +12,15 @@ import com.github.myrrhax.diploma_project.security.JwtProperties;
 import com.github.myrrhax.diploma_project.security.Token;
 import com.github.myrrhax.diploma_project.security.TokenFactory;
 import com.github.myrrhax.diploma_project.model.dto.AuthResultDTO;
+import com.github.myrrhax.shared.model.MailType;
+import com.github.myrrhax.shared.payload.ConfirmationCodeEmailPayload;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,7 +33,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -42,6 +50,7 @@ public class AuthService implements UserDetailsService {
     private final JwsTokenProvider tokenProvider;
     private final TokenFactory tokenFactory;
     private final UserMapper userMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     private AuthenticationManager authenticationManager;
 
@@ -50,6 +59,9 @@ public class AuthService implements UserDetailsService {
 
     @Value("${app.security.refresh-cookie-security}")
     private boolean refreshCookieSecurity;
+
+    @Value("${app.security.confirmation-code-duration}")
+    private Duration confirmationCodeDuration;
 
     public AuthResultDTO authenticate(String email, String password, HttpServletResponse response) {
         log.info("Trying to authenticate user with email: {}", email);
@@ -62,6 +74,14 @@ public class AuthService implements UserDetailsService {
                 new UsernamePasswordAuthenticationToken(email, password)
         );
         log.info("User with id: {} was authenticated", user.getId());
+        if (!user.getIsConfirmed() && user.getConfirmation().isExpired()) {
+            String code = generateCode();
+            user.getConfirmation().setCode(code);
+            user.getConfirmation()
+                    .setExpiresAt(LocalDateTime.now().plus(confirmationCodeDuration));
+            userRepository.saveAndFlush(user);
+            sendConfirmationEvent(user, code);
+        }
 
         Tokens signedTokens = prepareTokens(email, user.getId());
         setRefreshCookie(response, signedTokens.signedRefreshToken(), user.getId());
@@ -84,8 +104,17 @@ public class AuthService implements UserDetailsService {
                 .isConfirmed(false)
                 .build();
 
+        String code = generateCode();
+        var confirmation = ConfirmationEntity.builder()
+                .user(user)
+                .code(code)
+                .expiresAt(LocalDateTime.now().plus(confirmationCodeDuration))
+                .build();
+        user.addConfirmation(confirmation);
+        sendConfirmationEvent(user, code);
+
         log.info("Registering user with email: {}", email);
-        UserEntity savedUser = userRepository.save(user);
+        UserEntity savedUser = userRepository.saveAndFlush(user);
         log.info("User with id: {} was registered", savedUser.getId());
 
         Tokens signedTokens = prepareTokens(email, savedUser.getId());
@@ -108,6 +137,19 @@ public class AuthService implements UserDetailsService {
                         .authorities("ROLE_USER")
                         .build())
                 .orElseThrow(() -> new UsernameNotFoundException(username));
+    }
+
+    private void sendConfirmationEvent(UserEntity user, String code) {
+        eventPublisher.publishEvent(new SendMailEvent<>(
+                this,
+                user.getEmail(),
+                MailType.ACCOUNT_CONFIRMATION,
+                new ConfirmationCodeEmailPayload(code)
+        ));
+    }
+
+    private String generateCode() {
+        return String.format("%06d", new Random().nextInt(1000000));
     }
 
     private Tokens prepareTokens(String email, UUID id) {

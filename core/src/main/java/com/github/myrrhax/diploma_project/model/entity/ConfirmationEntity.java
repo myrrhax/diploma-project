@@ -10,6 +10,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,6 +23,7 @@ import java.util.UUID;
 @Table(name = "t_confirmation")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -30,14 +32,18 @@ public class ConfirmationEntity extends BaseEntity {
     @Column(name = "user_id")
     UUID userId;
 
+    String code;
+
     @MapsId
     @JoinColumn(name = "user_id")
     @OneToOne(fetch = FetchType.LAZY)
     UserEntity user;
 
-    @Column(name = "is_confirmed")
-    boolean isConfirmed;
+    @Column(name = "expires_at")
+    LocalDateTime expiresAt;
 
-    @Column(name = "confirmed_at")
-    LocalDateTime confirmedAt;
+    public boolean isExpired() {
+        return LocalDateTime.now()
+                .isAfter(expiresAt);
+    }
 }

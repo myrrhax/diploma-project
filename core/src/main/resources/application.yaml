@@ -39,6 +39,7 @@ app:
   security:
     refresh-cookie-name: Refresh-Token
     refresh-cookie-security: false
+    confirmation-code-duration: 30m
 
   rabbit:
     send-mail-queue: mails

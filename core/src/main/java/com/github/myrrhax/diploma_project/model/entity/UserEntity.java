@@ -54,6 +54,11 @@ public class UserEntity extends BaseEntity {
     @Builder.Default
     Set<SchemeEntity> schemes = new HashSet<>();
 
-    @OneToOne(cascade = CascadeType.PERSIST, mappedBy = "user")
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
     ConfirmationEntity confirmation;
+
+    public void addConfirmation(ConfirmationEntity confirmation) {
+        this.setConfirmation(confirmation);
+        confirmation.setUser(this);
+    }
 }
