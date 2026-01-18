@@ -8,6 +8,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +16,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.JdbcTypeCode;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -32,6 +35,9 @@ public class ConfirmationEntity extends BaseEntity {
     @Column(name = "user_id")
     UUID userId;
 
+    @Size(min = 6, max = 6)
+    @Column(name = "code")
+    @JdbcTypeCode(Types.CHAR)
     String code;
 
     @MapsId

@@ -36,7 +36,7 @@ public class RabbitEmailEventListener {
     @RabbitListener(queues = {"${app.rabbitmq.send-mail-queue}"})
     public void processEmail(@Payload SendMailDto dto) {
         log.info("Processing new email update from queue: {}", dto);
-        MailTemplateStrategy messageStrategy = strategies.get(MailType.SCHEME_INVITATION);
+        MailTemplateStrategy messageStrategy = strategies.get(dto.type());
         String message = messageStrategy.buildMessage(dto.to(), dto.payload());
         MimeMessage mailMessage = mailSender.createMimeMessage();
         try {

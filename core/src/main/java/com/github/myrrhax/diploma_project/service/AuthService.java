@@ -74,12 +74,13 @@ public class AuthService implements UserDetailsService {
                 new UsernamePasswordAuthenticationToken(email, password)
         );
         log.info("User with id: {} was authenticated", user.getId());
-        if (!user.getIsConfirmed() && user.getConfirmation().isExpired()) {
+        if (!user.getIsConfirmed()) {
             String code = generateCode();
             user.getConfirmation().setCode(code);
             user.getConfirmation()
                     .setExpiresAt(LocalDateTime.now().plus(confirmationCodeDuration));
             userRepository.saveAndFlush(user);
+
             sendConfirmationEvent(user, code);
         }
 
