@@ -1,6 +1,6 @@
 package com.github.myrrhax.diploma_project.security;
 
-import com.github.myrrhax.diploma_project.model.enums.JwtRole;
+import com.github.myrrhax.diploma_project.model.enums.JwtAuthority;
 import io.jsonwebtoken.security.Keys;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,11 +54,12 @@ public class SecurityConfiguration {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                        .requestMatchers("/api/auth/login",
+                                "/api/auth/register", "/api/auth/refresh").permitAll()
                         .requestMatchers(
                                 "/api/auth/confirm",
-                                "/api/auth/resend-code").hasAuthority(JwtRole.ROLE_PRE_VERIFIED.name())
-                        .anyRequest().hasAuthority(JwtRole.ROLE_USER.name())
+                                "/api/auth/resend-code").hasAuthority(JwtAuthority.ROLE_PRE_VERIFIED.name())
+                        .anyRequest().hasAuthority(JwtAuthority.ROLE_USER.name())
                 )
                 .with(new JwtSecurityConfigurer(), configurer -> {
                     configurer.setJwsTokenProvider(tokenProvider);

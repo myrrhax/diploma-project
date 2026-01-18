@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.security;
 
+import com.github.myrrhax.diploma_project.model.enums.JwtAuthority;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -53,8 +54,7 @@ public class TokenFactory {
         authorities.stream()
                 .map(authority -> "GRANT_" + authority)
                 .forEach(refreshAuthorities::add);
-        refreshAuthorities.add("REFRESH");
-        refreshAuthorities.add("LOGOUT");
+        refreshAuthorities.add(JwtAuthority.REFRESH.name());
 
         return new Token(
                 UUID.randomUUID(),
