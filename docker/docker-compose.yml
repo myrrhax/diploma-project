@@ -37,6 +37,22 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - rabbitmq
+    networks:
+      - backend
+
+  notifications:
+    container_name: notifications
+    build:
+      context: ..
+      dockerfile: docker/notifications.Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8001:8001"
+    depends_on:
+      - rabbitmq
     networks:
       - backend
 

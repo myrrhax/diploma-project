@@ -19,14 +19,23 @@ jobs:
           cache: gradle
       - name: Grant permissions to gradle
         run: chmod +x ./gradlew
+
       - name: Build
         run: ./gradlew clean build
+
       - name: Upload Core jars
         if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v5
         with:
           name: app-core-jars
           path: './core/build/libs/*.jar'
+
+      - name: Upload Notifications jars
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v5
+        with:
+          name: app-notifications-jars
+          path: './notification-service/build/libs/*.jar'
 
   deploy:
     runs-on: self-hosted
@@ -42,6 +51,12 @@ jobs:
           name: app-core-jars
           path: ./${{ env.JAR_DIR }}/core
 
+      - name: Download Notifications JARS
+        uses: actions/download-artifact@v5
+        with:
+          name: app-notifications-jars
+          path: ./${{ env.JAR_DIR }}/notifications
+
       - name: Prepare directory
         run: |
           # Сначала останавливаем старые контейнеры, пока старый docker-compose еще на месте
@@ -51,6 +66,7 @@ jobs:
           fi
           sudo rm -rf ${{ env.TARGET_DIR }}
           sudo mkdir -p ${{ env.TARGET_DIR }}/core/build/libs
+          sudo mkdir -p ${{ env.TARGET_DIR }}/notifications/build/libs
           sudo chown -R $USER:$USER ${{ env.TARGET_DIR }}
 
       - name: Copy files
@@ -58,6 +74,7 @@ jobs:
           cp -r ./* ${{ env.TARGET_DIR }}/
           # Copy core jars
           cp ./${{ env.JAR_DIR }}/core/*.jar ${{ env.TARGET_DIR }}/core/build/libs
+          cp ./${{ env.JAR_DIR }}/notifications/*.jar ${{ env.TARGET_DIR }}/notification-service/build/libs
 
       - name: Prepare env
         run: |
@@ -70,6 +87,11 @@ jobs:
           echo SPRING_DATASOURCE_USERNAME=${{ secrets.POSTGRES_USER }} >> .env
           echo SPRING_DATASOURCE_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
           echo APP_JWT_SECRET=${{ secrets.APP_JWT_SECRET }} >> .env
+          echo RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }} >> .env
+          echo RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }} >> .env
+          echo SPRING_RABBITMQ_USERNAME=${{ secrets.RABBITMQ_DEFAULT_USER }} >> .env
+          echo SPRING_RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_DEFAULT_PASS }} >> .env
+          echo SPRING_RABBITMQ_HOST=rabbitmq >> .env
           cat .env
 
       - name: Start project
