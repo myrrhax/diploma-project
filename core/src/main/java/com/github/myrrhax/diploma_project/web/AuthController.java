@@ -1,5 +1,7 @@
 package com.github.myrrhax.diploma_project.web;
 
+import com.github.myrrhax.diploma_project.model.dto.ConfirmMailDTO;
+import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.AuthService;
 import com.github.myrrhax.diploma_project.model.dto.AuthRequestDTO;
 import com.github.myrrhax.diploma_project.model.dto.AuthResultDTO;
@@ -8,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,5 +44,13 @@ public class AuthController {
                 .body(
                     authService.register(dto.email(), dto.password(), response)
                 );
+    }
+
+    @PostMapping("/confirm")
+    public ResponseEntity<Void> confirmEmail(@RequestBody @Validated ConfirmMailDTO dto,
+                                             @AuthenticationPrincipal TokenUser user) {
+        this.authService.confirmEmail(dto.confirmationCode(), user.getToken().userId());
+
+        return ResponseEntity.ok().build();
     }
 }
