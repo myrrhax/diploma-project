@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.model.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -9,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -51,4 +53,12 @@ public class UserEntity extends BaseEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "creator")
     @Builder.Default
     Set<SchemeEntity> schemes = new HashSet<>();
+
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
+    ConfirmationEntity confirmation;
+
+    public void addConfirmation(ConfirmationEntity confirmation) {
+        this.setConfirmation(confirmation);
+        confirmation.setUser(this);
+    }
 }

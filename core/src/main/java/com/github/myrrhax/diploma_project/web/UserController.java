@@ -2,7 +2,7 @@ package com.github.myrrhax.diploma_project.web;
 
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.UserService;
-import com.github.myrrhax.diploma_project.web.dto.UserDTO;
+import com.github.myrrhax.diploma_project.model.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

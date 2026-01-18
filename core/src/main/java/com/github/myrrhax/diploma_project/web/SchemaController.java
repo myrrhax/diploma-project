@@ -1,14 +1,14 @@
 package com.github.myrrhax.diploma_project.web;
 
-import com.github.myrrhax.diploma_project.model.enums.AuthorityType;
+import com.github.myrrhax.diploma_project.model.dto.CreateSchemeDTO;
+import com.github.myrrhax.diploma_project.model.dto.DiscardUserDTO;
+import com.github.myrrhax.diploma_project.model.dto.GrantUserDTO;
+import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.AuthorityService;
 import com.github.myrrhax.diploma_project.service.SchemeService;
-import com.github.myrrhax.diploma_project.web.dto.CreateSchemeDTO;
-import com.github.myrrhax.diploma_project.web.dto.DiscardUserDTO;
-import com.github.myrrhax.diploma_project.web.dto.GrantUserDTO;
-import com.github.myrrhax.diploma_project.web.dto.SchemeDTO;
+import com.github.myrrhax.shared.model.AuthorityType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

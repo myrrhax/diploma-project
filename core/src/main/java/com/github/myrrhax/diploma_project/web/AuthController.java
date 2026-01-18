@@ -1,14 +1,19 @@
 package com.github.myrrhax.diploma_project.web;
 
+import com.github.myrrhax.diploma_project.model.dto.AuthRequestDTO;
+import com.github.myrrhax.diploma_project.model.dto.AuthResultDTO;
+import com.github.myrrhax.diploma_project.model.dto.ConfirmMailDTO;
+import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.AuthService;
-import com.github.myrrhax.diploma_project.web.dto.AuthRequestDTO;
-import com.github.myrrhax.diploma_project.web.dto.AuthResultDTO;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,14 +37,40 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResultDTO> register(@RequestBody @Validated AuthRequestDTO dto,
-                                                  HttpServletResponse response) {
+    public ResponseEntity<AuthResultDTO> register(@RequestBody @Validated AuthRequestDTO dto) {
         log.info("Processing registration request for user: {}", dto.email());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
-                    authService.register(dto.email(), dto.password(), response)
+                    authService.register(dto.email(), dto.password())
                 );
+    }
+
+    @PostMapping("/confirm")
+    public ResponseEntity<AuthResultDTO> confirmEmail(@RequestBody @Validated ConfirmMailDTO dto,
+                                                      @AuthenticationPrincipal TokenUser user,
+                                                      HttpServletResponse response) {
+
+
+        return ResponseEntity.ok(
+                this.authService.confirmEmail(dto.confirmationCode(), user.getToken().userId(), response)
+        );
+    }
+
+    @PostMapping("/resend-code")
+    public ResponseEntity<Void> resendConfirmationCode(@AuthenticationPrincipal TokenUser user) {
+        this.authService.resendCode(user.getToken().userId());
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResultDTO> refresh(@CookieValue("${app.security.refresh-cookie-name}")
+                                                     @Validated @NotBlank String refreshToken,
+                                                 HttpServletResponse response) {
+        return ResponseEntity.ok(
+                this.authService.refreshToken(refreshToken, response)
+        );
     }
 }

@@ -23,6 +23,12 @@ spring:
   liquibase:
     change-log: classpath:liquibase-master.yaml
 
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
+    port: 5672
+
 app:
   jwt:
     secret: ${APP_JWT_SECRET}
@@ -33,6 +39,10 @@ app:
   security:
     refresh-cookie-name: Refresh-Token
     refresh-cookie-security: false
+    confirmation-code-duration: 1d
+
+  rabbit:
+    send-mail-queue: mails
 
   cache:
     schema-ttl: 15m

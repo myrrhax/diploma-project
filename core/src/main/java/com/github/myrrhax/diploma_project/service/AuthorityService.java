@@ -3,12 +3,12 @@ package com.github.myrrhax.diploma_project.service;
 import com.github.myrrhax.diploma_project.mapper.AuthorityMapper;
 import com.github.myrrhax.diploma_project.model.UserAuthority;
 import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
-import com.github.myrrhax.diploma_project.model.enums.AuthorityType;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
 import com.github.myrrhax.diploma_project.repository.AuthorityRepository;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
+import com.github.myrrhax.shared.model.AuthorityType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -41,6 +41,10 @@ public class AuthorityService {
     }
 
     public void grantUser(UUID userId, UUID schemeId, List<AuthorityType> types) {
+        if (getAuthorities(userId, schemeId).isEmpty()) {
+            throw new ApplicationException("Can't grant user authorities, invite user instead", HttpStatus.BAD_REQUEST);
+        }
+
         var scheme = schemeRepository.findById(schemeId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
         var user = userRepository.findById(userId).get();

@@ -1,6 +1,6 @@
-package com.github.myrrhax.diploma_project.web.dto;
+package com.github.myrrhax.diploma_project.model.dto;
 
-import com.github.myrrhax.diploma_project.model.enums.AuthorityType;
+import com.github.myrrhax.shared.model.AuthorityType;
 
 import java.util.Set;
 import java.util.UUID;

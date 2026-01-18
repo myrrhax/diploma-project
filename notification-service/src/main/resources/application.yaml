@@ -1,0 +1,29 @@
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls.enable: true
+        ssl:
+          trust: smtp.gmail.com
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
+    port: 5672
+
+app:
+  rabbitmq:
+    send-mail-queue: mails
+
+  mail:
+    schema-invite-subject: Приглашение для кооперативной разработки
+
+  concurrent:
+    email-executor-thread-count: 5

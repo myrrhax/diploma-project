@@ -1,4 +1,4 @@
-package com.github.myrrhax.diploma_project.model.enums;
+package com.github.myrrhax.shared.model;
 
 public enum AuthorityType {
     READ_SCHEME,        // Min
