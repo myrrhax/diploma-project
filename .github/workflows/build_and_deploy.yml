@@ -66,7 +66,7 @@ jobs:
           fi
           sudo rm -rf ${{ env.TARGET_DIR }}
           sudo mkdir -p ${{ env.TARGET_DIR }}/core/build/libs
-          sudo mkdir -p ${{ env.TARGET_DIR }}/notifications/build/libs
+          sudo mkdir -p ${{ env.TARGET_DIR }}/notification-service/build/libs
           sudo chown -R $USER:$USER ${{ env.TARGET_DIR }}
 
       - name: Copy files
