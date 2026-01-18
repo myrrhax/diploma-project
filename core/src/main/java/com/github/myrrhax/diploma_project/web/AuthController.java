@@ -1,10 +1,10 @@
 package com.github.myrrhax.diploma_project.web;
 
+import com.github.myrrhax.diploma_project.model.dto.AuthRequestDTO;
+import com.github.myrrhax.diploma_project.model.dto.AuthResultDTO;
 import com.github.myrrhax.diploma_project.model.dto.ConfirmMailDTO;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.AuthService;
-import com.github.myrrhax.diploma_project.model.dto.AuthRequestDTO;
-import com.github.myrrhax.diploma_project.model.dto.AuthResultDTO;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,5 +54,12 @@ public class AuthController {
         return ResponseEntity.ok(
                 this.authService.confirmEmail(dto.confirmationCode(), user.getToken().userId(), response)
         );
+    }
+
+    @PostMapping("/resend-code")
+    public ResponseEntity<Void> resendConfirmationCode(@AuthenticationPrincipal TokenUser user) {
+        this.authService.resendCode(user.getToken().userId());
+
+        return ResponseEntity.ok().build();
     }
 }

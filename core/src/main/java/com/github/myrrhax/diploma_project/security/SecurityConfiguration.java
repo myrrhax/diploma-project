@@ -55,7 +55,9 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
-                        .requestMatchers("/api/auth/confirm").hasAuthority(JwtRole.ROLE_PRE_VERIFIED.name())
+                        .requestMatchers(
+                                "/api/auth/confirm",
+                                "/api/auth/resend-code").hasAuthority(JwtRole.ROLE_PRE_VERIFIED.name())
                         .anyRequest().hasAuthority(JwtRole.ROLE_USER.name())
                 )
                 .with(new JwtSecurityConfigurer(), configurer -> {

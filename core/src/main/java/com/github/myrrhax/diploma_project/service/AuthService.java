@@ -7,6 +7,7 @@ import com.github.myrrhax.diploma_project.model.dto.AuthResultDTO;
 import com.github.myrrhax.diploma_project.model.entity.ConfirmationEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.enums.JwtRole;
+import com.github.myrrhax.diploma_project.model.exception.AccountIsAlreadyConfirmedException;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.JwsTokenProvider;
@@ -77,15 +78,7 @@ public class AuthService implements UserDetailsService {
         );
         log.info("User with id: {} was authenticated", user.getId());
         if (!user.getIsConfirmed()) {
-            log.info("User with id: {} was not confirmed, updating auth code", user.getId());
-            String code = generateCode();
-            user.getConfirmation().setCode(code);
-            user.getConfirmation()
-                    .setExpiresAt(LocalDateTime.now().plus(confirmationCodeDuration));
-            userRepository.saveAndFlush(user);
-            log.info("Confirmation code was update for user {}", user.getId());
-
-            sendConfirmationEvent(user, code);
+            updateCodeAndSendEvent(user);
         }
 
         String authority = user.getIsConfirmed()
@@ -143,7 +136,7 @@ public class AuthService implements UserDetailsService {
         log.info("Trying to confirm email for user: {}", userId);
         UserEntity user = userRepository.findById(userId).get();
         if (user.getIsConfirmed()) {
-            throw new ApplicationException("Account is already confirmed", HttpStatus.BAD_REQUEST);
+            throw new AccountIsAlreadyConfirmedException(userId);
         }
         if (!Objects.equals(code, user.getConfirmation().getCode()) ||
             user.getConfirmation().getExpiresAt().isBefore(LocalDateTime.now())) {
@@ -163,6 +156,14 @@ public class AuthService implements UserDetailsService {
         );
     }
 
+    public void resendCode(UUID userId) {
+        UserEntity user = userRepository.findById(userId).get();
+        if (user.getIsConfirmed()) {
+            throw new AccountIsAlreadyConfirmedException(userId);
+        }
+        updateCodeAndSendEvent(user);
+    }
+
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -170,9 +171,21 @@ public class AuthService implements UserDetailsService {
                 .map(it -> User.builder()
                         .username(it.getEmail())
                         .password(it.getPassword())
-                        .authorities("ROLE_USER")
+                        .authorities(JwtRole.ROLE_USER.name())
                         .build())
                 .orElseThrow(() -> new UsernameNotFoundException(username));
+    }
+
+    private void updateCodeAndSendEvent(UserEntity user) {
+        log.info("User with id: {} was not confirmed, updating auth code", user.getId());
+        String code = generateCode();
+        user.getConfirmation().setCode(code);
+        user.getConfirmation()
+                .setExpiresAt(LocalDateTime.now().plus(confirmationCodeDuration));
+        userRepository.saveAndFlush(user);
+        log.info("Confirmation code was update for user {}", user.getId());
+
+        sendConfirmationEvent(user, code);
     }
 
     private void sendConfirmationEvent(UserEntity user, String code) {
