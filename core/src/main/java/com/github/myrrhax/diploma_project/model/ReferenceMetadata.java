@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -41,10 +42,10 @@ public class ReferenceMetadata {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ReferenceKey {
-        private String fromTableName;
-        private String[] fromColumns;
-        private String toTableName;
-        private String[] toColumns;
+        private UUID fromTableName;
+        private UUID[] fromColumns;
+        private UUID toTableName;
+        private UUID[] toColumns;
 
         @Override
         public boolean equals(Object o) {
@@ -68,9 +69,11 @@ public class ReferenceMetadata {
         public String toString() {
             return "%s:(%s)->%s:(%s)"
                     .formatted(fromTableName,
-                            String.join(",", fromColumns),
+                            String.join(",", Arrays.stream(fromColumns).map(Object::toString)
+                                    .toArray(String[]::new)),
                             toTableName,
-                            String.join(",", toColumns)
+                            String.join(",", Arrays.stream(toColumns).map(Object::toString)
+                                    .toArray(String[]::new))
                     );
         }
     }
