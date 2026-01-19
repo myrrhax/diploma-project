@@ -6,20 +6,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TableMetadata {
-    private String name;
-    private String description;
+public class IndexMetadata {
     @Builder.Default
-    private Map<String, ColumnMetadata> columns = new HashMap<>();
+    private List<ColumnMetadata> columns = new ArrayList<>();
+    @Builder.Default
+    private IndexType indexType = IndexType.B_TREE;
+    private String indexName;
 
-    @Builder.Default
-    private List<IndexMetadata> indexes = new ArrayList<>();
+    public enum IndexType {
+        B_TREE,
+        HASH,
+        UNIQUE
+    }
 }
