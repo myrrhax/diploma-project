@@ -3,3 +3,4 @@ spring:
     url: jdbc:postgresl://localhost:5432/test_db
     username: test_user
     password: test_password
+    driver-class-name: org.postgresql.Driver

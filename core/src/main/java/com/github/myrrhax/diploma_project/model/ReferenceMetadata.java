@@ -1,14 +1,17 @@
 package com.github.myrrhax.diploma_project.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.UUID;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReferenceMetadata {
@@ -38,39 +41,42 @@ public class ReferenceMetadata {
     }
 
     @Getter
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ReferenceKey {
-        private String fromTableName;
-        private String[] fromColumns;
-        private String toTableName;
-        private String[] toColumns;
+        private UUID fromTableId;
+        private UUID[] fromColumns;
+        private UUID toTableId;
+        private UUID[] toColumns;
 
         @Override
         public boolean equals(Object o) {
             if (o == null || getClass() != o.getClass()) return false;
             ReferenceKey that = (ReferenceKey) o;
-            return Objects.equals(fromTableName, that.fromTableName)
+            return Objects.equals(fromTableId, that.fromTableId)
                     && Arrays.deepEquals(fromColumns, that.fromColumns)
-                    && Objects.equals(toTableName, that.toTableName)
+                    && Objects.equals(toTableId, that.toTableId)
                     && Objects.deepEquals(toColumns, that.toColumns);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(fromTableName,
+            return Objects.hash(fromTableId,
                     Arrays.deepHashCode(fromColumns),
-                    toTableName,
+                    toTableId,
                     Arrays.deepHashCode(toColumns));
         }
 
         @Override
         public String toString() {
             return "%s:(%s)->%s:(%s)"
-                    .formatted(fromTableName,
-                            String.join(",", fromColumns),
-                            toTableName,
-                            String.join(",", toColumns)
+                    .formatted(fromTableId,
+                            String.join(",", Arrays.stream(fromColumns).map(Object::toString)
+                                    .toArray(String[]::new)),
+                            toTableId,
+                            String.join(",", Arrays.stream(toColumns).map(Object::toString)
+                                    .toArray(String[]::new))
                     );
         }
     }
