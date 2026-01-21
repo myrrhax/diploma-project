@@ -21,6 +21,7 @@ public class ColumnMetadata {
     private String defaultValue;
     private int precision;
     private int scale;
+    private int length;
 
     @Builder.Default
     private List<ConstraintType> constraints = new ArrayList<>();
@@ -29,14 +30,12 @@ public class ColumnMetadata {
     private List<AdditionalComponent> additions = new ArrayList<>();
 
     public enum ConstraintType {
-        PRIMARY_KEY,
         NOT_NULL,
         UNIQUE,
     }
 
     public enum AdditionalComponent {
-        AUTO_INCREMENT,
-        INDEX
+        AUTO_INCREMENT
     }
 
     public enum ColumnType {
@@ -54,6 +53,7 @@ public class ColumnMetadata {
         TIME,
         DATETIME,
         TIMESTAMP,
-        JSON
+        JSON,
+        BOOLEAN
     }
 }

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -14,14 +15,15 @@ import java.util.List;
 @AllArgsConstructor
 public class IndexMetadata {
     @Builder.Default
-    private List<ColumnMetadata> columns = new ArrayList<>();
+    private List<UUID> columnIds = new ArrayList<>();
     @Builder.Default
     private IndexType indexType = IndexType.B_TREE;
     private String indexName;
 
+    private boolean isUnique;
+
     public enum IndexType {
         B_TREE,
         HASH,
-        UNIQUE
     }
 }

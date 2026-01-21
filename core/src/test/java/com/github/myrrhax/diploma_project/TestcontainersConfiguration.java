@@ -28,6 +28,17 @@ class TestcontainersConfiguration {
 	}
 
 	@Bean
+	PostgreSQLContainer<?> postgresGeneratorContainer() {
+		var container = new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"))
+				.withDatabaseName("postgres")
+				.withUsername("postgres")
+				.withPassword("postgres")
+				.withExposedPorts(5433);
+		container.start();
+		return container;
+	}
+
+	@Bean
 	@ServiceConnection(name = "redis")
 	GenericContainer<?> redisContainer() {
 		return new GenericContainer<>(DockerImageName.parse("redis:latest")).withExposedPorts(6379);

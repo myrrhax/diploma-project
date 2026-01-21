@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.KeyDeserializer;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
+import java.util.UUID;
+
 @Slf4j
 public class ReferenceKeyFromStringDeserializer extends KeyDeserializer {
     @Override
@@ -29,16 +32,18 @@ public class ReferenceKeyFromStringDeserializer extends KeyDeserializer {
 
     private GroupSplitResult splitGroup(String group) {
         String[] groupSplit = group.split(":");
-        String key = groupSplit[0];
-        String[] value = groupSplit[1].replace("(", "")
+        UUID key = UUID.fromString(groupSplit[0]);
+        UUID[] value = Arrays.stream(groupSplit[1].replace("(", "")
                 .replace(")", "")
-                .split(",");
+                .split(","))
+                .map(UUID::fromString)
+                .toArray(UUID[]::new);
 
         return new GroupSplitResult(key, value);
     }
 
     private record GroupSplitResult(
-            String key,
-            String[] values
+            UUID key,
+            UUID[] values
     ) {}
 }

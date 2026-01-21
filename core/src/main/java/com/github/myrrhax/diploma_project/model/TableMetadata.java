@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -21,7 +22,10 @@ public class TableMetadata {
     private String description;
 
     @Builder.Default
-    private Map<UUID, ColumnMetadata> columns = new HashMap<>();
+    private List<ColumnMetadata> primaryKeyParts = new ArrayList<>();
+
+    @Builder.Default
+    private LinkedHashMap<UUID, ColumnMetadata> columns = new LinkedHashMap<>();
 
     @Builder.Default
     private List<IndexMetadata> indexes = new ArrayList<>();
