@@ -3,7 +3,6 @@ on: push
 
 env:
   TARGET_DIR: /home/myrrhax/ermdev
-  JAR_DIR: artifacts
 
 jobs:
   build:
@@ -20,22 +19,8 @@ jobs:
       - name: Grant permissions to gradle
         run: chmod +x ./gradlew
 
-      - name: Build
-        run: ./gradlew clean build
-
-      - name: Upload Core jars
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v5
-        with:
-          name: app-core-jars
-          path: './core/build/libs/*.jar'
-
-      - name: Upload Notifications jars
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v5
-        with:
-          name: app-notifications-jars
-          path: './notification-service/build/libs/*.jar'
+      - name: Build without tests
+        run: ./gradlew clean build -x test
 
   deploy:
     runs-on: self-hosted
@@ -45,17 +30,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Download Core JARS
-        uses: actions/download-artifact@v5
-        with:
-          name: app-core-jars
-          path: ./${{ env.JAR_DIR }}/core
-
-      - name: Download Notifications JARS
-        uses: actions/download-artifact@v5
-        with:
-          name: app-notifications-jars
-          path: ./${{ env.JAR_DIR }}/notifications
+      - name: Build project
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean build
 
       - name: Prepare directory
         run: |
@@ -70,11 +48,7 @@ jobs:
           sudo chown -R $USER:$USER ${{ env.TARGET_DIR }}
 
       - name: Copy files
-        run: |
-          cp -r ./* ${{ env.TARGET_DIR }}/
-          # Copy core jars
-          cp ./${{ env.JAR_DIR }}/core/*.jar ${{ env.TARGET_DIR }}/core/build/libs
-          cp ./${{ env.JAR_DIR }}/notifications/*.jar ${{ env.TARGET_DIR }}/notification-service/build/libs
+        run: cp -r ./* ${{ env.TARGET_DIR }}/
 
       - name: Prepare env
         run: |
