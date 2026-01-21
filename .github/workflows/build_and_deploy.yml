@@ -30,13 +30,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: 21
-          cache: gradle
-
       - name: Build project
         run: |
           chmod +x ./gradlew
