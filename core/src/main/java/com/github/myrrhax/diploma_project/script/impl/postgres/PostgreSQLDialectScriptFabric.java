@@ -26,6 +26,7 @@ public class PostgreSQLDialectScriptFabric extends AbstractScriptFabric {
         put(ColumnMetadata.ColumnType.TEXT, "text");
         put(ColumnMetadata.ColumnType.UUID, "uuid");
         put(ColumnMetadata.ColumnType.TIME, "time");
+        put(ColumnMetadata.ColumnType.DATE, "date");
         put(ColumnMetadata.ColumnType.DATETIME, "timestamp");
         put(ColumnMetadata.ColumnType.TIMESTAMP, "timestamp");
         put(ColumnMetadata.ColumnType.JSON, "jsonb");

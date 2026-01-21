@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -39,5 +40,23 @@ public class SchemaStateMetadata {
         this.versionId = versionEntity.getId();
         this.hashSum = versionEntity.getHashSum();
         this.isWorkingCopy = versionEntity.getIsWorkingCopy();
+    }
+
+    public void addTable(TableMetadata tableMetadata) {
+        this.tables.put(tableMetadata.getId(), tableMetadata);
+    }
+
+    public void addReference(ReferenceMetadata referenceMetadata) {
+        this.references.put(referenceMetadata.getKey(), referenceMetadata);
+    }
+
+    public Optional<TableMetadata> getTable(UUID id) {
+        return Optional.ofNullable(tables.get(id));
+    }
+
+    public Optional<TableMetadata> getTable(String name) {
+        return tables.values().stream()
+                    .filter(t -> t.getName().equals(name))
+                    .findFirst();
     }
 }

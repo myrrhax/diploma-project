@@ -3,13 +3,13 @@ package com.github.myrrhax.diploma_project.script;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
-import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public abstract class AbstractScriptFabric {
     protected static final String FK_TEMPLATE =
@@ -28,11 +28,11 @@ public abstract class AbstractScriptFabric {
             ColumnMetadata.ColumnType.DECIMAL
     );
 
-    public final String getReferenceDefinition(SchemaStateMetadata schemaStateMetadata, ReferenceMetadata referenceMeta) {
+    public final String getReferenceDefinition(Map<UUID, TableMetadata> tables, ReferenceMetadata referenceMeta) {
         ReferenceMetadata.ReferenceKey key = referenceMeta.getKey();
 
-        TableMetadata fromTable = schemaStateMetadata.getTables().get(key.getFromTableId());
-        TableMetadata toTable = schemaStateMetadata.getTables().get(key.getToTableId());
+        TableMetadata fromTable = tables.get(key.getFromTableId());
+        TableMetadata toTable = tables.get(key.getToTableId());
         List<ColumnMetadata> fromColumns = Arrays.stream(key.getFromColumns())
                 .map(k -> fromTable.getColumns().get(k))
                 .toList();

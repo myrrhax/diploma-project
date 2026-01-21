@@ -12,7 +12,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public abstract class MetadataToSqlScriptProcessor {
 
@@ -27,6 +30,7 @@ public abstract class MetadataToSqlScriptProcessor {
                 .peek(refsToProcess::add)
                 .toList();
 
+        // Обработка M-M связей
         references.stream()
                 .filter(ref -> ref.getType() == ReferenceMetadata.ReferenceType.MANY_TO_MANY)
                 .forEach(mtmRef -> {
@@ -34,6 +38,14 @@ public abstract class MetadataToSqlScriptProcessor {
                     MtmTableProcessingResult res = buildTableAndRefsFromMtmRef(metadata, mtmRef);
                     tablesToProcess.add(res.mtmTable());
                     refsToProcess.addAll(Arrays.asList(res.betweenRefs()));
+                });
+
+        // Разворот 1-M связей
+        references.stream()
+                .filter(ref -> ref.getType() == ReferenceMetadata.ReferenceType.ONE_TO_MANY)
+                .forEach(otmRef -> {
+                    refsToProcess.remove(otmRef);
+                    refsToProcess.add(rotateOtmReference(otmRef));
                 });
 
         for (TableMetadata tableMetadata : tablesToProcess) {
@@ -55,7 +67,10 @@ public abstract class MetadataToSqlScriptProcessor {
             buildIndexPart(tableMetadata, indexes, indexesBuilder);
         }
 
-        buildReferencePart(metadata, refsToProcess, sqlBuilder);
+        buildReferencePart(tablesToProcess.stream()
+                        .collect(Collectors.toMap(TableMetadata::getId, Function.identity())),
+                refsToProcess,
+                sqlBuilder);
         sqlBuilder.append(indexesBuilder);
 
         return sqlBuilder.toString();
@@ -64,7 +79,7 @@ public abstract class MetadataToSqlScriptProcessor {
     protected abstract AbstractScriptFabric getScriptFabric();
 
     private MtmTableProcessingResult buildTableAndRefsFromMtmRef(SchemaStateMetadata metadata,
-                                      ReferenceMetadata ref) {
+                                                                 ReferenceMetadata ref) {
         TableMetadata fromTable = metadata.getTables().get(ref.getKey()
                 .getFromTableId());
         TableMetadata toTable = metadata.getTables().get(ref.getKey()
@@ -79,12 +94,12 @@ public abstract class MetadataToSqlScriptProcessor {
 
         ColumnMetadata[] mtmFrom = new ColumnMetadata[fromCols.length];
         for (int i = 0; i < fromCols.length; i++) {
-            mtmFrom[i] = cloneColumn(fromCols[i]);
+            mtmFrom[i] = cloneColumn(fromTable, fromCols[i]);
         }
 
         ColumnMetadata[] mtmTo = new ColumnMetadata[fromCols.length];
         for (int i = 0; i < toCols.length; i++) {
-            mtmTo[i] = cloneColumn(toCols[i]);
+            mtmTo[i] = cloneColumn(toTable, toCols[i]);
         }
 
         List<ColumnMetadata> concatMtmCols = new ArrayList<>(Arrays.stream(mtmFrom).toList());
@@ -102,20 +117,20 @@ public abstract class MetadataToSqlScriptProcessor {
                 .primaryKeyParts(concatMtmCols)
                 .build();
 
-        ReferenceMetadata ftmRef = buildMtmRef(mtmTable, fromTable, mtmFrom, fromCols);
-        ReferenceMetadata mttRef = buildMtmRef(mtmTable, toTable, mtmTo, toCols);
+        ReferenceMetadata ftmRef = buildRef(mtmTable, fromTable, mtmFrom, fromCols);
+        ReferenceMetadata mttRef = buildRef(mtmTable, toTable, mtmTo, toCols);
 
-        return new MtmTableProcessingResult(mtmTable, new ReferenceMetadata[] { ftmRef, mttRef });
+        return new MtmTableProcessingResult(mtmTable, new ReferenceMetadata[]{ftmRef, mttRef});
     }
 
-    private static ReferenceMetadata buildMtmRef(TableMetadata fromTable,
-                                                 TableMetadata mtmTable,
-                                                 ColumnMetadata[] fromCols,
-                                                 ColumnMetadata[] toCols) {
+    private static ReferenceMetadata buildRef(TableMetadata fromTable,
+                                              TableMetadata toTable,
+                                              ColumnMetadata[] fromCols,
+                                              ColumnMetadata[] toCols) {
         return ReferenceMetadata.builder()
                 .key(ReferenceMetadata.ReferenceKey.builder()
                         .fromTableId(fromTable.getId())
-                        .toTableId(mtmTable.getId())
+                        .toTableId(toTable.getId())
                         .fromColumns(Arrays.stream(fromCols)
                                 .map(ColumnMetadata::getId)
                                 .toArray(UUID[]::new))
@@ -123,25 +138,38 @@ public abstract class MetadataToSqlScriptProcessor {
                                 .map(ColumnMetadata::getId)
                                 .toArray(UUID[]::new))
                         .build())
-                .type(ReferenceMetadata.ReferenceType.ONE_TO_MANY)
+                .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
                 .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
                 .build();
     }
 
-
-    private ColumnMetadata cloneColumn(ColumnMetadata origin) {
-        return ColumnMetadata.builder()
-            .id(UUID.randomUUID())
-            .name(origin.getName())
-            .type(origin.getType())
-            .scale(origin.getScale())
-            .precision(origin.getPrecision())
-            .defaultValue(origin.getDefaultValue())
-            .build();
+    private static String computeMtmTableName(TableMetadata fromTable, TableMetadata toTable) {
+        return String.format("mtm_%s_%s", fromTable.getName(), toTable.getName());
     }
 
-    private static String computeMtmTableName(TableMetadata fromTable, TableMetadata toTable) {
-        return String.format("mtm_%s_%s",  fromTable.getName(), toTable.getName());
+    private ReferenceMetadata rotateOtmReference(ReferenceMetadata otmRef) {
+        return ReferenceMetadata.builder()
+                .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
+                .onUpdateAction(otmRef.getOnUpdateAction())
+                .onDeleteAction(otmRef.getOnDeleteAction())
+                .key(ReferenceMetadata.ReferenceKey.builder()
+                        .fromTableId(otmRef.getKey().getToTableId())
+                        .fromColumns(otmRef.getKey().getToColumns())
+                        .toTableId(otmRef.getKey().getFromTableId())
+                        .toColumns(otmRef.getKey().getFromColumns())
+                        .build())
+                .build();
+    }
+
+    private ColumnMetadata cloneColumn(TableMetadata table, ColumnMetadata origin) {
+        return ColumnMetadata.builder()
+                .id(UUID.randomUUID())
+                .name(table.getName() + "_" + origin.getName())
+                .type(origin.getType())
+                .scale(origin.getScale())
+                .precision(origin.getPrecision())
+                .defaultValue(origin.getDefaultValue())
+                .build();
     }
 
     private void buildPrimaryKeyConstraint(List<ColumnMetadata> primaryKeyParts, StringBuilder sqlBuilder) {
@@ -156,11 +184,11 @@ public abstract class MetadataToSqlScriptProcessor {
         sqlBuilder.append(")\n");
     }
 
-    private void buildReferencePart(SchemaStateMetadata schemaStateMetadata,
+    private void buildReferencePart(Map<UUID, TableMetadata> tables,
                                     List<ReferenceMetadata> refs,
                                     StringBuilder sqlBuilder) {
         for (ReferenceMetadata ref : refs) {
-            sqlBuilder.append(getScriptFabric().getReferenceDefinition(schemaStateMetadata, ref));
+            sqlBuilder.append(getScriptFabric().getReferenceDefinition(tables, ref));
             sqlBuilder.append("\n");
         }
     }
@@ -183,7 +211,8 @@ public abstract class MetadataToSqlScriptProcessor {
     }
 
     private record MtmTableProcessingResult(
-        TableMetadata mtmTable,
-        ReferenceMetadata[] betweenRefs
-    ) { }
+            TableMetadata mtmTable,
+            ReferenceMetadata[] betweenRefs
+    ) {
+    }
 }

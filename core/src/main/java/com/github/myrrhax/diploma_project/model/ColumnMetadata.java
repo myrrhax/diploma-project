@@ -14,7 +14,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ColumnMetadata {
-    private UUID id;
+    @Builder.Default
+    private UUID id = UUID.randomUUID();
     private String name;
     private String description;
     private ColumnType type;
@@ -54,6 +55,7 @@ public class ColumnMetadata {
         DATETIME,
         TIMESTAMP,
         JSON,
-        BOOLEAN
+        BOOLEAN,
+        DATE
     }
 }
