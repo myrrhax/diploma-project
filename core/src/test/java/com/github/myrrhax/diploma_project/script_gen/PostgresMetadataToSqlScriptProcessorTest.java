@@ -250,7 +250,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                     key,
                     ReferenceMetadata.builder()
                             .key(key)
-                            .type(ReferenceMetadata.ReferenceType.ONE_TO_MANY)
+                            .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
                             .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
                             .build()
             );
@@ -270,7 +270,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                     key,
                     ReferenceMetadata.builder()
                             .key(key)
-                            .type(ReferenceMetadata.ReferenceType.ONE_TO_MANY)
+                            .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
                             .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
                             .build()
             );
