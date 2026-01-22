@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.service;
 
+import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.mapper.SchemaMapper;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.UUID;
@@ -91,5 +93,17 @@ public class SchemeService {
 
         schemeRepository.deleteById(schemeId);
         currentVersionStateCacheStorage.deleteFromCache(schemeId);
+    }
+
+    public void processCommand(@Validated MetadataCommand command) {
+        VersionDTO version = currentVersionStateCacheStorage.getSchemaVersion(command.getSchemeId());
+        if (version != null && version.currentState() != null) {
+            try {
+                version.currentState().getLock().lock();
+                command.execute(version.currentState());
+            } finally {
+                version.currentState().getLock().unlock();
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundExceptio
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -84,6 +85,7 @@ public class CurrentVersionStateCacheStorage {
         }
     }
 
+    @Transactional
     @Scheduled(cron = "*/15 * * * *")
     public void evictCache() {
         for (UUID key : schemaStateCache.keySet()) {
@@ -128,6 +130,26 @@ public class CurrentVersionStateCacheStorage {
             } finally {
                 if (lock != null) {
                     lock.unlock();
+                }
+            }
+        }
+    }
+
+    @PreDestroy
+    @Transactional
+    public void preDestroy() {
+        for (UUID key : schemaStateCache.keySet()) {
+            VersionDTO version = schemaStateCache.get(key);
+            SchemaStateMetadata state = version.currentState();
+            if (state != null) {
+                Lock lock = null;
+                try {
+                    lock = state.getLock();
+                    flush(key, true);
+                } finally {
+                    if (lock != null) {
+                        lock.unlock();
+                    }
                 }
             }
         }

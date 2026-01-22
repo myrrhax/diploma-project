@@ -43,11 +43,11 @@ public class SchemaStateMetadata {
     }
 
     public void addTable(TableMetadata tableMetadata) {
-        this.tables.put(tableMetadata.getId(), tableMetadata);
+        this.tables.putIfAbsent(tableMetadata.getId(), tableMetadata);
     }
 
     public void addReference(ReferenceMetadata referenceMetadata) {
-        this.references.put(referenceMetadata.getKey(), referenceMetadata);
+        this.references.putIfAbsent(referenceMetadata.getKey(), referenceMetadata);
     }
 
     public Optional<TableMetadata> getTable(UUID id) {
