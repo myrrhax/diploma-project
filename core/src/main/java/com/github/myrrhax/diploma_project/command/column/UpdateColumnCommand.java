@@ -1,5 +1,6 @@
-package com.github.myrrhax.diploma_project.command;
+package com.github.myrrhax.diploma_project.command.column;
 
+import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import jakarta.validation.constraints.NotNull;
@@ -35,37 +36,47 @@ public class UpdateColumnCommand extends MetadataCommand {
 
     @Override
     public void execute(SchemaStateMetadata metadata) {
-        metadata.getTable(tableId).ifPresent(table -> {
-           table.getColumn(columnId).ifPresent(column -> {
-                if (newColumnName != null && !newColumnName.isBlank()) {
-                    column.setName(newColumnName);
-                }
-                if (newDescription != null && !newDescription.isBlank()) {
-                    column.setDescription(newDescription);
-                }
-                if (newDefaultValue != null
-                        && isCompatibleDefaultValue(newDefaultValue, column)) {
-                    column.setDefaultValue(newDefaultValue);
-                }
-                if (column.getType() == ColumnMetadata.ColumnType.DECIMAL
+        metadata.getTable(tableId).flatMap(table -> table.getColumn(columnId)).ifPresent(column -> {
+            if (newColumnName != null && !newColumnName.isBlank()) {
+                column.setName(newColumnName);
+            }
+            if (newDescription != null && !newDescription.isBlank()) {
+                column.setDescription(newDescription);
+            }
+            if (newDefaultValue != null
+                    && isCompatibleDefaultValue(newDefaultValue, column)) {
+                column.setDefaultValue(newDefaultValue);
+            }
+            if (column.getType() == ColumnMetadata.ColumnType.DECIMAL
                     && newScale != null
                     || newPrecision != null
                     && isCompactibleDecimal(column)) {
-                    if (newScale != null) {
-                        column.setScale(newScale);
+                if (newScale != null) {
+                    column.setScale(newScale);
+                }
+                if (newPrecision != null) {
+                    column.setPrecision(newPrecision);
+                }
+            }
+            if (constraints != null) {
+                column.setConstraints(constraints);
+            }
+            if (additionalComponents != null) {
+                additionalComponents.forEach(it -> {
+                    if (it == ColumnMetadata.AdditionalComponent.AUTO_INCREMENT
+                        && isValidAutoincrement(column)) {
+                        column.getAdditions().add(it);
                     }
-                    if (newPrecision != null) {
-                        column.setPrecision(newPrecision);
-                    }
-                }
-                if (constraints != null) {
-                    column.setConstraints(constraints);
-                }
-                if (additionalComponents != null) {
-                    column.setAdditions(additionalComponents);
-                }
-           });
+                });
+            }
         });
+    }
+
+    private boolean isValidAutoincrement(ColumnMetadata column) {
+        return switch (column.getType()) {
+            case SMALLINT, INT, BIGINT -> true;
+            default -> false;
+        };
     }
 
     private boolean isCompactibleDecimal(ColumnMetadata column) {

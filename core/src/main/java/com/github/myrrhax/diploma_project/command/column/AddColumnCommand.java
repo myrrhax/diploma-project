@@ -1,5 +1,6 @@
-package com.github.myrrhax.diploma_project.command;
+package com.github.myrrhax.diploma_project.command.column;
 
+import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import jakarta.validation.constraints.NotBlank;

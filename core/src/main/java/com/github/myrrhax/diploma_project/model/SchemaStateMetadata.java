@@ -50,6 +50,14 @@ public class SchemaStateMetadata {
         this.references.putIfAbsent(referenceMetadata.getKey(), referenceMetadata);
     }
 
+    public void removeReference(ReferenceMetadata.ReferenceKey key) {
+        this.references.remove(key);
+    }
+
+    public void removeTable(TableMetadata tableMetadata) {
+        this.tables.remove(tableMetadata.getId());
+    }
+
     public Optional<TableMetadata> getTable(UUID id) {
         return Optional.ofNullable(tables.get(id));
     }
