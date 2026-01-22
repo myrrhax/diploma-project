@@ -51,6 +51,14 @@ public class TableMetadata {
         }
     }
 
+    public void removeIndex(IndexMetadata index) {
+        indexes.remove(index);
+    }
+
+    public void removeColumn(ColumnMetadata column) {
+        columns.remove(column.getId());
+    }
+
     public void addIndexes(IndexMetadata... indexes) {
         this.indexes.addAll(Arrays.asList(indexes));
     }
