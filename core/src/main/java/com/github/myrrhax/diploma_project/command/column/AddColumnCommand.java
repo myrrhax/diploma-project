@@ -35,12 +35,4 @@ public class AddColumnCommand extends MetadataCommand {
                         .type(type)
                         .build()));
     }
-
-    public boolean checkTypeCompatibility(ColumnMetadata metadata) {
-        return switch (metadata.getType()) {
-            case CHAR, NUMERIC -> length != null;
-            case BOOLEAN -> precision != null && scale != null && precision > scale;
-            default -> true;
-        };
-    }
 }
