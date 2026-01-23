@@ -87,6 +87,9 @@ public class SchemeService {
 
     public SchemeDTO getScheme(UUID schemeId) {
         VersionDTO currentSchemaVersion = currentVersionStateCacheStorage.getSchemaVersion(schemeId);
+        if (currentSchemaVersion == null) {
+            throw new SchemaNotFoundException(schemeId);
+        }
 
         return this.schemeRepository.findByIdLocking(schemeId)
                 .map(it -> schemaMapper.toSchemeDTO(it, currentSchemaVersion))
