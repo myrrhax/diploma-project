@@ -8,11 +8,6 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
-    hikari:
-      schema: diploma_schema
-      connection-init-sql: CREATE SCHEMA IF NOT EXISTS diploma_schema
-      connection-timeout: 10000
-
   jpa:
     show-sql: true
     open-in-view: false

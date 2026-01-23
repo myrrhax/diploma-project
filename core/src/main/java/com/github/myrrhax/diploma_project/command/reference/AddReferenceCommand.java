@@ -68,14 +68,15 @@ public class AddReferenceCommand extends MetadataCommand {
             return column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)
                     || table.getPrimaryKeyParts().size() == 1
                         && table.getPrimaryKeyParts().contains(column)
-                    || table.getIndexes().stream().anyMatch(idx -> idx.isUnique()
-                        && idx.getColumnIds().size() == 1
-                        && idx.getColumnIds().contains(column.getId()));
+                    || table.getIndexes().values().stream()
+                        .anyMatch(idx -> idx.isUnique()
+                            && idx.getColumnIds().size() == 1
+                            && idx.getColumnIds().contains(column.getId()));
         }
 
         // Проверка по первичному ключу или уникальному индексу
         return isFullEquals(table.getPrimaryKeyParts(), columns)
-                || table.getIndexes().stream()
+                || table.getIndexes().values().stream()
                     .anyMatch(idx -> idx.isUnique()
                             && isFullEquals(idx.getColumnIds(), Arrays.stream(toColumns).toList()));
 

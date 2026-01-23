@@ -68,7 +68,10 @@ public class PostgreSQLDialectScriptFabric extends AbstractScriptFabric {
             sb.append("UNIQUE ");
         }
         sb.append("INDEX ");
-        sb.append(computeIndexName(tableMetadata.getName(), affectedCols, indexMeta.isUnique()));
+        if (indexMeta.getIndexName() == null) {
+            indexMeta.setIndexName(computeIndexName(tableMetadata.getName(), affectedCols, indexMeta.isUnique()));
+        }
+        sb.append(indexMeta.getIndexName());
         sb.append(" ON ");
         sb.append(tableMetadata.getName());
         sb.append(" USING ");

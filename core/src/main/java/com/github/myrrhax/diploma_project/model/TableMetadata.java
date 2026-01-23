@@ -7,8 +7,10 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,7 +31,7 @@ public class TableMetadata {
     private LinkedHashMap<UUID, ColumnMetadata> columns = new LinkedHashMap<>();
 
     @Builder.Default
-    private List<IndexMetadata> indexes = new ArrayList<>();
+    private Map<UUID, IndexMetadata> indexes = new HashMap<>();
 
     public Optional<ColumnMetadata> getColumn(UUID id) {
         return Optional.ofNullable(columns.get(id));
@@ -52,7 +54,7 @@ public class TableMetadata {
     }
 
     public void removeIndex(IndexMetadata index) {
-        indexes.remove(index);
+        indexes.remove(index.getId());
     }
 
     public void removeColumn(ColumnMetadata column) {
@@ -60,6 +62,8 @@ public class TableMetadata {
     }
 
     public void addIndexes(IndexMetadata... indexes) {
-        this.indexes.addAll(Arrays.asList(indexes));
+        for (IndexMetadata index : indexes) {
+            this.indexes.put(index.getId(), index);
+        }
     }
 }

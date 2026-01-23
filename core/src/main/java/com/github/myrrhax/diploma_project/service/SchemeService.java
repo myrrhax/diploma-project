@@ -104,6 +104,8 @@ public class SchemeService {
             } finally {
                 version.currentState().getLock().unlock();
             }
+        } else {
+            throw new SchemaNotFoundException(command.getSchemeId());
         }
     }
 }

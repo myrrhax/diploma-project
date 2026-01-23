@@ -47,15 +47,17 @@ public abstract class AbstractScriptFabric {
                 .map(ColumnMetadata::getName)
                 .toArray(String[]::new);
 
-        String fkName = computeForeignKeyName(fromColumnNames,
-                toColumnNames,
-                fromTable.getName(),
-                toTable.getName());
+        if (referenceMeta.getName() == null) {
+            referenceMeta.setName(computeForeignKeyName(fromColumnNames,
+                    toColumnNames,
+                    fromTable.getName(),
+                    toTable.getName()));
+        }
 
         return String.format(
                 FK_TEMPLATE,
                 fromTable.getName(),
-                fkName,
+                referenceMeta.getName(),
                 String.join(", ", fromColumnNames),
                 toTable.getName(),
                 String.join(", ", toColumnNames),

@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -89,59 +90,65 @@ public class UpdateColumnCommand extends MetadataCommand {
     private boolean isCompatibleDefaultValue(String defaultValue, ColumnMetadata column) {
         if (defaultValue == null) return true;
         try {
-            return switch (column.getType()) {
+            switch (column.getType()) {
                 case SMALLINT -> {
                     Short.parseShort(defaultValue);
-                    yield true;
+                    return true;
                 }
                 case INT -> {
                     Integer.parseInt(defaultValue);
-                    yield true;
+                    return true;
                 }
                 case BIGINT -> {
                     Long.parseLong(defaultValue);
-                    yield true;
+                    return true;
                 }
                 case FLOAT -> {
                     Float.parseFloat(defaultValue);
-                    yield true;
+                    return true;
                 }
                 case DOUBLE -> {
                     Double.parseDouble(defaultValue);
-                    yield true;
+                    return true;
                 }
                 case CHAR -> {
                     int len = column.getLength();
-                    yield defaultValue.length() == len || defaultValue.length() == newLength;
+                    return defaultValue.length() == len || defaultValue.length() == newLength;
                 }
                 case BOOLEAN -> {
                     Boolean.parseBoolean(defaultValue);
-                    yield true;
+                    return true;
                 }
                 case DATE -> {
                     if (defaultValue.equals("now"))
-                        yield true;
+                        return true;
 
                     LocalDate.parse(defaultValue);
-                    yield true;
+                    return true;
                 }
                 case NUMERIC -> {
                     if (defaultValue.length() != column.getLength())
-                        yield true;
+                        return true;
 
+                    new BigInteger(defaultValue);
+                    return true;
+                }
+                case DECIMAL -> {
                     new BigDecimal(defaultValue);
-                    yield true;
+                    return true;
                 }
                 case TIMESTAMP ->  {
                     if (defaultValue.equals("now")) {
-                        yield true;
+                        return true;
                     } else {
                         Instant.parse(defaultValue);
                     }
-                    yield true;
+                    return true;
                 }
-                default -> true;
-            };
+                default -> {
+                    return true;
+                }
+            }
         } catch (Exception e) {
             return false;
         }

@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +64,7 @@ public abstract class MetadataToSqlScriptProcessor {
 
             sqlBuilder.append(");\n");
 
-            List<IndexMetadata> indexes = tableMetadata.getIndexes();
+            Collection<IndexMetadata> indexes = tableMetadata.getIndexes().values();
             buildIndexPart(tableMetadata, indexes, indexesBuilder);
         }
 
@@ -193,7 +194,7 @@ public abstract class MetadataToSqlScriptProcessor {
         }
     }
 
-    private void buildIndexPart(TableMetadata tableMetadata, List<IndexMetadata> indexes, StringBuilder indexBuilder) {
+    private void buildIndexPart(TableMetadata tableMetadata, Collection<IndexMetadata> indexes, StringBuilder indexBuilder) {
         for (IndexMetadata indexMetadata : indexes) {
             indexBuilder.append(getScriptFabric().getIndexDefinition(tableMetadata, indexMetadata));
             indexBuilder.append("\n");

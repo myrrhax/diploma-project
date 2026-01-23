@@ -125,14 +125,15 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         columns.put(cmUsername.getId(), cmUsername);
         columns.put(cmPassword.getId(), cmPassword);
 
+        IndexMetadata idx = IndexMetadata.builder()
+                .columnIds(List.of(cmUsername.getId()))
+                .indexType(IndexMetadata.IndexType.B_TREE)
+                .build();
         var table = TableMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("users")
                 .columns(columns)
-                .indexes(List.of(IndexMetadata.builder()
-                        .columnIds(List.of(cmUsername.getId()))
-                        .indexType(IndexMetadata.IndexType.B_TREE)
-                        .build()))
+                .indexes(Map.of(idx.getId(), idx))
                 .primaryKeyParts(List.of(cmId))
                 .build();
         schemaStateMetadata.getTables().put(table.getId(), table);
@@ -173,14 +174,15 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         columns.put(maxBooksCount.getId(), maxBooksCount);
         columns.put(cmDeparture.getId(), cmDeparture);
 
+        IndexMetadata idx = IndexMetadata.builder()
+                .columnIds(List.of(cmAirplaneCode.getId()))
+                .indexType(IndexMetadata.IndexType.B_TREE)
+                .build();
         var table = TableMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("flights")
                 .columns(columns)
-                .indexes(List.of(IndexMetadata.builder()
-                        .columnIds(List.of(cmAirplaneCode.getId()))
-                        .indexType(IndexMetadata.IndexType.B_TREE)
-                        .build()))
+                .indexes(Map.of(idx.getId(), idx))
                 .primaryKeyParts(List.of(cmId))
                 .build();
         schemaStateMetadata.getTables().put(table.getId(), table);

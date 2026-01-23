@@ -19,6 +19,7 @@ public class ReferenceMetadata {
     private ReferenceType type;
     private OnDeleteAction onDeleteAction;
     private OnUpdateAction onUpdateAction;
+    private String name;
 
     public enum ReferenceType {
         ONE_TO_ONE,

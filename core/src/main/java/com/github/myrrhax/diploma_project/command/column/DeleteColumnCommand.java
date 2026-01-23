@@ -19,8 +19,8 @@ public class DeleteColumnCommand extends MetadataCommand {
     public void execute(SchemaStateMetadata metadata) {
         metadata.getTable(tableId).ifPresent(table -> table.getColumn(columnId).ifPresent(column -> {
             table.removeColumn(column);
-            table.getIndexes().removeIf(idx -> idx.getColumnIds()
-                    .contains(columnId));
+            table.getIndexes().entrySet()
+                    .removeIf(idx -> idx.getValue().getColumnIds().contains(columnId));
             table.getPrimaryKeyParts().removeIf(pk ->
                     pk.getId().equals(columnId));
             metadata.getReferences().entrySet()
