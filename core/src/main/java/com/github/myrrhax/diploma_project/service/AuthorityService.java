@@ -44,6 +44,9 @@ public class AuthorityService {
         if (getAuthorities(userId, schemeId).isEmpty()) {
             throw new ApplicationException("Can't grant user authorities, invite user instead", HttpStatus.BAD_REQUEST);
         }
+        if (types.contains(AuthorityType.ALL)) {
+            throw new ApplicationException("Can't grant user full access", HttpStatus.BAD_REQUEST);
+        }
 
         var scheme = schemeRepository.findById(schemeId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));

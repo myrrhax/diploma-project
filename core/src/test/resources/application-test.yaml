@@ -42,9 +42,3 @@ app:
 
 server:
   port: 8000
-
-logging:
-  level:
-    liquibase: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.tool.schema: DEBUG

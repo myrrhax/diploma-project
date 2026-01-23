@@ -3,17 +3,19 @@ package com.github.myrrhax.diploma_project.service;
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.mapper.SchemaMapper;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
+import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
+import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
+import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
 import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
+import com.github.myrrhax.diploma_project.repository.AuthorityRepository;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
-import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
-import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.shared.model.AuthorityType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -33,7 +34,7 @@ public class SchemeService {
     private final CurrentVersionStateCacheStorage currentVersionStateCacheStorage;
     private final SchemeRepository schemeRepository;
     private final UserRepository userRepository;
-    private final AuthorityService authorityService;
+    private final AuthorityRepository authorityRepository;
     private final SchemaMapper schemaMapper;
     private final JsonSchemaStateMapper schemaStateMapper;
 
@@ -72,7 +73,12 @@ public class SchemeService {
         savedVersion.setSchema(schemaStateMapper.toJson(state));
 
         log.info("Grant user {} full access for created scheme {}", userId, savedScheme.getId());
-        authorityService.grantUser(userId, savedScheme.getId(), List.of(AuthorityType.ALL));
+        AuthorityEntity authority = AuthorityEntity.builder()
+                        .type(AuthorityType.ALL)
+                        .scheme(scheme)
+                        .user(user)
+                        .build();
+        authorityRepository.save(authority);
         log.info("Full access to scheme {} for user {} was granted", userId,  savedScheme.getId());
 
         return schemaMapper.toSchemeDTO(savedScheme, schemaMapper.toVersionDTO(savedVersion, state));
@@ -91,8 +97,8 @@ public class SchemeService {
             throw new SchemaNotFoundException(schemeId);
         }
 
-        schemeRepository.deleteById(schemeId);
         currentVersionStateCacheStorage.deleteFromCache(schemeId);
+        schemeRepository.deleteById(schemeId);
     }
 
     public void processCommand(@Validated MetadataCommand command) {

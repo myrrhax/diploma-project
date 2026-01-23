@@ -117,6 +117,9 @@ public class CurrentVersionStateCacheStorage {
     }
 
     public void deleteFromCache(UUID id) {
+        if (!schemaStateCache.containsKey(id)) {
+            return;
+        }
         VersionDTO version = schemaStateCache.get(id);
         SchemaStateMetadata state = version.currentState();
         if (state != null) {
