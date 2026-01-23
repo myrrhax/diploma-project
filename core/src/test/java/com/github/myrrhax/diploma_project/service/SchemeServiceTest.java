@@ -1,7 +1,9 @@
 package com.github.myrrhax.diploma_project.service;
 
-import com.github.myrrhax.diploma_project.TestcontainersConfiguration;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.myrrhax.diploma_project.AbstractIntegrationTest;
 import com.github.myrrhax.diploma_project.command.table.AddTableCommand;
+import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
 import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
@@ -15,15 +17,9 @@ import com.github.myrrhax.diploma_project.security.TokenFactory;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.shared.model.AuthorityType;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,12 +28,7 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@SpringBootTest
-@Transactional
-@ActiveProfiles("test")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Import(TestcontainersConfiguration.class)
-public class SchemeServiceTest {
+public class SchemeServiceTest extends AbstractIntegrationTest {
     private static final String SCHEMA_NAME = "test_scheme";
     private static final String TABLE_NAME = "test_table";
 
@@ -53,6 +44,10 @@ public class SchemeServiceTest {
     private SchemeRepository schemeRepository;
     @Autowired
     private AuthorityRepository authorityRepository;
+    @Autowired
+    private CurrentVersionStateCacheStorage cache;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private TokenUser tokenUser;
 
@@ -73,10 +68,10 @@ public class SchemeServiceTest {
     public void givenValidSchemaFromUser_whenUserSaves_thenSavesSchemaCreateVersionAndGrantFullAccessToUser() {
         // given
         // when
-        SchemeDTO dto = schemeService.createScheme(TABLE_NAME, tokenUser);
+        SchemeDTO dto = schemeService.createScheme(SCHEMA_NAME, tokenUser);
         // then
         assertThat(dto).isNotNull();
-        assertThat(dto.name()).isEqualTo(TABLE_NAME);
+        assertThat(dto.name()).isEqualTo(SCHEMA_NAME);
 
         var savedEntity = schemeRepository.findById(dto.id());
         assertThat(savedEntity).isPresent();
@@ -97,9 +92,9 @@ public class SchemeServiceTest {
     @DisplayName("Create schema: When user already have schema then throws")
     public void givenUserHasSchemaWithName_whenUserCreatesSchemaWithSameName_thenThrowsException() {
         // given
-        schemeService.createScheme(TABLE_NAME, tokenUser);
+        schemeService.createScheme(SCHEMA_NAME, tokenUser);
         // when & then
-        assertThrows(ApplicationException.class, () -> schemeService.createScheme(TABLE_NAME, tokenUser));
+        assertThrows(ApplicationException.class, () -> schemeService.createScheme(SCHEMA_NAME, tokenUser));
     }
 
     @Test
@@ -111,5 +106,50 @@ public class SchemeServiceTest {
         cmd.setTableName(TABLE_NAME);
         // when & then
         assertThrows(SchemaNotFoundException.class, () -> schemeService.processCommand(cmd));
+    }
+
+    @Test
+    @DisplayName("Command: Add Column")
+    public void givenSchemaAndAddColumnCommand_whenPerformAddTable_thenCacheContainsNewVersionWithColumn() throws Exception {
+        // given
+        SchemeDTO scheme = schemeService.createScheme(SCHEMA_NAME, tokenUser);
+        AddTableCommand cmd = new AddTableCommand();
+        cmd.setTableName(TABLE_NAME);
+        cmd.setSchemeId(scheme.id());
+
+        // when
+        schemeService.processCommand(cmd);
+
+        // then
+        var version = cache.getSchemaVersion(scheme.id());
+        assertThat(version).isNotNull();
+        assertThat(version.currentState()).isNotNull();
+        assertThat(version.currentState().getTable(TABLE_NAME)).isNotNull();
+
+        var parsedScheme = assertAndGetParsedScheme(scheme.id());
+        assertThat(parsedScheme).isNotNull();
+        assertThat(parsedScheme.getTable(TABLE_NAME)).isEmpty();
+
+        var versionFromService = schemeService.getScheme(scheme.id());
+        assertThat(versionFromService).isNotNull();
+        assertThat(versionFromService.currentVersion()).isNotNull();
+        assertThat(versionFromService.currentVersion().currentState()).isNotNull();
+        assertThat(versionFromService.currentVersion().currentState().getTable(TABLE_NAME)).isPresent();
+
+        cache.flush(scheme.id(), true);
+
+        var parsedSchemeAfterFlush = assertAndGetParsedScheme(scheme.id());
+        assertThat(parsedSchemeAfterFlush).isNotNull();
+        assertThat(parsedSchemeAfterFlush.getTable(TABLE_NAME)).isPresent();
+    }
+
+    private SchemaStateMetadata assertAndGetParsedScheme(UUID schemeId) throws Exception {
+        var entityOptional = schemeRepository.findById(schemeId);
+        assertThat(entityOptional).isPresent();
+        var entity = entityOptional.get();
+        assertThat(entity).isNotNull();
+        String currentVer =  entity.getCurrentVersion().getSchema();
+
+        return objectMapper.readValue(currentVer, SchemaStateMetadata.class);
     }
 }

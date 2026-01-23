@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Slf4j
@@ -106,6 +107,7 @@ public class SchemeService {
         if (version != null && version.currentState() != null) {
             try {
                 version.currentState().getLock().lock();
+                version.currentState().setLastModificationTime(Instant.now());
                 command.execute(version.currentState());
             } finally {
                 version.currentState().getLock().unlock();

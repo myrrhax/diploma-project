@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
 import com.github.myrrhax.diploma_project.util.ReferenceKeyFromStringDeserializer;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -16,9 +16,9 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class SchemaStateMetadata {
     private UUID id;
     private long versionId;
@@ -26,8 +26,6 @@ public class SchemaStateMetadata {
     private boolean isWorkingCopy;
 
     private Map<UUID, TableMetadata> tables = new HashMap<>();
-
-    @JsonDeserialize(keyUsing = ReferenceKeyFromStringDeserializer.class)
     private Map<ReferenceMetadata.ReferenceKey, ReferenceMetadata> references = new HashMap<>();
 
     @JsonIgnore
@@ -66,5 +64,10 @@ public class SchemaStateMetadata {
         return tables.values().stream()
                     .filter(t -> t.getName().equals(name))
                     .findFirst();
+    }
+
+    @JsonDeserialize(keyUsing = ReferenceKeyFromStringDeserializer.class)
+    public void setReferences(Map<ReferenceMetadata.ReferenceKey, ReferenceMetadata> references) {
+        this.references = references;
     }
 }
