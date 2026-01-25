@@ -3,12 +3,14 @@ package com.github.myrrhax.diploma_project.command.index;
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
+import com.github.myrrhax.diploma_project.model.TableMetadata;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -26,28 +28,28 @@ public class AddIndexCommand extends MetadataCommand {
 
     @Override
     public void execute(SchemaStateMetadata metadata) {
-        metadata.getTable(tableId).ifPresent(table -> {
-            IndexMetadata builtIndex = IndexMetadata.builder()
-                    .indexType(indexType)
-                    .columnIds(Arrays.asList(affectedColumns))
-                    .isUnique(isUnique)
-                    .build();
+        TableMetadata table = metadata.getTable(tableId).orElse(null);
+        Objects.requireNonNull(table);
 
-            if (indexName != null
-                && !indexName.isBlank()
-                && table.getIndexes().values().stream()
-                    .map(IndexMetadata::getIndexName)
-                    .noneMatch(meta -> meta.equals(indexName))) {
+        IndexMetadata builtIndex = IndexMetadata.builder()
+                .indexType(indexType)
+                .columnIds(Arrays.asList(affectedColumns))
+                .isUnique(isUnique)
+                .build();
+        if (indexName != null
+            && !indexName.isBlank()
+            && table.getIndexes().values().stream()
+                .map(IndexMetadata::getIndexName)
+                .noneMatch(meta -> meta.equals(indexName))
+        ) {
+               builtIndex.setIndexName(indexName);
+        }
 
-                   builtIndex.setIndexName(indexName);
-            }
+        if (table.getIndexes().values()
+                .stream().anyMatch(builtIndex::equals)) {
+            throw new RuntimeException("Index already exists");
+        }
 
-            if (table.getIndexes().values()
-                    .stream().anyMatch(builtIndex::equals)) {
-                throw new RuntimeException("Index already exists");
-            }
-
-            table.addIndexes(builtIndex);
-        });
+        table.addIndexes(builtIndex);
     }
 }

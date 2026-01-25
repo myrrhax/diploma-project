@@ -3,15 +3,13 @@ package com.github.myrrhax.diploma_project.command.column;
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
+import com.github.myrrhax.diploma_project.model.TableMetadata;
+import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -37,120 +35,42 @@ public class UpdateColumnCommand extends MetadataCommand {
 
     @Override
     public void execute(SchemaStateMetadata metadata) {
-        metadata.getTable(tableId).flatMap(table -> table.getColumn(columnId)).ifPresent(column -> {
-            if (newColumnName != null && !newColumnName.isBlank()) {
-                column.setName(newColumnName);
-            }
-            if (newDescription != null && !newDescription.isBlank()) {
-                column.setDescription(newDescription);
-            }
-            if (newDefaultValue != null
-                    && isCompatibleDefaultValue(newDefaultValue, column)) {
-                column.setDefaultValue(newDefaultValue);
-            }
-            if (column.getType() == ColumnMetadata.ColumnType.DECIMAL
-                    && newScale != null
-                    || newPrecision != null
-                    && isCompactibleDecimal(column)) {
-                if (newScale != null) {
-                    column.setScale(newScale);
-                }
-                if (newPrecision != null) {
-                    column.setPrecision(newPrecision);
-                }
-            }
-            if (constraints != null) {
-                column.setConstraints(constraints);
-            }
-            if (additionalComponents != null) {
-                additionalComponents.forEach(it -> {
-                    if (it == ColumnMetadata.AdditionalComponent.AUTO_INCREMENT
-                        && isValidAutoincrement(column)) {
-                        column.getAdditions().add(it);
-                    }
-                });
-            }
-        });
-    }
+        TableMetadata table = metadata.getTable(tableId).orElse(null);
+        Objects.requireNonNull(table);
 
-    private boolean isValidAutoincrement(ColumnMetadata column) {
-        return switch (column.getType()) {
-            case SMALLINT, INT, BIGINT -> true;
-            default -> false;
-        };
-    }
+        ColumnMetadata column = table.getColumn(columnId).orElse(null);
+        Objects.requireNonNull(column);
 
-    private boolean isCompactibleDecimal(ColumnMetadata column) {
-        if (newPrecision != null) {
-            return newPrecision > Objects.requireNonNullElseGet(newScale, column::getScale);
+        if (newColumnName != null && !newColumnName.isBlank()) {
+            column.setName(newColumnName);
         }
-        return newScale > column.getPrecision();
-    }
-
-    private boolean isCompatibleDefaultValue(String defaultValue, ColumnMetadata column) {
-        if (defaultValue == null) return true;
-        try {
-            switch (column.getType()) {
-                case SMALLINT -> {
-                    Short.parseShort(defaultValue);
-                    return true;
-                }
-                case INT -> {
-                    Integer.parseInt(defaultValue);
-                    return true;
-                }
-                case BIGINT -> {
-                    Long.parseLong(defaultValue);
-                    return true;
-                }
-                case FLOAT -> {
-                    Float.parseFloat(defaultValue);
-                    return true;
-                }
-                case DOUBLE -> {
-                    Double.parseDouble(defaultValue);
-                    return true;
-                }
-                case CHAR -> {
-                    int len = column.getLength();
-                    return defaultValue.length() == len || defaultValue.length() == newLength;
-                }
-                case BOOLEAN -> {
-                    Boolean.parseBoolean(defaultValue);
-                    return true;
-                }
-                case DATE -> {
-                    if (defaultValue.equals("now"))
-                        return true;
-
-                    LocalDate.parse(defaultValue);
-                    return true;
-                }
-                case NUMERIC -> {
-                    if (defaultValue.length() != column.getLength())
-                        return true;
-
-                    new BigInteger(defaultValue);
-                    return true;
-                }
-                case DECIMAL -> {
-                    new BigDecimal(defaultValue);
-                    return true;
-                }
-                case TIMESTAMP ->  {
-                    if (defaultValue.equals("now")) {
-                        return true;
-                    } else {
-                        Instant.parse(defaultValue);
-                    }
-                    return true;
-                }
-                default -> {
-                    return true;
-                }
+        if (newDescription != null && !newDescription.isBlank()) {
+            column.setDescription(newDescription);
+        }
+        if (newDefaultValue != null && MetadataTypeUtils.isCompatibleDefaultValue(newDefaultValue, column, newLength)) {
+            column.setDefaultValue(newDefaultValue);
+        }
+        if (column.getType() == ColumnMetadata.ColumnType.DECIMAL
+                && newScale != null
+                || newPrecision != null
+                && MetadataTypeUtils.isCompactibleDecimal(newPrecision, newScale, column)) {
+            if (newScale != null) {
+                column.setScale(newScale);
             }
-        } catch (Exception e) {
-            return false;
+            if (newPrecision != null) {
+                column.setPrecision(newPrecision);
+            }
+        }
+        if (constraints != null) {
+            column.setConstraints(constraints);
+        }
+        if (additionalComponents != null) {
+            additionalComponents.forEach(it -> {
+                if (it == ColumnMetadata.AdditionalComponent.AUTO_INCREMENT
+                    && MetadataTypeUtils.isValidAutoincrement(column)) {
+                    column.getAdditions().add(it);
+                }
+            });
         }
     }
 }

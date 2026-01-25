@@ -2,9 +2,11 @@ package com.github.myrrhax.diploma_project.command.table;
 
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
+import com.github.myrrhax.diploma_project.model.TableMetadata;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -14,16 +16,16 @@ public class DeleteTableCommand extends MetadataCommand {
 
     @Override
     public void execute(SchemaStateMetadata metadata) {
-        metadata.getTable(tableId)
-                .ifPresent(tableMetadata -> {
-                    metadata.removeTable(tableMetadata);
-                    metadata.getReferences()
-                            .entrySet()
-                            .removeIf(entry -> {
-                                var key = entry.getKey();
+        TableMetadata table = metadata.getTable(tableId).orElse(null);
+        Objects.requireNonNull(table);
 
-                                return key.getFromTableId().equals(tableId) || key.getToTableId().equals(tableId);
-                            });
+        metadata.removeTable(table);
+        metadata.getReferences()
+                .entrySet()
+                .removeIf(entry -> {
+                    var key = entry.getKey();
+
+                    return key.getFromTableId().equals(tableId) || key.getToTableId().equals(tableId);
                 });
     }
 }

@@ -36,8 +36,7 @@ public class IndexMetadata {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         IndexMetadata that = (IndexMetadata) o;
-        return Objects.deepEquals(columnIds, that.columnIds)
-                && indexType == that.indexType;
+        return Objects.deepEquals(columnIds, that.columnIds);
     }
 
     @Override

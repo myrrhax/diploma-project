@@ -57,8 +57,21 @@ public class TableMetadata {
         indexes.remove(index.getId());
     }
 
-    public void removeColumn(ColumnMetadata column) {
+    public void removeColumn(ColumnMetadata column, SchemaStateMetadata schema) {
         columns.remove(column.getId());
+        getIndexes().entrySet().removeIf(idx ->
+                idx.getValue().getColumnIds().contains(column.getId()));
+        getPrimaryKeyParts().removeIf(pk ->
+                pk.getId().equals(column.getId()));
+
+        schema.getReferences().entrySet().removeIf(ref -> {
+            var key = ref.getKey();
+            return (key.getFromTableId().equals(getId())
+                    && Arrays.stream(key.getFromColumns())
+                        .anyMatch(fc -> fc.equals(column.getId())))
+                    || (key.getToTableId().equals(getId())
+                        && Arrays.stream(key.getToColumns()).anyMatch(fc -> fc.equals(column.getId())));
+        });
     }
 
     public void addIndexes(IndexMetadata... indexes) {

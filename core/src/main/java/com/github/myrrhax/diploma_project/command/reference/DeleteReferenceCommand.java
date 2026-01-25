@@ -6,6 +6,8 @@ import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
+
 @Getter
 @Setter
 public class DeleteReferenceCommand extends MetadataCommand {
@@ -13,6 +15,8 @@ public class DeleteReferenceCommand extends MetadataCommand {
 
     @Override
     public void execute(SchemaStateMetadata metadata) {
+        Objects.requireNonNull(metadata.getReferences().get(key));
+
         metadata.removeReference(key);
     }
 }

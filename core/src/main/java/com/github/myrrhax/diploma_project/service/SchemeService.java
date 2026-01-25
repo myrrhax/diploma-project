@@ -26,6 +26,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
 
 @Slf4j
 @Service
@@ -90,10 +91,16 @@ public class SchemeService {
         if (currentSchemaVersion == null) {
             throw new SchemaNotFoundException(schemeId);
         }
+        Lock lock = currentSchemaVersion.currentState().getLock();
+        try {
+            lock.lock();
 
-        return this.schemeRepository.findByIdLocking(schemeId)
-                .map(it -> schemaMapper.toSchemeDTO(it, currentSchemaVersion))
-                .orElseThrow(() -> new SchemaNotFoundException(schemeId));
+            return this.schemeRepository.findById(schemeId)
+                    .map(it -> schemaMapper.toSchemeDTO(it, currentSchemaVersion))
+                    .orElseThrow(() -> new SchemaNotFoundException(schemeId));
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void deleteScheme(UUID schemeId) {
@@ -110,8 +117,10 @@ public class SchemeService {
         if (version != null && version.currentState() != null) {
             try {
                 version.currentState().getLock().lock();
-                version.currentState().setLastModificationTime(Instant.now());
                 command.execute(version.currentState());
+                version.currentState().setLastModificationTime(Instant.now());
+            } catch (Exception e) {
+                log.error("Failed to process command: {}", e.getMessage());
             } finally {
                 version.currentState().getLock().unlock();
             }

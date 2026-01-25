@@ -15,6 +15,10 @@ public class AddTableCommand extends MetadataCommand {
 
     @Override
     public void execute(SchemaStateMetadata metadata) {
+        if (metadata.getTable(tableName).isPresent()) {
+            throw new RuntimeException("Table already exists");
+        }
+
         metadata.addTable(
                 TableMetadata.builder()
                         .name(tableName)

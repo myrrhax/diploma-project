@@ -3,12 +3,15 @@ package com.github.myrrhax.diploma_project.command.column;
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
+import com.github.myrrhax.diploma_project.model.TableMetadata;
+import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -29,10 +32,12 @@ public class AddColumnCommand extends MetadataCommand {
 
     @Override
     public void execute(SchemaStateMetadata metadata) {
-        metadata.getTable(tableId)
-                .ifPresent(table -> table.addColumn(ColumnMetadata.builder()
-                        .name(columnName)
-                        .type(type)
-                        .build()));
+        TableMetadata table = metadata.getTable(tableId).orElse(null);
+        Objects.requireNonNull(table);
+
+        table.addColumn(ColumnMetadata.builder()
+                .name(columnName)
+                .type(type)
+                .build());
     }
 }
