@@ -11,6 +11,6 @@ public class DeleteIndexCommand extends MetadataCommand {
 
     @Override
     public void execute(SchemaStateMetadata metadata) {
-
+        // ToDo add implementation reference invalidation
     }
 }

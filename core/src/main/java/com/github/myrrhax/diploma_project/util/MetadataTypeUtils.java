@@ -13,8 +13,10 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public class MetadataTypeUtils {
@@ -117,6 +119,13 @@ public class MetadataTypeUtils {
     public static <T> boolean isFullEquals(Collection<T> c1, Collection<? extends T> c2) {
         return c1.size() ==  c2.size()
                 && new HashSet<>(c1).equals(new HashSet<>(c2));
+    }
+
+    public static <T> boolean isSubSet(Collection<T> subCollection, Collection<? extends T> collection) {
+        Set<T> s1 = new HashSet<>(subCollection);
+        Set<T> s2 = new HashSet<>(collection);
+
+        return s2.containsAll(s1);
     }
 
     public static boolean isRefValid(SchemaStateMetadata state, ReferenceMetadata.ReferenceKey ref) {
