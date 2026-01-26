@@ -47,7 +47,7 @@ public class CurrentVersionStateCacheStorage {
     }
 
     @Transactional
-    public void flush(UUID id, boolean force) {
+    public void flush(UUID id, boolean calledFromUser) {
         VersionDTO version = schemaStateCache.get(id);
         SchemaStateMetadata state = version.currentState();
         if (state != null) {
@@ -68,7 +68,7 @@ public class CurrentVersionStateCacheStorage {
                     schemeRepository.flush();
 
                     // Удаляем при не принудительном флаше
-                    if (!force) {
+                    if (!calledFromUser) {
                         deleteFromCache(id);
                     }
                 }
@@ -148,7 +148,7 @@ public class CurrentVersionStateCacheStorage {
                 Lock lock = null;
                 try {
                     lock = state.getLock();
-                    flush(key, true);
+                    flush(key, false);
                 } finally {
                     if (lock != null) {
                         lock.unlock();

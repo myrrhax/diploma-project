@@ -2,7 +2,9 @@ package com.github.myrrhax.diploma_project.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.myrrhax.diploma_project.AbstractIntegrationTest;
+import com.github.myrrhax.diploma_project.command.column.AddColumnCommand;
 import com.github.myrrhax.diploma_project.command.table.AddTableCommand;
+import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
 import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
@@ -16,7 +18,9 @@ import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.TokenFactory;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.shared.model.AuthorityType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class SchemeServiceTest extends AbstractIntegrationTest {
     private static final String SCHEMA_NAME = "test_scheme";
     private static final String TABLE_NAME = "test_table";
+    private static final String ID_COLUMN = "id";
+    private static final String USERNAME_COLUMN = "username";
 
     @Autowired
     private SchemeService schemeService;
@@ -38,8 +44,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     private UserRepository userRepository;
     @Autowired
     private TokenFactory tokenFactory;
-    @Autowired
-    private CurrentVersionStateCacheStorage storage;
     @Autowired
     private SchemeRepository schemeRepository;
     @Autowired
@@ -50,6 +54,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     private ObjectMapper objectMapper;
 
     private TokenUser tokenUser;
+    private UUID uuid;
 
     @BeforeAll
     public void setupAdminUser() {
@@ -63,17 +68,25 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         tokenUser = tokenFactory.fromToken(token);
     }
 
+    @BeforeEach
+    public void addScheme() {
+        SchemeDTO dto = schemeService.createScheme(SCHEMA_NAME, tokenUser);
+        uuid = dto.id();
+    }
+
+    @AfterEach
+    public void evictCache() {
+        cache.deleteFromCache(uuid);
+    }
+
     @Test
     @DisplayName("Create schema: Creation with cascade insertions")
     public void givenValidSchemaFromUser_whenUserSaves_thenSavesSchemaCreateVersionAndGrantFullAccessToUser() {
         // given
         // when
-        SchemeDTO dto = schemeService.createScheme(SCHEMA_NAME, tokenUser);
-        // then
-        assertThat(dto).isNotNull();
-        assertThat(dto.name()).isEqualTo(SCHEMA_NAME);
 
-        var savedEntity = schemeRepository.findById(dto.id());
+        // then
+        var savedEntity = schemeRepository.findById(uuid);
         assertThat(savedEntity).isPresent();
         assertThat(savedEntity.get().getCreator()).isNotNull();
         assertThat(savedEntity.get().getCreator().getId()).isEqualTo(tokenUser.getToken().userId());
@@ -91,9 +104,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Create schema: When user already have schema then throws")
     public void givenUserHasSchemaWithName_whenUserCreatesSchemaWithSameName_thenThrowsException() {
-        // given
-        schemeService.createScheme(SCHEMA_NAME, tokenUser);
-        // when & then
         assertThrows(ApplicationException.class, () -> schemeService.createScheme(SCHEMA_NAME, tokenUser));
     }
 
@@ -109,38 +119,130 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Command: Add Column")
-    public void givenSchemaAndAddColumnCommand_whenPerformAddTable_thenCacheContainsNewVersionWithColumn() throws Exception {
+    @DisplayName("Command: Add Table")
+    public void givenSchemaAndAddTableCommand_whenPerformAddTable_thenCacheContainsNewVersionWithTable() throws Exception {
         // given
-        SchemeDTO scheme = schemeService.createScheme(SCHEMA_NAME, tokenUser);
         AddTableCommand cmd = new AddTableCommand();
         cmd.setTableName(TABLE_NAME);
-        cmd.setSchemeId(scheme.id());
+        cmd.setSchemeId(uuid);
 
         // when
         schemeService.processCommand(cmd);
 
         // then
-        var version = cache.getSchemaVersion(scheme.id());
+        var version = cache.getSchemaVersion(uuid);
         assertThat(version).isNotNull();
         assertThat(version.currentState()).isNotNull();
         assertThat(version.currentState().getTable(TABLE_NAME)).isNotNull();
 
-        var parsedScheme = assertAndGetParsedScheme(scheme.id());
+        var parsedScheme = assertAndGetParsedScheme(uuid);
         assertThat(parsedScheme).isNotNull();
         assertThat(parsedScheme.getTable(TABLE_NAME)).isEmpty();
 
-        var versionFromService = schemeService.getScheme(scheme.id());
+        var versionFromService = schemeService.getScheme(uuid);
         assertThat(versionFromService).isNotNull();
         assertThat(versionFromService.currentVersion()).isNotNull();
         assertThat(versionFromService.currentVersion().currentState()).isNotNull();
         assertThat(versionFromService.currentVersion().currentState().getTable(TABLE_NAME)).isPresent();
 
-        cache.flush(scheme.id(), true);
+        cache.flush(uuid, true);
 
-        var parsedSchemeAfterFlush = assertAndGetParsedScheme(scheme.id());
+        var parsedSchemeAfterFlush = assertAndGetParsedScheme(uuid);
         assertThat(parsedSchemeAfterFlush).isNotNull();
         assertThat(parsedSchemeAfterFlush.getTable(TABLE_NAME)).isPresent();
+    }
+
+    @Test
+    @DisplayName("Command: Add table (Duplicate exception)")
+    public void givenSchemaWithTable_whenAddTableWithDuplicateName_thenThrowsException() {
+        // given
+        AddTableCommand cmd = new AddTableCommand();
+        cmd.setTableName(TABLE_NAME);
+        cmd.setSchemeId(uuid);
+        schemeService.processCommand(cmd);
+        // when & then
+        assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
+    }
+
+    @Test
+    @DisplayName("Command: Add Column")
+    public void givenSchemaWithTable_whenAddColumnsWithThreeTypes_thenSchemaInCacheContainsThemAndAfterEvictDatabaseUpdated() throws Exception {
+        // given
+        AddTableCommand tableCommand = new AddTableCommand();
+        tableCommand.setTableName(TABLE_NAME);
+        tableCommand.setSchemeId(uuid);
+        schemeService.processCommand(tableCommand);
+
+        SchemeDTO scheme = schemeService.getScheme(uuid);
+        var state = scheme.currentVersion().currentState();
+        UUID tableId = state.getTable(TABLE_NAME).orElseThrow().getId();
+
+        AddColumnCommand cmd = new AddColumnCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setTableId(tableId);
+        cmd.setColumnName(ID_COLUMN);
+        cmd.setType(ColumnMetadata.ColumnType.BIGINT);
+
+        AddColumnCommand cmd2 = new AddColumnCommand();
+        cmd2.setSchemeId(uuid);
+        cmd2.setTableId(tableId);
+        cmd2.setColumnName(USERNAME_COLUMN);
+        cmd2.setType(ColumnMetadata.ColumnType.VARCHAR);
+
+        // when
+        schemeService.processCommand(cmd);
+        schemeService.processCommand(cmd2);
+
+        // then
+        var version = schemeService.getScheme(scheme.id());
+        var schema = version.currentVersion().currentState();
+        assertThat(version).isNotNull();
+        assertThat(schema).isNotNull();
+        assertThat(schema.getTable(TABLE_NAME)).isPresent();
+
+        var table = schema.getTable(TABLE_NAME).orElseThrow();
+        assertThat(table.getColumn(ID_COLUMN)).isPresent();
+
+        var idColumn = table.getColumn(ID_COLUMN).orElseThrow();
+        assertThat(idColumn.getType()).isEqualTo(ColumnMetadata.ColumnType.BIGINT);
+
+        var usernameColumn = table.getColumn(USERNAME_COLUMN);
+        assertThat(usernameColumn).isPresent();
+        assertThat(usernameColumn.get().getType()).isEqualTo(ColumnMetadata.ColumnType.VARCHAR);
+
+        // in cache only
+        var parsedSchema = assertAndGetParsedScheme(uuid);
+        assertThat(parsedSchema).isNotNull();
+        assertThat(parsedSchema.getTable(TABLE_NAME)).isNotPresent();
+
+        cache.flush(uuid, true);
+
+        var parsedSchemaAfterFlush = assertAndGetParsedScheme(uuid);
+        assertThat(parsedSchemaAfterFlush).isNotNull();
+
+        var parsedTableAfterFlush = parsedSchemaAfterFlush.getTable(TABLE_NAME);
+        assertThat(parsedTableAfterFlush).isPresent();
+        assertThat(parsedTableAfterFlush.get().getColumn(ID_COLUMN)).isPresent();
+        assertThat(parsedTableAfterFlush.get().getColumn(USERNAME_COLUMN)).isPresent();
+    }
+
+    @Test
+    @DisplayName("Command Add Column: Throws on duplicate")
+    public void givenSchemaWithTableAndColumns_whenColumnWithDuplicateName_thenThrowsException() {
+        // given
+        AddTableCommand cmd = new AddTableCommand();
+        cmd.setTableName(TABLE_NAME);
+        cmd.setSchemeId(uuid);
+        schemeService.processCommand(cmd);
+
+        var version = schemeService.getScheme(uuid).currentVersion();
+        AddColumnCommand colCmd = new AddColumnCommand();
+        colCmd.setSchemeId(uuid);
+        colCmd.setTableId(version.currentState().getTable(TABLE_NAME).orElseThrow().getId());
+        schemeService.processCommand(colCmd);
+
+        // when & then
+        assertThrows(Exception.class, () -> schemeService.processCommand(colCmd));
     }
 
     private SchemaStateMetadata assertAndGetParsedScheme(UUID schemeId) throws Exception {

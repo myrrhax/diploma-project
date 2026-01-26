@@ -21,12 +21,19 @@ public abstract class AbstractScriptFabric {
             ON DELETE %s
             ON UPDATE %s;
             """;
-    protected static final Set<ColumnMetadata.ColumnType> lengthLimitedTypes = Set.of(
+
+    public static final Set<ColumnMetadata.ColumnType> lengthLimitedTypes = Set.of(
             ColumnMetadata.ColumnType.VARCHAR,
             ColumnMetadata.ColumnType.CHAR,
-            ColumnMetadata.ColumnType.NUMERIC,
-            ColumnMetadata.ColumnType.DECIMAL
+            ColumnMetadata.ColumnType.NUMERIC
     );
+
+    public static final Set<ColumnMetadata.ColumnType> validAutoIncrementTypes = Set.of(
+            ColumnMetadata.ColumnType.SMALLINT,
+            ColumnMetadata.ColumnType.INT,
+            ColumnMetadata.ColumnType.BIGINT
+    );
+
 
     public final String getReferenceDefinition(Map<UUID, TableMetadata> tables, ReferenceMetadata referenceMeta) {
         ReferenceMetadata.ReferenceKey key = referenceMeta.getKey();

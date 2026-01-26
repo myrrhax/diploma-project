@@ -42,17 +42,19 @@ public class UpdateColumnCommand extends MetadataCommand {
         Objects.requireNonNull(column);
 
         if (newColumnName != null && !newColumnName.isBlank()) {
+            if (table.getColumn(newColumnName).isPresent()) {
+                throw new RuntimeException("Column with name " + newColumnName + " already exists");
+            }
             column.setName(newColumnName);
         }
         if (newDescription != null && !newDescription.isBlank()) {
             column.setDescription(newDescription);
         }
-        if (newDefaultValue != null && MetadataTypeUtils.isCompatibleDefaultValue(newDefaultValue, column, newLength)) {
-            column.setDefaultValue(newDefaultValue);
+        if (newLength != null && MetadataTypeUtils.isCompactibleLengthLimitedType(column, newLength, newDefaultValue)) {
+            column.setLength(newLength);
         }
         if (column.getType() == ColumnMetadata.ColumnType.DECIMAL
-                && newScale != null
-                || newPrecision != null
+                && newScale != null || newPrecision != null
                 && MetadataTypeUtils.isCompactibleDecimal(newPrecision, newScale, column)) {
             if (newScale != null) {
                 column.setScale(newScale);
@@ -60,6 +62,9 @@ public class UpdateColumnCommand extends MetadataCommand {
             if (newPrecision != null) {
                 column.setPrecision(newPrecision);
             }
+        }
+        if (newDefaultValue != null && MetadataTypeUtils.isCompatibleDefaultValue(newDefaultValue, column, newLength)) {
+            column.setDefaultValue(newDefaultValue);
         }
         if (constraints != null) {
             column.setConstraints(constraints);

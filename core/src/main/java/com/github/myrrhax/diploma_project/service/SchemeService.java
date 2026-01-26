@@ -119,8 +119,6 @@ public class SchemeService {
                 version.currentState().getLock().lock();
                 command.execute(version.currentState());
                 version.currentState().setLastModificationTime(Instant.now());
-            } catch (Exception e) {
-                log.error("Failed to process command: {}", e.getMessage());
             } finally {
                 version.currentState().getLock().unlock();
             }

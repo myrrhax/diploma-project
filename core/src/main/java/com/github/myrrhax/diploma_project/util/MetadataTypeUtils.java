@@ -3,6 +3,7 @@ package com.github.myrrhax.diploma_project.util;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
+import com.github.myrrhax.diploma_project.script.AbstractScriptFabric;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -17,10 +18,23 @@ import java.util.UUID;
 
 public class MetadataTypeUtils {
     public static boolean isValidAutoincrement(ColumnMetadata column) {
-        return switch (column.getType()) {
-            case SMALLINT, INT, BIGINT -> true;
-            default -> false;
-        };
+        return AbstractScriptFabric.validAutoIncrementTypes.contains(column.getType());
+    }
+
+    public static boolean isCompactibleLengthLimitedType(ColumnMetadata column, int newLength, String newDefaultValue) {
+        if (!AbstractScriptFabric.lengthLimitedTypes.contains(column.getType())) {
+            return false;
+        }
+        String defaultValue = newDefaultValue != null ? newDefaultValue : column.getDefaultValue();
+        if (defaultValue != null) {
+            if (column.getType() == ColumnMetadata.ColumnType.CHAR
+                    && newLength != defaultValue.length()) {
+                throw new RuntimeException("Incompatible default value length");
+            }
+            return newLength >= defaultValue.length();
+        }
+
+        return true;
     }
 
     public static boolean isCompactibleDecimal(Integer newPrecision, Integer newScale, ColumnMetadata column) {
@@ -72,8 +86,8 @@ public class MetadataTypeUtils {
                     return true;
                 }
                 case NUMERIC -> {
-                    if (defaultValue.length() != column.getLength())
-                        return true;
+                    if (defaultValue.length() > column.getLength())
+                        return false;
 
                     new BigInteger(defaultValue);
                     return true;
