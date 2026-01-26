@@ -17,6 +17,7 @@ import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
 import com.github.myrrhax.shared.model.AuthorityType;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,7 @@ import java.util.concurrent.locks.Lock;
 
 @Slf4j
 @Service
+@Validated
 @Transactional
 @RequiredArgsConstructor
 public class SchemeService {
@@ -112,7 +114,7 @@ public class SchemeService {
         schemeRepository.deleteById(schemeId);
     }
 
-    public void processCommand(@Validated MetadataCommand command) {
+    public void processCommand(@Valid MetadataCommand command) {
         VersionDTO version = currentVersionStateCacheStorage.getSchemaVersion(command.getSchemeId());
         if (version != null && version.currentState() != null) {
             try {

@@ -238,6 +238,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         var version = schemeService.getScheme(uuid).currentVersion();
         AddColumnCommand colCmd = new AddColumnCommand();
         colCmd.setSchemeId(uuid);
+        colCmd.setColumnName(ID_COLUMN);
+        colCmd.setType(ColumnMetadata.ColumnType.BIGINT);
         colCmd.setTableId(version.currentState().getTable(TABLE_NAME).orElseThrow().getId());
         schemeService.processCommand(colCmd);
 
