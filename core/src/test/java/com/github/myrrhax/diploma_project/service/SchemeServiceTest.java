@@ -3,10 +3,12 @@ package com.github.myrrhax.diploma_project.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.myrrhax.diploma_project.AbstractIntegrationTest;
 import com.github.myrrhax.diploma_project.command.column.AddColumnCommand;
+import com.github.myrrhax.diploma_project.command.column.DeleteColumnCommand;
 import com.github.myrrhax.diploma_project.command.table.AddTableCommand;
 import com.github.myrrhax.diploma_project.command.table.DeleteTableCommand;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
+import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
 import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
@@ -278,6 +280,52 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd.setTableId(UUID.randomUUID());
         // when & then
         assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
+    }
+
+    @Test
+    @DisplayName("Command: Delete column (Success)")
+    public void givenSchemaWithColumn_whenPerformDeleteWithValidUUID_thenSuccess() {
+        // given
+        AddTableCommand cmd = new AddTableCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setTableName(TABLE_NAME);
+        schemeService.processCommand(cmd);
+
+        AddColumnCommand colCmd = new AddColumnCommand();
+        colCmd.setSchemeId(uuid);
+        colCmd.setColumnName(ID_COLUMN);
+        colCmd.setType(ColumnMetadata.ColumnType.BIGINT);
+        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        TableMetadata table = state.getTable(TABLE_NAME).orElseThrow();
+        colCmd.setTableId(table.getId());
+        schemeService.processCommand(colCmd);
+
+        DeleteColumnCommand colDeleteCmd = new DeleteColumnCommand();
+        colDeleteCmd.setSchemeId(uuid);
+        colDeleteCmd.setTableId(table.getId());
+        colDeleteCmd.setColumnId(table.getColumn(ID_COLUMN).orElseThrow().getId());
+        // when
+        schemeService.processCommand(colDeleteCmd);
+
+        // then
+        assertThat(table.getColumn(ID_COLUMN)).isNotPresent();
+    }
+
+    @Test
+    @DisplayName("Command: Delete command (Throws when not found)")
+    public void givenTable_whenDeleteColumnWithInvalidId_thenThrowsException() {
+        // given
+        AddTableCommand cmd = new AddTableCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setTableName(TABLE_NAME);
+        schemeService.processCommand(cmd);
+
+        DeleteColumnCommand colCmd = new DeleteColumnCommand();
+        colCmd.setSchemeId(uuid);
+        colCmd.setTableId(UUID.randomUUID());
+
+        // when & then
+        assertThrows(Exception.class, () -> schemeService.processCommand(colCmd));
     }
 
     private SchemaStateMetadata assertAndGetParsedScheme(UUID schemeId) throws Exception {
