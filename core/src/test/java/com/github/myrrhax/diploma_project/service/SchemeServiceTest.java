@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.myrrhax.diploma_project.AbstractIntegrationTest;
 import com.github.myrrhax.diploma_project.command.column.AddColumnCommand;
 import com.github.myrrhax.diploma_project.command.table.AddTableCommand;
+import com.github.myrrhax.diploma_project.command.table.DeleteTableCommand;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
@@ -18,6 +19,7 @@ import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.TokenFactory;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.shared.model.AuthorityType;
+import org.hibernate.sql.Delete;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -227,7 +229,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Command Add Column: Throws on duplicate")
+    @DisplayName("Command: Add Column(Throws on duplicate)")
     public void givenSchemaWithTableAndColumns_whenColumnWithDuplicateName_thenThrowsException() {
         // given
         AddTableCommand cmd = new AddTableCommand();
@@ -245,6 +247,37 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
 
         // when & then
         assertThrows(Exception.class, () -> schemeService.processCommand(colCmd));
+    }
+
+    @Test
+    @DisplayName("Command: Delete Table")
+    public void givenDeleteTableCommand_whenProcess_thenCacheVersionDoesNotHaveTable() {
+        // given
+        AddTableCommand cmd = new AddTableCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setTableName(TABLE_NAME);
+        schemeService.processCommand(cmd);
+
+        SchemaStateMetadata state = schemeService.getScheme(uuid).currentVersion().currentState();
+
+        DeleteTableCommand deleteTable = new DeleteTableCommand();
+        deleteTable.setSchemeId(uuid);
+        deleteTable.setTableId(state.getTable(TABLE_NAME).orElseThrow().getId());
+        // when
+        schemeService.processCommand(deleteTable);
+        // then
+        assertThat(state.getTable(TABLE_NAME)).isNotPresent();
+    }
+
+    @Test
+    @DisplayName("Command: Delete table (Throws when not found)")
+    public void givenDeleteTableCommand_whenTableNotFound_thenThrowsException() {
+        // given
+        DeleteTableCommand cmd = new DeleteTableCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setTableId(UUID.randomUUID());
+        // when & then
+        assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
     }
 
     private SchemaStateMetadata assertAndGetParsedScheme(UUID schemeId) throws Exception {
