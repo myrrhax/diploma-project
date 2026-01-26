@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.myrrhax.diploma_project.AbstractIntegrationTest;
 import com.github.myrrhax.diploma_project.command.column.AddColumnCommand;
 import com.github.myrrhax.diploma_project.command.column.DeleteColumnCommand;
-import com.github.myrrhax.diploma_project.command.column.UpdateColumnCommand;
 import com.github.myrrhax.diploma_project.command.table.AddTableCommand;
 import com.github.myrrhax.diploma_project.command.table.DeleteTableCommand;
 import com.github.myrrhax.diploma_project.command.table.UpdateTableCommand;
@@ -94,14 +93,14 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         // then
         var savedEntity = schemeRepository.findById(uuid);
         assertThat(savedEntity).isPresent();
-        assertThat(savedEntity.get().getCreator()).isNotNull();
-        assertThat(savedEntity.get().getCreator().getId()).isEqualTo(tokenUser.getToken().userId());
+        assertThat(savedEntity.orElseThrow().getCreator()).isNotNull();
+        assertThat(savedEntity.orElseThrow().getCreator().getId()).isEqualTo(tokenUser.getToken().userId());
 
-        assertThat(savedEntity.get().getCurrentVersion()).isNotNull();
-        assertThat(savedEntity.get().getCurrentVersion().getIsWorkingCopy()).isTrue();
+        assertThat(savedEntity.orElseThrow().getCurrentVersion()).isNotNull();
+        assertThat(savedEntity.orElseThrow().getCurrentVersion().getIsWorkingCopy()).isTrue();
 
         var authorities = authorityRepository.findAllAuthoritiesForUserAndScheme(tokenUser.getToken().userId(),
-                savedEntity.get().getId()).stream()
+                savedEntity.orElseThrow().getId()).stream()
                     .map(AuthorityEntity::getType)
                     .collect(Collectors.toSet());
         assertThat(authorities.contains(AuthorityType.ALL)).isTrue();
@@ -211,7 +210,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
 
         var usernameColumn = table.getColumn(USERNAME_COLUMN);
         assertThat(usernameColumn).isPresent();
-        assertThat(usernameColumn.get().getType()).isEqualTo(ColumnMetadata.ColumnType.VARCHAR);
+        assertThat(usernameColumn.orElseThrow().getType()).isEqualTo(ColumnMetadata.ColumnType.VARCHAR);
 
         // in cache only
         var parsedSchema = assertAndGetParsedScheme(uuid);
@@ -225,8 +224,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
 
         var parsedTableAfterFlush = parsedSchemaAfterFlush.getTable(TABLE_NAME);
         assertThat(parsedTableAfterFlush).isPresent();
-        assertThat(parsedTableAfterFlush.get().getColumn(ID_COLUMN)).isPresent();
-        assertThat(parsedTableAfterFlush.get().getColumn(USERNAME_COLUMN)).isPresent();
+        assertThat(parsedTableAfterFlush.orElseThrow().getColumn(ID_COLUMN)).isPresent();
+        assertThat(parsedTableAfterFlush.orElseThrow().getColumn(USERNAME_COLUMN)).isPresent();
     }
 
     @Test
@@ -234,11 +233,10 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     public void givenSchemaWithTableAndColumns_whenColumnWithDuplicateName_thenThrowsException() {
         // given
         performAddTable();
-
         performAddColumnAndGetTable();
 
         // when & then
-        assertThrows(Exception.class, () -> performAddColumnAndGetTable());
+        assertThrows(Exception.class, this::performAddColumnAndGetTable);
     }
 
     @Test
@@ -342,7 +340,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     private SchemaStateMetadata assertAndGetParsedScheme(UUID schemeId) throws Exception {
         var entityOptional = schemeRepository.findById(schemeId);
         assertThat(entityOptional).isPresent();
-        var entity = entityOptional.get();
+        var entity = entityOptional.orElseThrow();
         assertThat(entity).isNotNull();
         String currentVer =  entity.getCurrentVersion().getSchema();
 

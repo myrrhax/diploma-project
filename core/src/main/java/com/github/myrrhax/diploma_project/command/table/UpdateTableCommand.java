@@ -10,7 +10,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -61,7 +60,7 @@ public class UpdateTableCommand extends MetadataCommand {
             }
             table.setPrimaryKeyParts(newPrimaryKeyParts.stream()
                     .map(table::getColumn)
-                    .map(Optional::get)
+                    .map(Optional::orElseThrow)
                     .toList());
         }
     }
