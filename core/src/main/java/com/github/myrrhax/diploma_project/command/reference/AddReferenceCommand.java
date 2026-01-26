@@ -28,17 +28,10 @@ public class AddReferenceCommand extends MetadataCommand {
         Objects.requireNonNull(referenceKey.getFromColumns());
         Objects.requireNonNull(referenceKey.getToColumns());
 
-        if (referenceKey.getFromColumns().length != referenceKey.getToColumns().length) {
-            throw new RuntimeException("Column lengths are not equal");
-        }
-
-        if (MetadataTypeUtils.checkInvalidReferenceKeyPart(metadata, referenceKey.getFromTableId(), referenceKey.getFromColumns())
-            || MetadataTypeUtils.checkInvalidReferenceKeyPart(metadata, referenceKey.getToTableId(), referenceKey.getToColumns())) {
-            throw new RuntimeException("Invalid key");
-        }
-
-        if (!MetadataTypeUtils.checkIsRefValid(metadata, referenceKey.getToTableId(), referenceKey.getToColumns())) {
-            throw new RuntimeException("Invalid reference between columns");
+        if (referenceKey.getFromColumns().length != referenceKey.getToColumns().length
+            || !MetadataTypeUtils.isRefValid(metadata, referenceKey)
+        ) {
+            throw new RuntimeException("Invalid reference");
         }
 
         metadata.addReference(ReferenceMetadata.builder()
@@ -46,7 +39,6 @@ public class AddReferenceCommand extends MetadataCommand {
                 .key(referenceKey)
                 .onDeleteAction(deleteAction == null ? ReferenceMetadata.OnDeleteAction.NO_ACTION : deleteAction)
                 .onUpdateAction(updateAction == null ? ReferenceMetadata.OnUpdateAction.NO_ACTION : updateAction)
-                .build()
-        );
+                .build());
     }
 }

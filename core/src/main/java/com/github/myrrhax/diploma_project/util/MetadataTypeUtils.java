@@ -1,6 +1,7 @@
 package com.github.myrrhax.diploma_project.util;
 
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
+import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.script.AbstractScriptFabric;
@@ -118,7 +119,13 @@ public class MetadataTypeUtils {
                 && new HashSet<>(c1).equals(new HashSet<>(c2));
     }
 
-    public static boolean checkIsRefValid(SchemaStateMetadata metadata, UUID toTableId, UUID[] toColumns) {
+    public static boolean isRefValid(SchemaStateMetadata state, ReferenceMetadata.ReferenceKey ref) {
+        return !checkInvalidReferenceKeyPart(state, ref.getFromTableId(), ref.getFromColumns())
+                && !checkInvalidReferenceKeyPart(state, ref.getToTableId(), ref.getToColumns())
+                && checkToPart(state, ref.getToTableId(), ref.getToColumns());
+    }
+
+    private static boolean checkToPart(SchemaStateMetadata metadata, UUID toTableId, UUID[] toColumns) {
         TableMetadata table = metadata.getTable(toTableId).orElse(null);
         Objects.requireNonNull(table);
 
@@ -146,7 +153,7 @@ public class MetadataTypeUtils {
 
     }
 
-    public static boolean checkInvalidReferenceKeyPart(SchemaStateMetadata stateMetadata, UUID tableId, UUID[] columns) {
+    private static boolean checkInvalidReferenceKeyPart(SchemaStateMetadata stateMetadata, UUID tableId, UUID[] columns) {
         if (tableId == null)
             return true;
         if (columns == null || columns.length == 0)
