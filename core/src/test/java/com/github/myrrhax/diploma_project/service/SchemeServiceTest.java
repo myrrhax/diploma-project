@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.myrrhax.diploma_project.AbstractIntegrationTest;
 import com.github.myrrhax.diploma_project.command.column.AddColumnCommand;
 import com.github.myrrhax.diploma_project.command.column.DeleteColumnCommand;
+import com.github.myrrhax.diploma_project.command.column.UpdateColumnCommand;
 import com.github.myrrhax.diploma_project.command.table.AddTableCommand;
 import com.github.myrrhax.diploma_project.command.table.DeleteTableCommand;
+import com.github.myrrhax.diploma_project.command.table.UpdateTableCommand;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
@@ -21,7 +23,7 @@ import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.TokenFactory;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.shared.model.AuthorityType;
-import org.hibernate.sql.Delete;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -172,10 +174,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Add Column")
     public void givenSchemaWithTable_whenAddColumnsWithThreeTypes_thenSchemaInCacheContainsThemAndAfterEvictDatabaseUpdated() throws Exception {
         // given
-        AddTableCommand tableCommand = new AddTableCommand();
-        tableCommand.setTableName(TABLE_NAME);
-        tableCommand.setSchemeId(uuid);
-        schemeService.processCommand(tableCommand);
+        performAddTable();
 
         SchemeDTO scheme = schemeService.getScheme(uuid);
         var state = scheme.currentVersion().currentState();
@@ -234,31 +233,19 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Add Column(Throws on duplicate)")
     public void givenSchemaWithTableAndColumns_whenColumnWithDuplicateName_thenThrowsException() {
         // given
-        AddTableCommand cmd = new AddTableCommand();
-        cmd.setTableName(TABLE_NAME);
-        cmd.setSchemeId(uuid);
-        schemeService.processCommand(cmd);
+        performAddTable();
 
-        var version = schemeService.getScheme(uuid).currentVersion();
-        AddColumnCommand colCmd = new AddColumnCommand();
-        colCmd.setSchemeId(uuid);
-        colCmd.setColumnName(ID_COLUMN);
-        colCmd.setType(ColumnMetadata.ColumnType.BIGINT);
-        colCmd.setTableId(version.currentState().getTable(TABLE_NAME).orElseThrow().getId());
-        schemeService.processCommand(colCmd);
+        performAddColumnAndGetTable();
 
         // when & then
-        assertThrows(Exception.class, () -> schemeService.processCommand(colCmd));
+        assertThrows(Exception.class, () -> performAddColumnAndGetTable());
     }
 
     @Test
     @DisplayName("Command: Delete Table")
     public void givenDeleteTableCommand_whenProcess_thenCacheVersionDoesNotHaveTable() {
         // given
-        AddTableCommand cmd = new AddTableCommand();
-        cmd.setSchemeId(uuid);
-        cmd.setTableName(TABLE_NAME);
-        schemeService.processCommand(cmd);
+        performAddTable();
 
         SchemaStateMetadata state = schemeService.getScheme(uuid).currentVersion().currentState();
 
@@ -286,24 +273,14 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Delete column (Success)")
     public void givenSchemaWithColumn_whenPerformDeleteWithValidUUID_thenSuccess() {
         // given
-        AddTableCommand cmd = new AddTableCommand();
-        cmd.setSchemeId(uuid);
-        cmd.setTableName(TABLE_NAME);
-        schemeService.processCommand(cmd);
-
-        AddColumnCommand colCmd = new AddColumnCommand();
-        colCmd.setSchemeId(uuid);
-        colCmd.setColumnName(ID_COLUMN);
-        colCmd.setType(ColumnMetadata.ColumnType.BIGINT);
-        var state = schemeService.getScheme(uuid).currentVersion().currentState();
-        TableMetadata table = state.getTable(TABLE_NAME).orElseThrow();
-        colCmd.setTableId(table.getId());
-        schemeService.processCommand(colCmd);
+        performAddTable();
+        TableMetadata table = performAddColumnAndGetTable();
 
         DeleteColumnCommand colDeleteCmd = new DeleteColumnCommand();
         colDeleteCmd.setSchemeId(uuid);
         colDeleteCmd.setTableId(table.getId());
         colDeleteCmd.setColumnId(table.getColumn(ID_COLUMN).orElseThrow().getId());
+
         // when
         schemeService.processCommand(colDeleteCmd);
 
@@ -315,10 +292,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Delete command (Throws when not found)")
     public void givenTable_whenDeleteColumnWithInvalidId_thenThrowsException() {
         // given
-        AddTableCommand cmd = new AddTableCommand();
-        cmd.setSchemeId(uuid);
-        cmd.setTableName(TABLE_NAME);
-        schemeService.processCommand(cmd);
+        performAddTable();
 
         DeleteColumnCommand colCmd = new DeleteColumnCommand();
         colCmd.setSchemeId(uuid);
@@ -326,6 +300,43 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
 
         // when & then
         assertThrows(Exception.class, () -> schemeService.processCommand(colCmd));
+    }
+
+    @Test
+    @DisplayName("Command: Update column (Success)")
+    public void givenTable_whenRename_thenSuccess() {
+        // given
+        performAddTable();
+        var table = performAddColumnAndGetTable();
+        var cmd = new UpdateTableCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setTableId(table.getId());
+        String expectedName = "NEW" + TABLE_NAME;
+        cmd.setNewTableName(expectedName);
+        // when
+        schemeService.processCommand(cmd);
+        // then
+        assertThat(table.getName()).isNotNull();
+        assertThat(table.getName()).isEqualTo(expectedName);
+    }
+
+    private void performAddTable() {
+        AddTableCommand cmd = new AddTableCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setTableName(TABLE_NAME);
+        schemeService.processCommand(cmd);
+    }
+
+    private @NotNull TableMetadata performAddColumnAndGetTable() {
+        AddColumnCommand colCmd = new AddColumnCommand();
+        colCmd.setSchemeId(uuid);
+        colCmd.setColumnName(ID_COLUMN);
+        colCmd.setType(ColumnMetadata.ColumnType.BIGINT);
+        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        TableMetadata table = state.getTable(TABLE_NAME).orElseThrow();
+        colCmd.setTableId(table.getId());
+        schemeService.processCommand(colCmd);
+        return table;
     }
 
     private SchemaStateMetadata assertAndGetParsedScheme(UUID schemeId) throws Exception {
