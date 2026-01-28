@@ -31,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testcontainers.shaded.org.checkerframework.checker.units.qual.C;
 
 import java.util.Collections;
 import java.util.List;
@@ -695,6 +694,146 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         schemeService.processCommand(cmd);
         // then
         assertThat(state.getReferences().size()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("Command: Add reference (From 1 col to 2 - Throws)")
+    public void givenTwoTablesAndReferenceOnTwoColumnsFromOne_whenExecute_thenThrows() {
+        performAddTable(USERS_TABLE);
+        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
+        performAddColumn(usersTable.getId(),
+                ID_COLUMN,
+                ColumnMetadata.ColumnType.BIGINT,
+                List.of(ColumnMetadata.ConstraintType.UNIQUE),
+                Collections.emptyList());
+        performAddColumn(usersTable.getId(),
+                "sec_id",
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                Collections.emptyList());
+        ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
+        ColumnMetadata secIdColumn = usersTable.getColumn("sec_id").orElseThrow();
+        setPk(uuid, usersTable, List.of(idColumn, secIdColumn));
+
+        performAddTable(COURSE_TABLE);
+        TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
+        performAddColumn(courseTable.getId(),
+                ID_COLUMN,
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                Collections.emptyList());
+        ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
+
+        AddReferenceCommand cmd = new AddReferenceCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setReferenceType(ReferenceMetadata.ReferenceType.ONE_TO_ONE);
+        cmd.setReferenceKey(ReferenceMetadata.ReferenceKey.builder()
+                .fromTableId(courseTable.getId())
+                .fromColumns(new UUID[] { courseIdCol.getId() })
+                .toTableId(usersTable.getId())
+                .toColumns(new UUID[] { idColumn.getId(), secIdColumn.getId() })
+                .build());
+        // when & then
+        assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
+    }
+
+    @Test
+    @DisplayName("Command: Add reference (From 2 to 1 - Throws)")
+    public void given() {
+        performAddTable(USERS_TABLE);
+        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
+        performAddColumn(usersTable.getId(),
+                ID_COLUMN,
+                ColumnMetadata.ColumnType.BIGINT,
+                List.of(ColumnMetadata.ConstraintType.UNIQUE),
+                Collections.emptyList());
+        performAddColumn(usersTable.getId(),
+                "sec_id",
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                Collections.emptyList());
+        ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
+        ColumnMetadata secIdColumn = usersTable.getColumn("sec_id").orElseThrow();
+        setPk(uuid, usersTable, List.of(idColumn, secIdColumn));
+
+        performAddTable(COURSE_TABLE);
+        TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
+        performAddColumn(courseTable.getId(),
+                ID_COLUMN,
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                Collections.emptyList());
+        performAddColumn(courseTable.getId(),
+                "sec_id",
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                Collections.emptyList());
+        ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
+        ColumnMetadata courseSecIdCol = courseTable.getColumn("sec_id").orElseThrow();
+        setPk(uuid, courseTable, List.of(courseIdCol, courseSecIdCol));
+
+        AddReferenceCommand cmd = new AddReferenceCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setReferenceType(ReferenceMetadata.ReferenceType.ONE_TO_ONE);
+        cmd.setReferenceKey(ReferenceMetadata.ReferenceKey.builder()
+                .fromTableId(courseTable.getId())
+                .fromColumns(new UUID[] { courseIdCol.getId(), courseSecIdCol.getId() })
+                .toTableId(usersTable.getId())
+                .toColumns(new UUID[] { idColumn.getId() })
+                .build());
+        // when & then
+        assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
+    }
+
+    @Test
+    @DisplayName("Command: Add reference (On not full key - Throws)")
+    public void givenTwoTablesAndReferenceOnPartOfPk_whenExecute_thenThrows() {
+        performAddTable(USERS_TABLE);
+        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
+        performAddColumn(usersTable.getId(),
+                ID_COLUMN,
+                ColumnMetadata.ColumnType.BIGINT,
+                List.of(ColumnMetadata.ConstraintType.UNIQUE),
+                Collections.emptyList());
+        performAddColumn(usersTable.getId(),
+                "sec_id",
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                Collections.emptyList());
+        ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
+        ColumnMetadata secIdColumn = usersTable.getColumn("sec_id").orElseThrow();
+        setPk(uuid, usersTable, List.of(idColumn));
+
+        performAddTable(COURSE_TABLE);
+        TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
+        performAddColumn(courseTable.getId(),
+                ID_COLUMN,
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                Collections.emptyList());
+        performAddColumn(courseTable.getId(),
+                "sec_id",
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                Collections.emptyList());
+        ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
+        ColumnMetadata courseSecIdCol = courseTable.getColumn("sec_id").orElseThrow();
+        setPk(uuid, courseTable, List.of(courseIdCol, courseSecIdCol));
+
+        AddReferenceCommand cmd = new AddReferenceCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setReferenceType(ReferenceMetadata.ReferenceType.ONE_TO_ONE);
+        cmd.setReferenceKey(ReferenceMetadata.ReferenceKey.builder()
+                .fromTableId(courseTable.getId())
+                .fromColumns(new UUID[] { courseIdCol.getId(), courseSecIdCol.getId() })
+                .toTableId(usersTable.getId())
+                .toColumns(new UUID[] { idColumn.getId(), secIdColumn.getId() })
+                .build());
+        // when & then
+        assertThrows(Exception.class, () ->schemeService.processCommand(cmd));
     }
 
     private void setPk(UUID schemeId, TableMetadata table, List<ColumnMetadata> columns) {
