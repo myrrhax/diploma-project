@@ -23,6 +23,14 @@ public class TableMetadata {
     private UUID id = UUID.randomUUID();
     private String name;
     private String description;
+    private double xCoord;
+    private double yCoord;
+
+    public TableMetadata(String name, double xCoord, double yCoord) {
+        this.name = name;
+        this.xCoord = xCoord;
+        this.yCoord = yCoord;
+    }
 
     @Builder.Default
     private List<ColumnMetadata> primaryKeyParts = new ArrayList<>();

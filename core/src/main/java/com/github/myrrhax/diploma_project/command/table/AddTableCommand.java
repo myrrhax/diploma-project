@@ -4,6 +4,7 @@ import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,6 +13,10 @@ import lombok.Setter;
 public class AddTableCommand extends MetadataCommand {
     @NotBlank
     private String tableName;
+    @NotNull
+    private Double xCoord;
+    @NotNull
+    private Double yCoord;
 
     @Override
     public void execute(SchemaStateMetadata metadata) {
@@ -19,10 +24,6 @@ public class AddTableCommand extends MetadataCommand {
             throw new RuntimeException("Table already exists");
         }
 
-        metadata.addTable(
-                TableMetadata.builder()
-                        .name(tableName)
-                        .build()
-        );
+        metadata.addTable(new TableMetadata(tableName, xCoord, yCoord));
     }
 }

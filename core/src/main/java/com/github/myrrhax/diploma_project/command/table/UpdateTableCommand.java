@@ -23,11 +23,21 @@ public class UpdateTableCommand extends MetadataCommand {
     private String newTableName;
     private String newDescription;
     private List<UUID> newPrimaryKeyParts;
+    private Double xCoord;
+    private Double yCoord;
 
     @Override
     public void execute(SchemaStateMetadata metadata) {
         TableMetadata table = metadata.getTable(tableId).orElse(null);
         Objects.requireNonNull(table);
+
+        if (xCoord != null) {
+            table.setXCoord(xCoord);
+        }
+
+        if (yCoord != null) {
+            table.setYCoord(yCoord);
+        }
 
         if (newTableName != null && !newTableName.isBlank() && !table.getName().equals(newTableName)) {
             if (metadata.getTable(newTableName).isPresent()) {

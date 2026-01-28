@@ -369,6 +369,12 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         assertThat(table.getPrimaryKeyParts().size()).isEqualTo(0);
     }
 
+    @Test
+    @DisplayName("Command: Add Reference (1-1 Success)")
+    public void givenTwoTablesAndCreateReferenceCommand_whenExecute_thenSuccess() {
+        performAddTable(TABLE_NAME);
+    }
+
     private void performAddTable(String tableName) {
         AddTableCommand cmd = new AddTableCommand();
         cmd.setSchemeId(uuid);
