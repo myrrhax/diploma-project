@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.myrrhax.diploma_project.AbstractIntegrationTest;
 import com.github.myrrhax.diploma_project.command.column.AddColumnCommand;
 import com.github.myrrhax.diploma_project.command.column.DeleteColumnCommand;
+import com.github.myrrhax.diploma_project.command.reference.AddReferenceCommand;
 import com.github.myrrhax.diploma_project.command.table.AddTableCommand;
 import com.github.myrrhax.diploma_project.command.table.DeleteTableCommand;
 import com.github.myrrhax.diploma_project.command.table.UpdateTableCommand;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
+import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
@@ -30,8 +32,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -43,6 +45,11 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     private static final String TABLE_NAME = "test_table";
     private static final String ID_COLUMN = "id";
     private static final String USERNAME_COLUMN = "username";
+
+    private static final String USERS_TABLE = "users";
+    private static final String USER_PROFILE_TABLE = "user_profile";
+    private static final String COURSE_TABLE = "courses";
+    private static final String LESSONS_TABLE = "lessons";
 
     @Autowired
     private SchemeService schemeService;
@@ -120,6 +127,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         AddTableCommand cmd = new AddTableCommand();
         cmd.setSchemeId(UUID.randomUUID());
         cmd.setTableName(TABLE_NAME);
+        cmd.setXCoord(0d);
+        cmd.setYCoord(0d);
         // when & then
         assertThrows(SchemaNotFoundException.class, () -> schemeService.processCommand(cmd));
     }
@@ -131,6 +140,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         AddTableCommand cmd = new AddTableCommand();
         cmd.setTableName(TABLE_NAME);
         cmd.setSchemeId(uuid);
+        cmd.setXCoord(0d);
+        cmd.setYCoord(0d);
 
         // when
         schemeService.processCommand(cmd);
@@ -165,6 +176,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         AddTableCommand cmd = new AddTableCommand();
         cmd.setTableName(TABLE_NAME);
         cmd.setSchemeId(uuid);
+        cmd.setXCoord(0d);
+        cmd.setYCoord(0d);
         schemeService.processCommand(cmd);
         // when & then
         assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
@@ -371,14 +384,70 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Command: Add Reference (1-1 Success)")
-    public void givenTwoTablesAndCreateReferenceCommand_whenExecute_thenSuccess() {
-        performAddTable(TABLE_NAME);
+    public void givenTwoTablesAndCreateReferenceCommand_whenExecute_thenSuccess() throws Exception {
+        // given
+        performAddTable(USERS_TABLE);
+        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
+        performAddColumn(usersTable.getId(),
+                ID_COLUMN,
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                List.of(ColumnMetadata.AdditionalComponent.AUTO_INCREMENT));
+        UpdateTableCommand cmd = new UpdateTableCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setTableId(usersTable.getId());
+        ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
+        cmd.setNewPrimaryKeyParts(List.of(idColumn.getId()));
+        schemeService.processCommand(cmd);
+
+        performAddTable(USER_PROFILE_TABLE);
+        TableMetadata profileTable = state.getTable(USER_PROFILE_TABLE).orElseThrow();
+        performAddColumn(profileTable.getId(),
+                "user_id",
+                ColumnMetadata.ColumnType.BIGINT,
+                List.of(ColumnMetadata.ConstraintType.NOT_NULL),
+                Collections.emptyList());
+        ColumnMetadata userIdColumn = profileTable.getColumn("user_id").orElseThrow();
+
+        AddReferenceCommand addRefCmd = new AddReferenceCommand();
+        addRefCmd.setSchemeId(uuid);
+        addRefCmd.setReferenceKey(ReferenceMetadata.ReferenceKey.builder()
+                .fromTableId(profileTable.getId())
+                .toTableId(usersTable.getId())
+                .fromColumns(new UUID[] { userIdColumn.getId() })
+                .toColumns(new UUID[] { idColumn.getId() })
+                .build());
+        addRefCmd.setReferenceType(ReferenceMetadata.ReferenceType.ONE_TO_ONE);
+        // when
+        schemeService.processCommand(addRefCmd);
+        // then
+        var schema = cache.getSchemaVersion(uuid).currentState();
+        assertThat(schema.getReferences().size()).isEqualTo(1);
     }
 
     private void performAddTable(String tableName) {
         AddTableCommand cmd = new AddTableCommand();
         cmd.setSchemeId(uuid);
         cmd.setTableName(tableName);
+        cmd.setXCoord(0d);
+        cmd.setYCoord(0d);
+        schemeService.processCommand(cmd);
+    }
+
+    private void performAddColumn(UUID tableId,
+                                  String name,
+                                  ColumnMetadata.ColumnType type,
+                                  List<ColumnMetadata.ConstraintType> constraints,
+                                  List<ColumnMetadata.AdditionalComponent> additions) {
+        AddColumnCommand cmd = new AddColumnCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setTableId(tableId);
+        cmd.setColumnName(name);
+        cmd.setType(type);
+        cmd.setConstraints(constraints);
+        cmd.setAdditionalComponents(additions);
+
         schemeService.processCommand(cmd);
     }
 

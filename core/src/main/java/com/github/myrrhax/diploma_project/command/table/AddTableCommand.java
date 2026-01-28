@@ -24,6 +24,12 @@ public class AddTableCommand extends MetadataCommand {
             throw new RuntimeException("Table already exists");
         }
 
-        metadata.addTable(new TableMetadata(tableName, xCoord, yCoord));
+        metadata.addTable(
+                TableMetadata.builder()
+                        .name(tableName)
+                        .xCoord(xCoord)
+                        .yCoord(yCoord)
+                        .build()
+        );
     }
 }

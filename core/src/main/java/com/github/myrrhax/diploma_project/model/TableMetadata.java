@@ -26,12 +26,6 @@ public class TableMetadata {
     private double xCoord;
     private double yCoord;
 
-    public TableMetadata(String name, double xCoord, double yCoord) {
-        this.name = name;
-        this.xCoord = xCoord;
-        this.yCoord = yCoord;
-    }
-
     @Builder.Default
     private List<ColumnMetadata> primaryKeyParts = new ArrayList<>();
 
