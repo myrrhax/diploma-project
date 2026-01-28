@@ -361,6 +361,21 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         schemeService.processCommand(cmd);
     }
 
+    @Test
+    @DisplayName("Command: Update table (Throws when pk part is not found)")
+    public void givenUpdateTableCommandAndInvalidColumnId_whenExecuteCommand_thenThrows() {
+        // given
+        performAddTable();
+        TableMetadata table = performAddColumnAndGetTable();
+        UpdateTableCommand cmd = new UpdateTableCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setTableId(table.getId());
+        cmd.setNewPrimaryKeyParts(List.of(UUID.randomUUID()));
+        // when & then
+        assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
+        assertThat(table.getPrimaryKeyParts().size()).isEqualTo(0);
+    }
+
     private @NotNull TableMetadata performAddColumnAndGetTable() {
         AddColumnCommand colCmd = new AddColumnCommand();
         colCmd.setSchemeId(uuid);
