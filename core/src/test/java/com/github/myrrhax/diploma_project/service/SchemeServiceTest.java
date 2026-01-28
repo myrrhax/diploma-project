@@ -318,6 +318,18 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         assertThat(table.getName()).isEqualTo(expectedName);
     }
 
+    @Test
+    @DisplayName("Command: Update table (Not found)")
+    public void givenUpdateTableCommand_whenTableIsNotFound_thenThrows() {
+        // given
+        UpdateTableCommand cmd = new UpdateTableCommand();
+        cmd.setTableId(UUID.randomUUID());
+        cmd.setSchemeId(uuid);
+        cmd.setNewTableName("NEW_TABLE_NAME");
+        // when & then
+        assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
+    }
+
     private void performAddTable() {
         AddTableCommand cmd = new AddTableCommand();
         cmd.setSchemeId(uuid);
