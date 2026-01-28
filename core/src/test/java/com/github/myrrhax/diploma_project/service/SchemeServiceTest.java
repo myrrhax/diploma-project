@@ -174,7 +174,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Add Column")
     public void givenSchemaWithTable_whenAddColumnsWithThreeTypes_thenSchemaInCacheContainsThemAndAfterEvictDatabaseUpdated() throws Exception {
         // given
-        performAddTable();
+        performAddTable(TABLE_NAME);
 
         SchemeDTO scheme = schemeService.getScheme(uuid);
         var state = scheme.currentVersion().currentState();
@@ -233,18 +233,18 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Add Column(Throws on duplicate)")
     public void givenSchemaWithTableAndColumns_whenColumnWithDuplicateName_thenThrowsException() {
         // given
-        performAddTable();
-        performAddColumnAndGetTable();
+        performAddTable(TABLE_NAME);
+        performAddColumnAndGetTable(TABLE_NAME, ID_COLUMN, ColumnMetadata.ColumnType.BIGINT);
 
         // when & then
-        assertThrows(Exception.class, this::performAddColumnAndGetTable);
+        assertThrows(Exception.class, () -> performAddColumnAndGetTable(TABLE_NAME, ID_COLUMN, ColumnMetadata.ColumnType.BIGINT));
     }
 
     @Test
     @DisplayName("Command: Delete Table")
     public void givenDeleteTableCommand_whenProcess_thenCacheVersionDoesNotHaveTable() {
         // given
-        performAddTable();
+        performAddTable(TABLE_NAME);
 
         SchemaStateMetadata state = schemeService.getScheme(uuid).currentVersion().currentState();
 
@@ -272,8 +272,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Delete column (Success)")
     public void givenSchemaWithColumn_whenPerformDeleteWithValidUUID_thenSuccess() {
         // given
-        performAddTable();
-        TableMetadata table = performAddColumnAndGetTable();
+        performAddTable(TABLE_NAME);
+        TableMetadata table = performAddColumnAndGetTable(TABLE_NAME, ID_COLUMN, ColumnMetadata.ColumnType.BIGINT);
 
         DeleteColumnCommand colDeleteCmd = new DeleteColumnCommand();
         colDeleteCmd.setSchemeId(uuid);
@@ -291,7 +291,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Delete command (Throws when not found)")
     public void givenTable_whenDeleteColumnWithInvalidId_thenThrowsException() {
         // given
-        performAddTable();
+        performAddTable(TABLE_NAME);
 
         DeleteColumnCommand colCmd = new DeleteColumnCommand();
         colCmd.setSchemeId(uuid);
@@ -305,8 +305,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Update column (Success)")
     public void givenTable_whenRename_thenSuccess() {
         // given
-        performAddTable();
-        var table = performAddColumnAndGetTable();
+        performAddTable(TABLE_NAME);
+        var table = performAddColumnAndGetTable(TABLE_NAME, ID_COLUMN, ColumnMetadata.ColumnType.BIGINT);
         var cmd = new UpdateTableCommand();
         cmd.setSchemeId(uuid);
         cmd.setTableId(table.getId());
@@ -335,8 +335,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Update table (Set pk part)")
     public void givenUpdateTableCommand_whenSetPrimaryKeyPartWithValidColumn_thenSuccess() throws Exception {
         // given
-        performAddTable();
-        TableMetadata table = performAddColumnAndGetTable();
+        performAddTable(TABLE_NAME);
+        TableMetadata table = performAddColumnAndGetTable(TABLE_NAME, ID_COLUMN, ColumnMetadata.ColumnType.BIGINT);
         var column = table.getColumn(ID_COLUMN).orElseThrow();
 
         UpdateTableCommand cmd = new UpdateTableCommand();
@@ -354,19 +354,12 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         assertThat(assertedTable.getPrimaryKeyParts().contains(column)).isTrue();
     }
 
-    private void performAddTable() {
-        AddTableCommand cmd = new AddTableCommand();
-        cmd.setSchemeId(uuid);
-        cmd.setTableName(TABLE_NAME);
-        schemeService.processCommand(cmd);
-    }
-
     @Test
     @DisplayName("Command: Update table (Throws when pk part is not found)")
     public void givenUpdateTableCommandAndInvalidColumnId_whenExecuteCommand_thenThrows() {
         // given
-        performAddTable();
-        TableMetadata table = performAddColumnAndGetTable();
+        performAddTable(TABLE_NAME);
+        TableMetadata table = performAddColumnAndGetTable(TABLE_NAME, ID_COLUMN, ColumnMetadata.ColumnType.BIGINT);
         UpdateTableCommand cmd = new UpdateTableCommand();
         cmd.setSchemeId(uuid);
         cmd.setTableId(table.getId());
@@ -376,13 +369,22 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         assertThat(table.getPrimaryKeyParts().size()).isEqualTo(0);
     }
 
-    private @NotNull TableMetadata performAddColumnAndGetTable() {
+    private void performAddTable(String tableName) {
+        AddTableCommand cmd = new AddTableCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setTableName(tableName);
+        schemeService.processCommand(cmd);
+    }
+
+    private @NotNull TableMetadata performAddColumnAndGetTable(String tableName,
+                                                               String name,
+                                                               ColumnMetadata.ColumnType type) {
         AddColumnCommand colCmd = new AddColumnCommand();
         colCmd.setSchemeId(uuid);
-        colCmd.setColumnName(ID_COLUMN);
-        colCmd.setType(ColumnMetadata.ColumnType.BIGINT);
+        colCmd.setColumnName(name);
+        colCmd.setType(type);
         var state = schemeService.getScheme(uuid).currentVersion().currentState();
-        TableMetadata table = state.getTable(TABLE_NAME).orElseThrow();
+        TableMetadata table = state.getTable(tableName).orElseThrow();
         colCmd.setTableId(table.getId());
         schemeService.processCommand(colCmd);
         return table;
