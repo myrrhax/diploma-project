@@ -608,6 +608,44 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
 
     }
 
+    @Test
+    @DisplayName("Command: Add reference (Applied on unique field)")
+    public void givenTwoTablesAndReferenceOnUniqueField_whenExecute_thenSuccess() {
+        // given
+        performAddTable(USERS_TABLE);
+        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
+        performAddColumn(usersTable.getId(),
+                ID_COLUMN,
+                ColumnMetadata.ColumnType.BIGINT,
+                List.of(ColumnMetadata.ConstraintType.UNIQUE),
+                Collections.emptyList());
+        ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
+
+        performAddTable(COURSE_TABLE);
+        TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
+        performAddColumn(courseTable.getId(),
+                ID_COLUMN,
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                Collections.emptyList());
+        ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
+
+        AddReferenceCommand cmd = new AddReferenceCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setReferenceType(ReferenceMetadata.ReferenceType.ONE_TO_ONE);
+        cmd.setReferenceKey(ReferenceMetadata.ReferenceKey.builder()
+                .fromTableId(courseTable.getId())
+                .fromColumns(new UUID[] { courseIdCol.getId() })
+                .toTableId(usersTable.getId())
+                .toColumns(new UUID[] { idColumn.getId() })
+                .build());
+        // when
+        schemeService.processCommand(cmd);
+        // then
+        assertThat(state.getReferences().size()).isEqualTo(1);
+    }
+
     private void setPk(UUID schemeId, TableMetadata table, ColumnMetadata column) {
         UpdateTableCommand cmd = new UpdateTableCommand();
         cmd.setSchemeId(schemeId);
@@ -636,7 +674,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd.setColumnName(name);
         cmd.setType(type);
         cmd.setConstraints(constraints);
-        cmd.setAdditionalComponents(additions);
 
         schemeService.processCommand(cmd);
     }

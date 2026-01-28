@@ -32,7 +32,6 @@ public class AddColumnCommand extends MetadataCommand {
     private Integer length;
     private String defaultValue;
     private List<ColumnMetadata.ConstraintType> constraints;
-    private List<ColumnMetadata.AdditionalComponent> additionalComponents;
 
     @Override
     public void execute(SchemaStateMetadata metadata) {
@@ -76,6 +75,10 @@ public class AddColumnCommand extends MetadataCommand {
 
             column.setPrecision(precision);
             column.setScale(scale);
+        }
+
+        if (constraints != null && !constraints.isEmpty()) {
+            column.setConstraints(constraints);
         }
 
         table.addColumn(column);
