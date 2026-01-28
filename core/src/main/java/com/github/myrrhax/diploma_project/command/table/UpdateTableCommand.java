@@ -63,7 +63,8 @@ public class UpdateTableCommand extends MetadataCommand {
             // Если ключ до этого был установлен, пересчитываем связи
             if (!oldPk.isEmpty()) {
                 for (ReferenceMetadata.ReferenceKey ref : metadata.getReferences().keySet()) {
-                    if (!MetadataTypeUtils.isRefValid(metadata, ref)) {
+                    ReferenceMetadata.ReferenceType type = metadata.getReferences().get(ref).getType();
+                    if (!MetadataTypeUtils.isRefValid(metadata, ref, type)) {
                         throw new RuntimeException("Invalid reference after primary key update");
                     }
                 }

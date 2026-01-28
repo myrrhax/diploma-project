@@ -29,7 +29,7 @@ public class AddReferenceCommand extends MetadataCommand {
         Objects.requireNonNull(referenceKey.getToColumns());
 
         if (referenceKey.getFromColumns().length != referenceKey.getToColumns().length
-            || !MetadataTypeUtils.isRefValid(metadata, referenceKey)
+            || !MetadataTypeUtils.isRefValid(metadata, referenceKey, referenceType)
         ) {
             throw new RuntimeException("Invalid reference");
         }

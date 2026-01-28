@@ -127,11 +127,20 @@ public class MetadataTypeUtils {
         return s2.containsAll(s1);
     }
 
-    public static boolean isRefValid(SchemaStateMetadata state, ReferenceMetadata.ReferenceKey ref) {
-        return !checkInvalidReferenceKeyPart(state, ref.getFromTableId(), ref.getFromColumns())
-                && !checkInvalidReferenceKeyPart(state, ref.getToTableId(), ref.getToColumns())
-                && checkToPart(state, ref.getToTableId(), ref.getToColumns())
-                && checkKeyCompatibility(state, ref);
+    public static boolean isRefValid(SchemaStateMetadata state,
+                                     ReferenceMetadata.ReferenceKey ref,
+                                     ReferenceMetadata.ReferenceType type) {
+        if (checkInvalidReferenceKeyPart(state, ref.getFromTableId(), ref.getFromColumns())
+            && checkInvalidReferenceKeyPart(state, ref.getToTableId(), ref.getToColumns())) {
+            return false;
+        }
+        if (type == ReferenceMetadata.ReferenceType.ONE_TO_MANY
+            && !checkToPart(state, ref.getFromTableId(), ref.getFromColumns())) {
+            return false;
+        } else if (!checkToPart(state, ref.getToTableId(), ref.getToColumns())) {
+            return false;
+        }
+        return checkKeyCompatibility(state, ref);
     }
 
     private static boolean checkKeyCompatibility(SchemaStateMetadata state, ReferenceMetadata.ReferenceKey ref) {
