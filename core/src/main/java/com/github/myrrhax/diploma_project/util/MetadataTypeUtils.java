@@ -137,7 +137,8 @@ public class MetadataTypeUtils {
         if (type == ReferenceMetadata.ReferenceType.ONE_TO_MANY
             && !checkToPart(state, ref.getFromTableId(), ref.getFromColumns())) {
             return false;
-        } else if (!checkToPart(state, ref.getToTableId(), ref.getToColumns())) {
+        } else if (type != ReferenceMetadata.ReferenceType.ONE_TO_MANY
+            && !checkToPart(state, ref.getToTableId(), ref.getToColumns())) {
             return false;
         }
         return checkKeyCompatibility(state, ref);
@@ -169,8 +170,7 @@ public class MetadataTypeUtils {
             var column = columns.getFirst();
             // Либо уникальная колонка, либо первичный ключ, либо есть уникальный индекс по колонке
             return column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)
-                    || table.getPrimaryKeyParts().size() == 1
-                    && table.getPrimaryKeyParts().contains(column)
+                    || (table.getPrimaryKeyParts().size() == 1 && table.getPrimaryKeyParts().contains(column))
                     || table.getIndexes().values().stream()
                     .anyMatch(idx -> idx.isUnique()
                             && idx.getColumnIds().size() == 1

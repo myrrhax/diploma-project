@@ -426,6 +426,99 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         assertThat(schema.getReferences().size()).isEqualTo(1);
     }
 
+    @Test
+    @DisplayName("Command: Add reference (Throws on invalid)")
+    public void givenTwoTablesWithoutPKAndCreateReferenceCommand_whenExecute_thenThrows() {
+        // given
+        performAddTable(USERS_TABLE);
+        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
+        performAddColumn(usersTable.getId(),
+                ID_COLUMN,
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                List.of(ColumnMetadata.AdditionalComponent.AUTO_INCREMENT));
+        ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
+
+        performAddTable(USER_PROFILE_TABLE);
+        TableMetadata profileTable = state.getTable(USER_PROFILE_TABLE).orElseThrow();
+        performAddColumn(profileTable.getId(),
+                "user_id",
+                ColumnMetadata.ColumnType.BIGINT,
+                List.of(ColumnMetadata.ConstraintType.NOT_NULL),
+                Collections.emptyList());
+        ColumnMetadata userIdColumn = profileTable.getColumn("user_id").orElseThrow();
+        AddReferenceCommand addRefCmd = new AddReferenceCommand();
+        addRefCmd.setSchemeId(uuid);
+        addRefCmd.setReferenceKey(ReferenceMetadata.ReferenceKey.builder()
+                .fromTableId(profileTable.getId())
+                .toTableId(usersTable.getId())
+                .fromColumns(new UUID[] { userIdColumn.getId() })
+                .toColumns(new UUID[] { idColumn.getId() })
+                .build());
+        addRefCmd.setReferenceType(ReferenceMetadata.ReferenceType.ONE_TO_ONE);
+        // when & then
+        assertThrows(Exception.class, () -> schemeService.processCommand(addRefCmd));
+    }
+
+    @Test
+    @DisplayName("Command: Add reference (1-M)")
+    public void givenTwoTablesAndAddOneToManyReferenceCommand_whenExecute_thenSuccess() {
+        // given
+        performAddTable(USERS_TABLE);
+        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
+        performAddColumn(usersTable.getId(),
+                ID_COLUMN,
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                List.of(ColumnMetadata.AdditionalComponent.AUTO_INCREMENT));
+        ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
+        setPk(uuid, usersTable, idColumn);
+
+        performAddTable(COURSE_TABLE);
+        TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
+        performAddColumn(courseTable.getId(),
+                ID_COLUMN,
+                ColumnMetadata.ColumnType.BIGINT,
+                List.of(ColumnMetadata.ConstraintType.NOT_NULL),
+                Collections.emptyList());
+        ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
+        performAddColumn(courseTable.getId(),
+                "author_id",
+                ColumnMetadata.ColumnType.BIGINT,
+                List.of(ColumnMetadata.ConstraintType.NOT_NULL),
+                Collections.emptyList());
+        ColumnMetadata authorIdCol = courseTable.getColumn("author_id").orElseThrow();
+
+        ReferenceMetadata.ReferenceKey key = ReferenceMetadata.ReferenceKey.builder()
+                .fromTableId(usersTable.getId())
+                .toTableId(courseTable.getId())
+                .fromColumns(new UUID[] { idColumn.getId() })
+                .toColumns(new UUID[] { authorIdCol.getId() })
+                .build();
+        AddReferenceCommand cmd = new AddReferenceCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setReferenceType(ReferenceMetadata.ReferenceType.ONE_TO_MANY);
+        cmd.setReferenceKey(key);
+        cmd.setDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE);
+
+        // when
+        schemeService.processCommand(cmd);
+
+        // then
+        var schema = cache.getSchemaVersion(uuid).currentState();
+        assertThat(schema.getReferences().size()).isEqualTo(1);
+    }
+
+    private void setPk(UUID schemeId, TableMetadata table, ColumnMetadata column) {
+        UpdateTableCommand cmd = new UpdateTableCommand();
+        cmd.setSchemeId(schemeId);
+        cmd.setTableId(table.getId());
+        cmd.setNewPrimaryKeyParts(List.of(column.getId()));
+        schemeService.processCommand(cmd);
+    }
+
     private void performAddTable(String tableName) {
         AddTableCommand cmd = new AddTableCommand();
         cmd.setSchemeId(uuid);
