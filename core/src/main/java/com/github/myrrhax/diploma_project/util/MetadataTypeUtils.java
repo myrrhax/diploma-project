@@ -130,7 +130,22 @@ public class MetadataTypeUtils {
     public static boolean isRefValid(SchemaStateMetadata state, ReferenceMetadata.ReferenceKey ref) {
         return !checkInvalidReferenceKeyPart(state, ref.getFromTableId(), ref.getFromColumns())
                 && !checkInvalidReferenceKeyPart(state, ref.getToTableId(), ref.getToColumns())
-                && checkToPart(state, ref.getToTableId(), ref.getToColumns());
+                && checkToPart(state, ref.getToTableId(), ref.getToColumns())
+                && checkKeyCompatibility(state, ref);
+    }
+
+    private static boolean checkKeyCompatibility(SchemaStateMetadata state, ReferenceMetadata.ReferenceKey ref) {
+        TableMetadata fromTable = state.getTable(ref.getFromTableId()).orElseThrow();
+        TableMetadata toTable = state.getTable(ref.getToTableId()).orElseThrow();
+
+        for (int i = 0; i < ref.getFromColumns().length; i++) {
+            ColumnMetadata fromColumn = fromTable.getColumn(ref.getFromColumns()[i]).orElseThrow();
+            ColumnMetadata toColumn = toTable.getColumn(ref.getToColumns()[i]).orElseThrow();
+            if (fromColumn.getType() != toColumn.getType()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static boolean checkToPart(SchemaStateMetadata metadata, UUID toTableId, UUID[] toColumns) {
