@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -328,6 +329,29 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd.setNewTableName("NEW_TABLE_NAME");
         // when & then
         assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
+    }
+
+    @Test
+    @DisplayName("Command: Update table (Set pk part)")
+    public void givenUpdateTableCommand_whenSetPrimaryKeyPartWithValidColumn_thenSuccess() throws Exception {
+        // given
+        performAddTable();
+        TableMetadata table = performAddColumnAndGetTable();
+        var column = table.getColumn(ID_COLUMN).orElseThrow();
+
+        UpdateTableCommand cmd = new UpdateTableCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setTableId(table.getId());
+        cmd.setNewPrimaryKeyParts(List.of(column.getId()));
+        // when
+        schemeService.processCommand(cmd);
+        // then
+        var state = cache.getSchemaVersion(uuid).currentState();
+        assertThat(state).isNotNull();
+        TableMetadata assertedTable = state.getTable(TABLE_NAME).orElse(null);
+        assertThat(assertedTable).isNotNull();
+        assertThat(assertedTable.getPrimaryKeyParts().size()).isEqualTo(1);
+        assertThat(assertedTable.getPrimaryKeyParts().contains(column)).isTrue();
     }
 
     private void performAddTable() {
