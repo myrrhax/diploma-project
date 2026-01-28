@@ -475,7 +475,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 Collections.emptyList(),
                 List.of(ColumnMetadata.AdditionalComponent.AUTO_INCREMENT));
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
-        setPk(uuid, usersTable, idColumn);
+        setPk(uuid, usersTable, List.of(idColumn));
 
         performAddTable(COURSE_TABLE);
         TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
@@ -525,7 +525,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 Collections.emptyList(),
                 List.of(ColumnMetadata.AdditionalComponent.AUTO_INCREMENT));
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
-        setPk(uuid, usersTable, idColumn);
+        setPk(uuid, usersTable, List.of(idColumn));
 
         performAddTable(COURSE_TABLE);
         TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
@@ -575,7 +575,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 Collections.emptyList(),
                 List.of(ColumnMetadata.AdditionalComponent.AUTO_INCREMENT));
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
-        setPk(uuid, usersTable, idColumn);
+        setPk(uuid, usersTable, List.of(idColumn));
 
         performAddTable(COURSE_TABLE);
         TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
@@ -585,7 +585,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 List.of(ColumnMetadata.ConstraintType.NOT_NULL),
                 Collections.emptyList());
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
-        setPk(uuid, courseTable, courseIdCol);
+        setPk(uuid, courseTable, List.of(courseIdCol));
 
         ReferenceMetadata.ReferenceKey key = ReferenceMetadata.ReferenceKey.builder()
                 .fromTableId(usersTable.getId())
@@ -646,11 +646,62 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         assertThat(state.getReferences().size()).isEqualTo(1);
     }
 
-    private void setPk(UUID schemeId, TableMetadata table, ColumnMetadata column) {
+    @Test
+    @DisplayName("Command: Add reference (With 2 columns as pk - Success)")
+    public void givenTwoTablesAndReferenceOnTwoColumns_whenExecute_thenSuccess() {
+        performAddTable(USERS_TABLE);
+        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
+        performAddColumn(usersTable.getId(),
+                ID_COLUMN,
+                ColumnMetadata.ColumnType.BIGINT,
+                List.of(ColumnMetadata.ConstraintType.UNIQUE),
+                Collections.emptyList());
+        performAddColumn(usersTable.getId(),
+                "sec_id",
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                Collections.emptyList());
+        ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
+        ColumnMetadata secIdColumn = usersTable.getColumn("sec_id").orElseThrow();
+        setPk(uuid, usersTable, List.of(idColumn, secIdColumn));
+
+        performAddTable(COURSE_TABLE);
+        TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
+        performAddColumn(courseTable.getId(),
+                ID_COLUMN,
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                Collections.emptyList());
+        performAddColumn(courseTable.getId(),
+                "sec_id",
+                ColumnMetadata.ColumnType.BIGINT,
+                Collections.emptyList(),
+                Collections.emptyList());
+        ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
+        ColumnMetadata courseSecIdCol = courseTable.getColumn("sec_id").orElseThrow();
+        setPk(uuid, courseTable, List.of(courseIdCol, courseSecIdCol));
+
+        AddReferenceCommand cmd = new AddReferenceCommand();
+        cmd.setSchemeId(uuid);
+        cmd.setReferenceType(ReferenceMetadata.ReferenceType.ONE_TO_ONE);
+        cmd.setReferenceKey(ReferenceMetadata.ReferenceKey.builder()
+                .fromTableId(courseTable.getId())
+                .fromColumns(new UUID[] { courseIdCol.getId(), courseSecIdCol.getId() })
+                .toTableId(usersTable.getId())
+                .toColumns(new UUID[] { idColumn.getId(), secIdColumn.getId() })
+                .build());
+        // when
+        schemeService.processCommand(cmd);
+        // then
+        assertThat(state.getReferences().size()).isEqualTo(1);
+    }
+
+    private void setPk(UUID schemeId, TableMetadata table, List<ColumnMetadata> columns) {
         UpdateTableCommand cmd = new UpdateTableCommand();
         cmd.setSchemeId(schemeId);
         cmd.setTableId(table.getId());
-        cmd.setNewPrimaryKeyParts(List.of(column.getId()));
+        cmd.setNewPrimaryKeyParts(columns.stream().map(ColumnMetadata::getId).toList());
         schemeService.processCommand(cmd);
     }
 
