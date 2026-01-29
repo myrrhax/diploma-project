@@ -2,14 +2,12 @@ package com.github.myrrhax.diploma_project.security;
 
 import com.github.myrrhax.diploma_project.model.enums.JwtAuthority;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.Message;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
