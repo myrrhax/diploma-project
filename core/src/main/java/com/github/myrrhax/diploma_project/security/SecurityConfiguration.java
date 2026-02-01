@@ -13,7 +13,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.socket.EnableWebSocketSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -24,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
 @EnableMethodSecurity
-@EnableWebSocketSecurity
 @EnableConfigurationProperties({JwtProperties.class})
 public class SecurityConfiguration {
 
@@ -51,7 +49,7 @@ public class SecurityConfiguration {
     @SneakyThrows
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    JwsTokenProvider tokenProvider,
-                                                   TokenFactory factory) {
+                                                   TokenAuthenticationDetailsService tokenAuthenticationDetailsService) {
         http.httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
@@ -65,7 +63,7 @@ public class SecurityConfiguration {
                 )
                 .with(new JwtSecurityConfigurer(), configurer -> {
                     configurer.setJwsTokenProvider(tokenProvider);
-                    configurer.setTokenFactory(factory);
+                    configurer.setTokenAuthenticationDetailsService(tokenAuthenticationDetailsService);
                     configurer.setRefreshCookieName(refreshCookieName);
                 });
 

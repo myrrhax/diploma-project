@@ -315,7 +315,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Command: Update column (Success)")
+    @DisplayName("Command: Update table (Success)")
     public void givenTable_whenRename_thenSuccess() {
         // given
         performAddTable(TABLE_NAME);
@@ -328,8 +328,10 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         // when
         schemeService.processCommand(cmd);
         // then
-        assertThat(table.getName()).isNotNull();
-        assertThat(table.getName()).isEqualTo(expectedName);
+        var state = cache.getSchemaVersion(uuid).currentState();
+        assertThat(state).isNotNull();
+        TableMetadata assertedTable = state.getTable(expectedName).orElse(null);
+        assertThat(assertedTable).isNotNull();
     }
 
     @Test
