@@ -41,41 +41,45 @@ public class UpdateColumnCommand extends MetadataCommand {
         ColumnMetadata column = table.getColumn(columnId).orElse(null);
         Objects.requireNonNull(column);
 
+        ColumnMetadata clone = column.clone();
+
         if (newColumnName != null && !newColumnName.isBlank()) {
             if (table.getColumn(newColumnName).isPresent()) {
                 throw new RuntimeException("Column with name " + newColumnName + " already exists");
             }
-            column.setName(newColumnName);
+            clone.setName(newColumnName);
         }
         if (newDescription != null && !newDescription.isBlank()) {
-            column.setDescription(newDescription);
+            clone.setDescription(newDescription);
         }
-        if (newLength != null && MetadataTypeUtils.isCompactibleLengthLimitedType(column, newLength, newDefaultValue)) {
-            column.setLength(newLength);
+        if (newLength != null && MetadataTypeUtils.isCompactibleLengthLimitedType(clone, newLength, newDefaultValue)) {
+            clone.setLength(newLength);
         }
         if (column.getType() == ColumnMetadata.ColumnType.DECIMAL
                 && newScale != null || newPrecision != null
-                && MetadataTypeUtils.isCompactibleDecimal(newPrecision, newScale, column)) {
+                && MetadataTypeUtils.isCompactibleDecimal(newPrecision, newScale, clone)) {
             if (newScale != null) {
-                column.setScale(newScale);
+                clone.setScale(newScale);
             }
             if (newPrecision != null) {
-                column.setPrecision(newPrecision);
+                clone.setPrecision(newPrecision);
             }
         }
-        if (newDefaultValue != null && MetadataTypeUtils.isCompatibleDefaultValue(newDefaultValue, column, newLength)) {
-            column.setDefaultValue(newDefaultValue);
+        if (newDefaultValue != null && MetadataTypeUtils.isCompatibleDefaultValue(newDefaultValue, clone, newLength)) {
+            clone.setDefaultValue(newDefaultValue);
         }
         if (constraints != null) {
-            column.setConstraints(constraints);
+            clone.setConstraints(constraints);
         }
         if (additionalComponents != null) {
             additionalComponents.forEach(it -> {
                 if (it == ColumnMetadata.AdditionalComponent.AUTO_INCREMENT
-                    && MetadataTypeUtils.isValidAutoincrement(column)) {
-                    column.getAdditions().add(it);
+                    && MetadataTypeUtils.isValidAutoincrement(clone)) {
+                    clone.getAdditions().add(it);
                 }
             });
         }
+
+        table.updateColumn(clone);
     }
 }

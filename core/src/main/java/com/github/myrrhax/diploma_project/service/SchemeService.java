@@ -117,12 +117,14 @@ public class SchemeService {
     public void processCommand(@Valid MetadataCommand command) {
         VersionDTO version = currentVersionStateCacheStorage.getSchemaVersion(command.getSchemeId());
         if (version != null && version.currentState() != null) {
+            SchemaStateMetadata state = version.currentState();
             try {
-                version.currentState().getLock().lock();
-                command.execute(version.currentState());
-                version.currentState().setLastModificationTime(Instant.now());
+                state.getLock().lock();
+                command.execute(state);
+                state.setLastModificationTime(Instant.now());
+                state.getCacheVersion().incrementAndGet();
             } finally {
-                version.currentState().getLock().unlock();
+                state.getLock().unlock();
             }
         } else {
             throw new SchemaNotFoundException(command.getSchemeId());

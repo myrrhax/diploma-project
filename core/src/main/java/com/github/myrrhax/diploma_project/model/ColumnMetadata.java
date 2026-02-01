@@ -13,7 +13,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ColumnMetadata {
+public class ColumnMetadata implements Cloneable {
     @Builder.Default
     private UUID id = UUID.randomUUID();
     private String name;
@@ -29,6 +29,26 @@ public class ColumnMetadata {
 
     @Builder.Default
     private List<AdditionalComponent> additions = new ArrayList<>();
+
+    @Override
+    public ColumnMetadata clone() {
+        try {
+            ColumnMetadata clone = (ColumnMetadata) super.clone();
+            clone.setId(id);
+            clone.setName(name);
+            clone.setDescription(description);
+            clone.setType(type);
+            clone.setDefaultValue(defaultValue);
+            clone.setPrecision(precision);
+            clone.setScale(scale);
+            clone.setLength(length);
+            clone.setConstraints(new ArrayList<>(constraints));
+            clone.setAdditions(new ArrayList<>(additions));
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
 
     public enum ConstraintType {
         NOT_NULL,

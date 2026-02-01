@@ -76,6 +76,10 @@ public class TableMetadata {
         });
     }
 
+    public void updateColumn(ColumnMetadata columnMetadata) {
+        this.columns.put(columnMetadata.getId(), columnMetadata);
+    }
+
     public void addIndexes(IndexMetadata... indexes) {
         for (IndexMetadata index : indexes) {
             this.indexes.put(index.getId(), index);

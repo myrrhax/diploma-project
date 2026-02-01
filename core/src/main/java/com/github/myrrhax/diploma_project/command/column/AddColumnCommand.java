@@ -48,7 +48,7 @@ public class AddColumnCommand extends MetadataCommand {
                 .build();
 
         if (length == null && (type == ColumnMetadata.ColumnType.CHAR || type == ColumnMetadata.ColumnType.NUMERIC)) {
-            throw new RuntimeException("Char or numeric columns must have max length");
+                throw new RuntimeException("Char or numeric columns must have max length");
         }
 
         if (length != null) {

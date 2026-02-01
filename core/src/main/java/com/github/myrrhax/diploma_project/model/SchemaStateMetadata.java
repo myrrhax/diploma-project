@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -32,6 +33,8 @@ public class SchemaStateMetadata {
     private Lock lock = new ReentrantLock();
     @JsonIgnore
     private Instant lastModificationTime = Instant.now();
+    @JsonIgnore
+    private AtomicInteger cacheVersion = new AtomicInteger(0);
 
     public SchemaStateMetadata(VersionEntity versionEntity) {
         this.id = versionEntity.getScheme().getId();
