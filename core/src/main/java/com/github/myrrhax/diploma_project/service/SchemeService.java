@@ -114,7 +114,7 @@ public class SchemeService {
         schemeRepository.deleteById(schemeId);
     }
 
-    public void processCommand(@Valid MetadataCommand command) {
+    public int processCommand(@Valid MetadataCommand command) {
         VersionDTO version = currentVersionStateCacheStorage.getSchemaVersion(command.getSchemeId());
         if (version != null && version.currentState() != null) {
             SchemaStateMetadata state = version.currentState();
@@ -122,7 +122,7 @@ public class SchemeService {
                 state.getLock().lock();
                 command.execute(state);
                 state.setLastModificationTime(Instant.now());
-                state.getCacheVersion().incrementAndGet();
+                return state.getCacheVersion().incrementAndGet();
             } finally {
                 state.getLock().unlock();
             }
