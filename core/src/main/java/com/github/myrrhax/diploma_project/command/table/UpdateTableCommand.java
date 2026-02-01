@@ -30,23 +30,24 @@ public class UpdateTableCommand extends MetadataCommand {
     public void execute(SchemaStateMetadata metadata) {
         TableMetadata table = metadata.getTable(tableId).orElse(null);
         Objects.requireNonNull(table);
+        TableMetadata clone = table.clone();
 
         if (xCoord != null) {
-            table.setXCoord(xCoord);
+            clone.setXCoord(xCoord);
         }
 
         if (yCoord != null) {
-            table.setYCoord(yCoord);
+            clone.setYCoord(yCoord);
         }
 
         if (newTableName != null && !newTableName.isBlank() && !table.getName().equals(newTableName)) {
             if (metadata.getTable(newTableName).isPresent()) {
                 throw new RuntimeException("Table with name " + newTableName + " already exists");
             }
-            table.setName(newTableName);
+            clone.setName(newTableName);
         }
         if (newDescription != null && !newDescription.isBlank()) {
-            table.setDescription(newDescription);
+            clone.setDescription(newDescription);
         }
 
         List<UUID> oldPk = table.getPrimaryKeyParts()
@@ -69,10 +70,12 @@ public class UpdateTableCommand extends MetadataCommand {
                     }
                 }
             }
-            table.setPrimaryKeyParts(newPrimaryKeyParts.stream()
-                    .map(table::getColumn)
+            clone.setPrimaryKeyParts(newPrimaryKeyParts.stream()
+                    .map(clone::getColumn)
                     .map(Optional::orElseThrow)
                     .toList());
         }
+
+        metadata.updateTable(clone);
     }
 }

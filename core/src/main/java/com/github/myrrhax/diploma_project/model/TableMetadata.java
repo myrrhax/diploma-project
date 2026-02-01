@@ -18,7 +18,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TableMetadata {
+public class TableMetadata implements Cloneable {
     @Builder.Default
     private UUID id = UUID.randomUUID();
     private String name;
@@ -83,6 +83,25 @@ public class TableMetadata {
     public void addIndexes(IndexMetadata... indexes) {
         for (IndexMetadata index : indexes) {
             this.indexes.put(index.getId(), index);
+        }
+    }
+
+    @Override
+    public TableMetadata clone() {
+        try {
+            TableMetadata clone = (TableMetadata) super.clone();
+            clone.setId(id);
+            clone.setName(name);
+            clone.setDescription(description);
+            clone.setXCoord(xCoord);
+            clone.setYCoord(yCoord);
+            clone.setPrimaryKeyParts(new ArrayList<>(primaryKeyParts));
+            clone.setColumns(new LinkedHashMap<>(columns));
+            clone.setIndexes(new LinkedHashMap<>(indexes));
+            
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
         }
     }
 }

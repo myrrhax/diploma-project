@@ -73,4 +73,8 @@ public class SchemaStateMetadata {
     public void setReferences(Map<ReferenceMetadata.ReferenceKey, ReferenceMetadata> references) {
         this.references = references;
     }
+
+    public void updateTable(TableMetadata clone) {
+        this.tables.put(clone.getId(), clone);
+    }
 }
