@@ -1,13 +1,21 @@
 import type AuthResponse from "../model/AuthResponse";
-import type LoginRequest from "../model/LoginRequest";
 import $api from "./AxiosClient";
 import { authStore } from "../store/AuthStore";
 import type ErrorResponse from "../model/ErrorResponse";
+import type AuthRequest from "../model/AuthRequest";
 
 export default class AuthApiService {
-    async login(request: LoginRequest): Promise<ErrorResponse | null> {
+    async login(request: AuthRequest): Promise<ErrorResponse | null> {
+        return this.authenticate(request, '/auth/login');
+    }
+
+    async register(request: AuthRequest): Promise<ErrorResponse | null> {
+        return this.authenticate(request, '/auth/register');
+    }
+
+    private async authenticate(request: AuthRequest, url: string): Promise<ErrorResponse | null> {
         try {
-            const response = await $api.post<AuthResponse | ErrorResponse>('/auth/login', request);
+            const response = await $api.post<AuthResponse | ErrorResponse>(url, request);
             if (response.status === 200 && response.data) {
                 const data = response.data as AuthResponse;
                 authStore.setAuthToken(data.accessToken);
@@ -23,7 +31,7 @@ export default class AuthApiService {
         } catch(e) {
             console.error("Failed to send auth request. Reason: " + e);
             
-            return null;
+            throw e;
         }
     }
 }
