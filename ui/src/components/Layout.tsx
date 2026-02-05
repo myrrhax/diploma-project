@@ -5,7 +5,7 @@ export const Layout = () => {
     return (
         <>
             <Header />
-            <main>
+            <main style={{minHeight: '100vh', display: 'flex', flexDirection: 'column'}}>
                 <Outlet />
             </main>
         </>

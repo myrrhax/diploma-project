@@ -6,6 +6,10 @@ import { Layout } from "../components/Layout";
 
 const router = createBrowserRouter([
     {
+        path: '/login',
+        element: <LoginPage />
+    },
+    {
         element: <Layout />,
         children: [
             {
@@ -16,10 +20,6 @@ const router = createBrowserRouter([
                         element: <HomePage />
                     }
                 ]
-            },
-            {
-                path: '/login',
-                element: <LoginPage />
             },
             {
                 element: <ProtectedRoute afterConfirmationOnly={true} />,
