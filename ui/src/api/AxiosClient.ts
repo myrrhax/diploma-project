@@ -15,7 +15,14 @@ const $api = axios.create({
 $api.interceptors.request.use(
     (cfg) => {
         const token = authStore.token;
+        const url = cfg.url
+        if (url?.endsWith('/login') || url?.endsWith('/register')) {
+            return cfg;
+        }
+
+        console.debug('User token: ' + token);
         if (token && cfg.headers) {
+            console.debug('Bearer header was set');
             cfg.headers.Authorization = `Bearer ${token}`;
         }
 

@@ -7,7 +7,10 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = observer(({afterConfirmationOnly = true}: ProtectedRouteProps) => {
-    const { user, isAuthenticated } = authStore;
+    const { user, isAuthenticated, isLoading } = authStore;
+    if (isLoading) {
+        return <div>Loading...</div>
+    }
     if (isAuthenticated && user) {
         if ((afterConfirmationOnly && user.isConfirmed)
             || (!afterConfirmationOnly && !user.isConfirmed)) {
@@ -22,4 +25,16 @@ export const ProtectedRoute = observer(({afterConfirmationOnly = true}: Protecte
     }
     
     return <Navigate to={routeTo} replace />
+});
+
+export const NonAuthorizedRoute = observer(() => {
+    const {user, isLoading} = authStore;
+    if (isLoading) {
+        return <div>Loading...</div>
+    }
+    if (user) {
+        return <Navigate to={'/'} replace/>
+    }
+
+    return <Outlet />;
 });

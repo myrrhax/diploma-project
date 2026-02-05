@@ -1,13 +1,19 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { LoginPage } from "../pages/LoginPage";
 import { HomePage } from "../pages/HomePage";
-import { ProtectedRoute } from "./RouteType";
+import { NonAuthorizedRoute, ProtectedRoute } from "./RouteType";
 import { Layout } from "../components/Layout";
+import { authStore } from "../store/AuthStore";
 
 const router = createBrowserRouter([
     {
-        path: '/login',
-        element: <LoginPage />
+        element: <NonAuthorizedRoute />,
+        children: [
+            {
+                path: '/login',
+                element: <LoginPage />
+            },
+        ]
     },
     {
         element: <Layout />,
@@ -24,7 +30,7 @@ const router = createBrowserRouter([
             {
                 element: <ProtectedRoute afterConfirmationOnly={true} />,
                 children: [
-                    { path: 'account-confirmation', element: <HomePage/> }
+                    { path: '/account-confirmation', element: <HomePage/> }
                 ]
             }
         ]
@@ -33,6 +39,7 @@ const router = createBrowserRouter([
 ]);
 
 export const AppRouter = () => {
+    authStore.init();
     return (
         <RouterProvider router={router} />
     )
