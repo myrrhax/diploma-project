@@ -1,17 +1,39 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { LoginPage } from "../pages/LoginPage";
 import { HomePage } from "../pages/HomePage";
 import { ProtectedRoute } from "./RouteType";
+import { Layout } from "../components/Layout";
 
-export const router = createBrowserRouter([
+const router = createBrowserRouter([
     {
-        path: '/login',
-        element: <LoginPage />
-    },
-    {
-        element: <ProtectedRoute afterConfirmationOnly={true} />,
+        element: <Layout />,
         children: [
-            { path: 'account-confirmation', element: <HomePage/> }
+            {
+                path: '/',
+                element: <ProtectedRoute afterConfirmationOnly={false} />,
+                children: [
+                    {
+                        element: <HomePage />
+                    }
+                ]
+            },
+            {
+                path: '/login',
+                element: <LoginPage />
+            },
+            {
+                element: <ProtectedRoute afterConfirmationOnly={true} />,
+                children: [
+                    { path: 'account-confirmation', element: <HomePage/> }
+                ]
+            }
         ]
     }
+    
 ]);
+
+export const AppRouter = () => {
+    return (
+        <RouterProvider router={router} />
+    )
+}

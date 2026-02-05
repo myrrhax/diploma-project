@@ -1,6 +1,22 @@
 header {
     width: 100%;
     display: flex;
-    min-height: 150px;
-    
+    min-height: 75px;
+    display: flex;
+}
+
+.logo__container {
+    margin-left: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+#logo__image {
+    max-width: 50px;
+}
+
+#logo__text {
+    margin-left: 10px;
 }
