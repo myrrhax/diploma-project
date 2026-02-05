@@ -5,16 +5,14 @@ class AuthStore {
     private readonly TOKEN_KEY = 'access_token';
 
     token: string | null = localStorage.getItem(this.TOKEN_KEY);
-    isAuthenticated: boolean = false;
     user: User | null = null;
     
     constructor() {
         makeAutoObservable(this);
     }
 
-    setAuthToken(token: string | null) {
+    public setAuthToken(token: string | null) {
         this.token = token;
-        this.isAuthenticated = !!token;
         if (token) {
             localStorage.setItem(this.TOKEN_KEY, token);
         } else {
@@ -22,18 +20,22 @@ class AuthStore {
         }
     }
 
-    setUser(user: User | null) {
+    public setUser(user: User | null) {
         this.user = user;
     }
 
-    loadUser() {
+    public loadUser() {
         if (!this.token) return;
 
     }
 
-    logout() {
+    public logout() {
         this.setAuthToken(null)
         this.setUser(null);
+    }
+
+    public get isAuthenticated(): boolean {
+        return this.user !== null;
     }
 }
 
