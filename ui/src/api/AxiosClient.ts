@@ -2,7 +2,7 @@ import axios from "axios";
 import { authStore } from "../store/AuthStore";
 import type AuthResponse from "../model/AuthResponse";
 
-export const baseURL = 'http://myrrermdev.space/api'
+export const baseURL = 'http://localhost:8000/api'
 
 const $api = axios.create({
     baseURL: baseURL,
@@ -47,11 +47,17 @@ $api.interceptors.response.use(
                 } catch(e) {
                     console.error(e);
                     authStore.logout();
+
+                    return Promise.reject(e);
                 }
             } else {
                 authStore.logout();
+
+                return Promise.reject(error);
             }
         }
+
+        return Promise.reject(error);
     }
 );
 

@@ -2,6 +2,8 @@ import z from 'zod'
 import './css/LoginPage.css'
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { authApi } from '../api/AuthApiService';
+import { useState } from 'react';
 
 const LoginSchema = z.object({
     email: z.email('Введите Email'),
@@ -10,16 +12,38 @@ const LoginSchema = z.object({
 type LoginSchemaType = z.infer<typeof LoginSchema>;
 
 export const LoginPage = () => {
-    const onSubmitHadnler = (data: LoginSchemaType) => {
-        console.log("data: " + data)
-    }
+    const [apiError, setApiError] = useState<string | null>();
+
     const {
         register,
         handleSubmit,
+        setError,
         formState: { errors },
     } = useForm({
         resolver: zodResolver(LoginSchema)
     })
+
+    const onSubmitHadnler = async (data: LoginSchemaType) => {
+        const error = await authApi.login(data);
+        if (error) {
+            setApiError(error.message);
+            if (error.errors) {
+                const apiErrors = error.errors;
+                if (apiErrors.has('email')) {
+                    setError('email', {
+                        type: 'server',
+                        message: apiErrors.get('email')?.join(',')
+                    })
+                }
+                if (apiErrors.has('password')) {
+                    setError('password', {
+                        type: 'server',
+                        message: apiErrors.get('password')?.join(',')
+                    })
+                }
+            }
+        }
+    }
 
     return (
         <div className='login_page__container'>
@@ -37,6 +61,7 @@ export const LoginPage = () => {
                     <input type='password' className='form_row__input' {...register('password')} />
                     { errors.password && <span className='form_row__error'>{errors.password.message}</span> }
                 </div>
+                { apiError && <span className='form_row__error'>{apiError}</span> }
                 <div className='form_row__container'>
                     <button type='submit'>Войти</button>
                 </div>

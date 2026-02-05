@@ -3,8 +3,9 @@ import $api from "./AxiosClient";
 import { authStore } from "../store/AuthStore";
 import type ErrorResponse from "../model/ErrorResponse";
 import type AuthRequest from "../model/AuthRequest";
+import axios from "axios";
 
-export default class AuthApiService {
+class AuthApiService {
     async login(request: AuthRequest): Promise<ErrorResponse | null> {
         return this.authenticate(request, '/auth/login');
     }
@@ -16,22 +17,22 @@ export default class AuthApiService {
     private async authenticate(request: AuthRequest, url: string): Promise<ErrorResponse | null> {
         try {
             const response = await $api.post<AuthResponse | ErrorResponse>(url, request);
-            if (response.status === 200 && response.data) {
-                const data = response.data as AuthResponse;
-                authStore.setAuthToken(data.accessToken);
-                authStore.setUser(data.user);
+            console.log(response);
+            const data = response.data as AuthResponse;
+            authStore.setAuthToken(data.accessToken);
+            authStore.setUser(data.user);
 
-                return null;
-            } else {
-                const error = response.data as ErrorResponse;
-                console.error("Failed to login. Reason: " + error.message);
-                
-                return error;
+            return null;
+        } catch(e: any) {
+            if (axios.isAxiosError(e)) {
+                const serverError = e.response?.data as ErrorResponse;
+                return serverError || { message: "Неизвестная ошибка сервера" };
             }
-        } catch(e) {
-            console.error("Failed to send auth request. Reason: " + e);
             
+            console.error("Сетевая ошибка или сервер недоступен:", e.message);
             throw e;
         }
     }
 }
+
+export const authApi = new AuthApiService(); 
