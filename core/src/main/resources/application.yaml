@@ -35,9 +35,12 @@ app:
     refresh-cookie-name: Refresh-Token
     refresh-cookie-security: false
     confirmation-code-duration: 1d
+    allowed-origins: "http://localhost:5173"
 
   rabbit:
     send-mail-queue: mails
+    notification-exchange: notifications
+    send-mail-key: send-mail
 
   cache:
     schema-ttl: 15m
