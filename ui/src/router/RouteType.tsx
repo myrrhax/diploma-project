@@ -12,11 +12,9 @@ export const ProtectedRoute = observer(({afterConfirmationOnly = true}: Protecte
         return <div>Loading...</div>
     }
     if (isAuthenticated && user) {
-        if ((afterConfirmationOnly && user.isConfirmed)
-            || (!afterConfirmationOnly && !user.isConfirmed)) {
+        if (user.isConfirmed === afterConfirmationOnly) {
             return <Outlet/>;
         }
-        
     }
     
     let routeTo = '/login';

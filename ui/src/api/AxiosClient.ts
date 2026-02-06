@@ -40,12 +40,15 @@ $api.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
         if (error.response?.status === 401) {
+            console.log('Original request is not authorized, refreshing tokens');
             if (!originalRequest._isRetry) {
                 originalRequest._isRetry = true;
 
                 try {
+                    console.log('Sending refresh request');
                     const response = await axios.post<AuthResponse>(baseURL + '/auth/refresh', { withCredentials: true });
                     if (response.status === 200 && response.data) {
+                        console.log('User tokens were updated');
                         authStore.setAuthToken(response.data.accessToken);
                         authStore.setUser(response.data.user);
                     }

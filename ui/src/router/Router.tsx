@@ -4,6 +4,8 @@ import { HomePage } from "../pages/HomePage";
 import { NonAuthorizedRoute, ProtectedRoute } from "./RouteType";
 import { Layout } from "../components/Layout";
 import { authStore } from "../store/AuthStore";
+import { RegisterPage } from "../pages/RegisterPage";
+import { AccountConfirmationPage } from "../pages/AccountConfirmationPage";
 
 const router = createBrowserRouter([
     {
@@ -13,6 +15,16 @@ const router = createBrowserRouter([
                 path: '/login',
                 element: <LoginPage />
             },
+            {
+                path: '/register',
+                element: <RegisterPage />
+            }
+        ]
+    },
+    {
+        element: <ProtectedRoute afterConfirmationOnly={false} />,
+        children: [
+            { path: '/account-confirmation', element: <AccountConfirmationPage/> }
         ]
     },
     {
@@ -20,19 +32,13 @@ const router = createBrowserRouter([
         children: [
             {
                 path: '/',
-                element: <ProtectedRoute afterConfirmationOnly={false} />,
+                element: <ProtectedRoute afterConfirmationOnly={true} />,
                 children: [
                     {
                         element: <HomePage />
                     }
                 ]
-            },
-            {
-                element: <ProtectedRoute afterConfirmationOnly={true} />,
-                children: [
-                    { path: '/account-confirmation', element: <HomePage/> }
-                ]
-            }
+            }, 
         ]
     }
     
