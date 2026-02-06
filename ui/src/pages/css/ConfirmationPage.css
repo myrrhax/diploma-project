@@ -1,0 +1,91 @@
+.confirmation_page__container {
+    font-family: 'Courier New', monospace;
+    width: 100%;
+    min-width: 100vh;
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+}
+
+.otp-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 32px;
+  font-family: sans-serif;
+  border: 2px solid black;
+  min-width: 700px;
+  min-height: 300px;
+  border-radius: 12px;
+  position: relative;
+  box-shadow: 4px 4px 0 black;
+}
+
+.otp-container::before {
+    position: absolute;
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    right: -6px;
+    bottom: -6px;
+    z-index: -1;
+    border-radius: 12px;
+}
+
+.otp-title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: bold;
+  color: #333;
+}
+
+.otp-subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.otp-inputs {
+  display: flex;
+  gap: 10px;
+}
+
+.otp-input {
+  width: 48px;
+  height: 56px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  background-color: #fff;
+}
+
+.otp-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
+  transform: scale(1.05);
+}
+
+/* Убираем стрелочки у input type="number" если захотите сменить type */
+.otp-input::-webkit-outer-spin-button,
+.otp-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.otp-link {
+    color: blue;
+    cursor: pointer;
+}
+
+.otp-error {
+    font-size: 16px;
+    color: red;
+}

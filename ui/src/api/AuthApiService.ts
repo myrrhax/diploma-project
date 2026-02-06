@@ -23,13 +23,23 @@ class AuthApiService {
             }
 
             return null;
-        } catch(e) {
-            if (axios.isAxiosError(e)) {
-                authStore.setAuthToken(null);
-            }
-            console.error('Failed to fetch user info');
-            console.error(e);
+        } catch(e: any) {
+            this.processApiError(e);
+
             return null;
+        }
+    }
+
+    async confirmEmail(confirmationCode: string): Promise<ErrorResponse | null> {
+        try {
+            const response = await $api.post('/auth/confirm', {confirmationCode: confirmationCode});
+            console.log(response);
+            const data = response.data as AuthResponse;
+            this.updateUserInfo(data);
+
+            return null;
+        } catch (e: any) {
+            return this.processApiError(e);
         }
     }
 
@@ -38,19 +48,27 @@ class AuthApiService {
             const response = await $api.post<AuthResponse | ErrorResponse>(url, request);
             console.log(response);
             const data = response.data as AuthResponse;
-            authStore.setAuthToken(data.accessToken);
-            authStore.setUser(data.user);
+            this.updateUserInfo(data);
 
             return null;
         } catch(e: any) {
-            if (axios.isAxiosError(e)) {
-                const serverError = e.response?.data as ErrorResponse;
-                return serverError || { message: "Неизвестная ошибка сервера" };
-            }
-            
-            console.error("Сетевая ошибка или сервер недоступен:", e.message);
-            throw e;
+            return this.processApiError(e);
         }
+    }
+
+    private processApiError(e: Error): ErrorResponse {
+        if (axios.isAxiosError(e)) {
+            const serverError = e.response?.data as ErrorResponse;
+            return serverError || { message: 'Ошибка на стороне сервера' }
+        }
+
+        console.error('Сетевая ошибка или сервер временно не доступен');
+        throw e;
+    }
+
+    private updateUserInfo(data: AuthResponse) {
+        authStore.setUser(data.user);
+        authStore.setAuthToken(data.accessToken);
     }
 }
 
