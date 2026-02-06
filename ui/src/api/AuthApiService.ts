@@ -43,6 +43,19 @@ class AuthApiService {
         }
     }
 
+    async resendCode(): Promise<boolean> {
+        try {
+            const response = await $api.post('/auth/resend-code');
+            
+            return response.status === 200;
+        } catch (e: any) {
+            console.error('Failed to resend code');
+            console.error(e);
+            
+            return false;
+        }
+    }
+
     private async authenticate(request: AuthRequest, url: string): Promise<ErrorResponse | null> {
         try {
             const response = await $api.post<AuthResponse | ErrorResponse>(url, request);
