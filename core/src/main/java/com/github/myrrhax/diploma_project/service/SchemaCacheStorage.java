@@ -2,7 +2,7 @@ package com.github.myrrhax.diploma_project.service;
 
 import com.github.myrrhax.diploma_project.mapper.SchemaMapper;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
-import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
+import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
 import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
@@ -24,38 +24,37 @@ import java.util.concurrent.locks.Lock;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class CurrentVersionStateCacheStorage {
+public class SchemaCacheStorage {
     private final SchemeRepository schemeRepository;
     private final SchemaMapper schemaMapper;
     private final JsonSchemaStateMapper schemaStateMapper;
-    private final ConcurrentHashMap<UUID, VersionDTO> schemaStateCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, SchemeDTO> schemaCache = new ConcurrentHashMap<>();
     @Value("${app.cache.schema-ttl}")
     private Duration ttl = Duration.ofMinutes(15);
 
     @Transactional
-    public VersionDTO getSchemaVersion(UUID id) {
-        return schemaStateCache.computeIfAbsent(id, (schemeId) -> {
+    public SchemeDTO getSchema(UUID id) {
+        return schemaCache.computeIfAbsent(id, (schemeId) -> {
             log.info("Loading schema version from database for scheme {}", id);
-            VersionDTO dto = schemeRepository.findByIdLocking(schemeId)
-                .map(SchemeEntity::getCurrentVersion)
-                .map(it -> schemaMapper.toVersionDTO(it, schemaStateMapper.schemaStateMetadata(it.getSchema())))
+            var dto = schemeRepository.findByIdLocking(schemeId)
+                .map(schemaMapper::toDto)
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
 
-            dto.currentState().setLastModificationTime(Instant.now());
+            dto.currentVersion().currentState().setLastModificationTime(Instant.now());
             return dto;
         });
     }
 
     @Transactional
     public void flush(UUID id, boolean calledFromUser) {
-        VersionDTO version = schemaStateCache.get(id);
-        SchemaStateMetadata state = version.currentState();
+        SchemeDTO schema = schemaCache.get(id);
+        SchemaStateMetadata state = schema.currentVersion().currentState();
         if (state != null) {
             Lock lock = null;
             try {
                 lock = state.getLock();
                 lock.lock();
-                if (schemaStateCache.containsKey(id)) {
+                if (schemaCache.containsKey(id)) {
                     log.info("Flushing state for scheme {}", id);
                     schemeRepository.findByIdLocking(id)
                             .ifPresentOrElse(it -> {
@@ -88,8 +87,9 @@ public class CurrentVersionStateCacheStorage {
     @Transactional
     @Scheduled(cron = "*/15 * * * *")
     public void evictCache() {
-        for (UUID key : schemaStateCache.keySet()) {
-            VersionDTO version = schemaStateCache.get(key);
+        for (UUID key : schemaCache.keySet()) {
+            SchemeDTO schema = schemaCache.get(key);
+            VersionDTO version = schema.currentVersion();
             SchemaStateMetadata state = version.currentState();
             if (state != null) {
                 Lock lock = null;
@@ -117,10 +117,10 @@ public class CurrentVersionStateCacheStorage {
     }
 
     public void deleteFromCache(UUID id) {
-        if (!schemaStateCache.containsKey(id)) {
+        if (!schemaCache.containsKey(id)) {
             return;
         }
-        VersionDTO version = schemaStateCache.get(id);
+        VersionDTO version = schemaCache.get(id).currentVersion();
         SchemaStateMetadata state = version.currentState();
         if (state != null) {
             Lock lock = null;
@@ -129,7 +129,7 @@ public class CurrentVersionStateCacheStorage {
                 lock.lock();
 
                 log.info("Deleting scheme info from cache for scheme {}", id);
-                schemaStateCache.remove(id);
+                schemaCache.remove(id);
             } finally {
                 if (lock != null) {
                     lock.unlock();
@@ -141,8 +141,8 @@ public class CurrentVersionStateCacheStorage {
     @PreDestroy
     @Transactional
     public void preDestroy() {
-        for (UUID key : schemaStateCache.keySet()) {
-            VersionDTO version = schemaStateCache.get(key);
+        for (UUID key : schemaCache.keySet()) {
+            VersionDTO version = schemaCache.get(key).currentVersion();
             SchemaStateMetadata state = version.currentState();
             if (state != null) {
                 Lock lock = null;

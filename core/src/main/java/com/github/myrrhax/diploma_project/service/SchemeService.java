@@ -4,7 +4,6 @@ import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.mapper.SchemaMapper;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
-import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
 import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
@@ -29,7 +28,6 @@ import org.springframework.validation.annotation.Validated;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
 
 @Slf4j
 @Service
@@ -37,7 +35,7 @@ import java.util.concurrent.locks.Lock;
 @Transactional
 @RequiredArgsConstructor
 public class SchemeService {
-    private final CurrentVersionStateCacheStorage currentVersionStateCacheStorage;
+    private final SchemaCacheStorage schemaCacheStorage;
     private final SchemeRepository schemeRepository;
     private final UserRepository userRepository;
     private final AuthorityRepository authorityRepository;
@@ -47,7 +45,7 @@ public class SchemeService {
     public SchemeDTO createScheme(String name, TokenUser tokenUser) {
         UUID userId = tokenUser.getToken().userId();
         log.info("Processing create scheme request for user with id {}", userId);
-        UserEntity user = userRepository.findById(userId).get();
+        UserEntity user = userRepository.findById(userId).orElseThrow();
 
         if (schemeRepository.existsByNameAndCreator_Id(name, userId)) {
             throw new ApplicationException(
@@ -87,32 +85,24 @@ public class SchemeService {
         authorityRepository.save(authority);
         log.info("Full access to scheme {} for user {} was granted", userId,  savedScheme.getId());
 
-        return schemaMapper.toSchemeDTO(savedScheme, schemaMapper.toVersionDTO(savedVersion, state));
+        return schemaMapper.toDto(savedScheme);
     }
 
     @Transactional(readOnly = true)
     public List<SchemeDTO> filterSchemes(boolean takeParticipation, String query, UUID userId) {
         return schemeRepository.findAll(SchemeSpecification.findSchemesFiltered(takeParticipation, query, userId))
                 .stream()
-                .map(schemaMapper::toSchemeDTO)
+                .map(schemaMapper::toUnversionedDTO)
                 .toList();
     }
 
     public SchemeDTO getScheme(UUID schemeId) {
-        VersionDTO currentSchemaVersion = currentVersionStateCacheStorage.getSchemaVersion(schemeId);
-        if (currentSchemaVersion == null) {
+        SchemeDTO currentSchema = schemaCacheStorage.getSchema(schemeId);
+        if (currentSchema == null) {
             throw new SchemaNotFoundException(schemeId);
         }
-        Lock lock = currentSchemaVersion.currentState().getLock();
-        try {
-            lock.lock();
 
-            return this.schemeRepository.findById(schemeId)
-                    .map(it -> schemaMapper.toSchemeDTO(it, currentSchemaVersion))
-                    .orElseThrow(() -> new SchemaNotFoundException(schemeId));
-        } finally {
-            lock.unlock();
-        }
+        return currentSchema;
     }
 
     public void deleteScheme(UUID schemeId) {
@@ -120,13 +110,14 @@ public class SchemeService {
             throw new SchemaNotFoundException(schemeId);
         }
 
-        currentVersionStateCacheStorage.deleteFromCache(schemeId);
+        schemaCacheStorage.deleteFromCache(schemeId);
         schemeRepository.deleteById(schemeId);
     }
 
     public int processCommand(@Valid MetadataCommand command) {
-        VersionDTO version = currentVersionStateCacheStorage.getSchemaVersion(command.getSchemeId());
-        if (version != null && version.currentState() != null) {
+        SchemeDTO currentSchema = schemaCacheStorage.getSchema(command.getSchemeId());
+        var version = currentSchema.currentVersion();
+        if (version.currentState() != null) {
             SchemaStateMetadata state = version.currentState();
             try {
                 state.getLock().lock();

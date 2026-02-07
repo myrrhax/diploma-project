@@ -62,7 +62,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @Autowired
     private AuthorityRepository authorityRepository;
     @Autowired
-    private CurrentVersionStateCacheStorage cache;
+    private SchemaCacheStorage cache;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -147,8 +147,9 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         schemeService.processCommand(cmd);
 
         // then
-        var version = cache.getSchemaVersion(uuid);
-        assertThat(version).isNotNull();
+        var schema = cache.getSchema(uuid);
+        assertThat(schema).isNotNull();
+        var version = schema.currentVersion();
         assertThat(version.currentState()).isNotNull();
         assertThat(version.currentState().getTable(TABLE_NAME)).isNotNull();
 
@@ -328,7 +329,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         // when
         schemeService.processCommand(cmd);
         // then
-        var state = cache.getSchemaVersion(uuid).currentState();
+        var state = cache.getSchema(uuid).currentState();
         assertThat(state).isNotNull();
         TableMetadata assertedTable = state.getTable(expectedName).orElse(null);
         assertThat(assertedTable).isNotNull();
@@ -361,7 +362,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         // when
         schemeService.processCommand(cmd);
         // then
-        var state = cache.getSchemaVersion(uuid).currentState();
+        var schema = cache.getSchema(uuid);
+        var state = schema.currentVersion().currentState();
         assertThat(state).isNotNull();
         TableMetadata assertedTable = state.getTable(TABLE_NAME).orElse(null);
         assertThat(assertedTable).isNotNull();
@@ -424,8 +426,9 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         // when
         schemeService.processCommand(addRefCmd);
         // then
-        var schema = cache.getSchemaVersion(uuid).currentState();
-        assertThat(schema.getReferences().size()).isEqualTo(1);
+        var schema = cache.getSchema(uuid);
+        var assertState = schema.currentVersion().currentState();
+        assertThat(assertState.getReferences().size()).isEqualTo(1);
     }
 
     @Test
@@ -509,8 +512,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         schemeService.processCommand(cmd);
 
         // then
-        var schema = cache.getSchemaVersion(uuid).currentState();
-        assertThat(schema.getReferences().size()).isEqualTo(1);
+        var schema = cache.getSchema(uuid);
+        assertThat(schema.currentVersion().currentState().getReferences().size()).isEqualTo(1);
     }
 
     @Test
@@ -559,7 +562,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         schemeService.processCommand(cmd);
 
         // then
-        var schema = cache.getSchemaVersion(uuid).currentState();
+        var schema = cache.getSchema(uuid).currentState();
         assertThat(schema.getReferences().size()).isEqualTo(1);
     }
 
@@ -604,7 +607,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         schemeService.processCommand(cmd);
 
         // then
-        var schema = cache.getSchemaVersion(uuid).currentState();
+        var schema = cache.getSchema(uuid).currentState();
         assertThat(schema.getReferences().size()).isEqualTo(1);
 
     }
