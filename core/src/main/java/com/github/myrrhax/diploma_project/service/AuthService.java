@@ -191,7 +191,7 @@ public class AuthService implements UserDetailsService {
                 decodedRefresh.userId(),
                 decodedRefresh.authorities());
         log.info("New token pair was signed for user: {}", decodedRefresh.userId());
-        setRefreshCookie(response, signedTokens.signedRefreshToken(), decodedRefresh.userId());
+        setRefreshCookie(response, signedTokens.signedAccessToken(), decodedRefresh.userId());
 
         return new AuthResultDTO(
                 signedTokens.signedAccessToken(),
