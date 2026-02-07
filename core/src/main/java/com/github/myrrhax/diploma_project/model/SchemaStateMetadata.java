@@ -21,9 +21,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @Setter
 @NoArgsConstructor
 public class SchemaStateMetadata {
-    private UUID id;
-    private long versionId;
-    private boolean isWorkingCopy;
     private Map<UUID, TableMetadata> tables = new HashMap<>();
     private Map<ReferenceMetadata.ReferenceKey, ReferenceMetadata> references = new HashMap<>();
 
@@ -33,12 +30,6 @@ public class SchemaStateMetadata {
     private Instant lastModificationTime = Instant.now();
     @JsonIgnore
     private AtomicInteger cacheVersion = new AtomicInteger(0);
-
-    public SchemaStateMetadata(VersionEntity versionEntity) {
-        this.id = versionEntity.getScheme().getId();
-        this.versionId = versionEntity.getId();
-        this.isWorkingCopy = versionEntity.getIsWorkingCopy();
-    }
 
     public void addTable(TableMetadata tableMetadata) {
         this.tables.putIfAbsent(tableMetadata.getId(), tableMetadata);

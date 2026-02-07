@@ -73,7 +73,7 @@ public class SchemeService {
 
         VersionEntity savedVersion = savedScheme.getCurrentVersion();
         log.info("Applying schema state metadata for scheme {}", savedScheme.getId());
-        SchemaStateMetadata state = new SchemaStateMetadata(savedVersion);
+        SchemaStateMetadata state = new SchemaStateMetadata();
         savedVersion.setSchema(schemaStateMapper.toJson(state));
 
         log.info("Grant user {} full access for created scheme {}", userId, savedScheme.getId());
