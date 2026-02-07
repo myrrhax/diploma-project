@@ -2,6 +2,7 @@ package com.github.myrrhax.diploma_project.web;
 
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.model.dto.MetadataCommandProcessResult;
+import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.SchemeService;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -18,7 +20,7 @@ import java.util.UUID;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-public class WsCommandController {
+public class WSSchemaController {
     private final SchemeService schemeService;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -31,5 +33,10 @@ public class WsCommandController {
 
         messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
                 new MetadataCommandProcessResult(version, command));
+    }
+
+    @SubscribeMapping("/schema/{id}")
+    public VersionDTO onSubscribe(@DestinationVariable("id") UUID schemaId) {
+        return schemeService.getScheme(schemaId).currentVersion();
     }
 }
