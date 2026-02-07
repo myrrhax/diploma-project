@@ -189,9 +189,12 @@ public class AuthService implements UserDetailsService {
         UserEntity user =  userRepository.findById(decodedRefresh.userId()).orElseThrow();
         Tokens signedTokens = prepareTokens(decodedRefresh.subject(),
                 decodedRefresh.userId(),
-                decodedRefresh.authorities());
+                decodedRefresh.authorities().stream()
+                        .filter(authority -> authority.startsWith("GRANT_"))
+                        .map(authority -> authority.substring("GRANT_".length()))
+                        .toList());
         log.info("New token pair was signed for user: {}", decodedRefresh.userId());
-        setRefreshCookie(response, signedTokens.signedAccessToken(), decodedRefresh.userId());
+        setRefreshCookie(response, signedTokens.signedRefreshToken(), decodedRefresh.userId());
 
         return new AuthResultDTO(
                 signedTokens.signedAccessToken(),

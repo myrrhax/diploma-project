@@ -16,6 +16,10 @@ public interface SchemeSpecification {
                                                            String searchQuery,
                                                            UUID userId) {
         return (root, query, cb) -> {
+            if (query.getResultType() != Long.class) {
+                root.fetch("creator", JoinType.LEFT);
+            }
+
             List<Predicate> predicates = new ArrayList<>();
             if (takeParticipation) {
                 query.distinct(true);
