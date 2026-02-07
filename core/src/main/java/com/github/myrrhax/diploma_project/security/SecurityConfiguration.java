@@ -64,8 +64,8 @@ public class SecurityConfiguration {
                                 "/api/auth/register", "/api/auth/refresh").permitAll()
                         .requestMatchers(
                                 "/api/auth/confirm",
-                                "/api/auth/resend-code",
-                                "/api/users/whoami").hasAuthority(JwtAuthority.ROLE_PRE_VERIFIED.name())
+                                "/api/auth/resend-code").hasAuthority(JwtAuthority.ROLE_PRE_VERIFIED.name())
+                        .requestMatchers("/api/users/whoami").hasAnyAuthority(JwtAuthority.ROLE_PRE_VERIFIED.name(), JwtAuthority.ROLE_USER.name())
                         .anyRequest().hasAuthority(JwtAuthority.ROLE_USER.name())
                 )
                 .with(new JwtSecurityConfigurer(), configurer -> {
