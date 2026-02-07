@@ -21,8 +21,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -38,6 +40,17 @@ public class SchemaController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(this.schemeService.createScheme(createSchemeDTO.name(), tokenUser));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<SchemeDTO>> findSchemas(@RequestParam(value = "takeParticipation", defaultValue = "true") boolean takeParticipation,
+                                                       @RequestParam(value = "query", required = false) String query,
+                                                       @AuthenticationPrincipal TokenUser tokenUser) {
+        var schemes = schemeService.filterSchemes(takeParticipation, query, tokenUser.getToken().userId());
+
+        return schemes.isEmpty()
+                ? ResponseEntity.notFound().build()
+                : ResponseEntity.ok(schemes);
     }
 
     @GetMapping("/{id}")

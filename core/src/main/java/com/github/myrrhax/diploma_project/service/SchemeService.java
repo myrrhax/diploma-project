@@ -14,6 +14,7 @@ import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundExceptio
 import com.github.myrrhax.diploma_project.repository.AuthorityRepository;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
+import com.github.myrrhax.diploma_project.repository.specification.SchemeSpecification;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
 import com.github.myrrhax.shared.model.AuthorityType;
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 
@@ -86,6 +88,14 @@ public class SchemeService {
         log.info("Full access to scheme {} for user {} was granted", userId,  savedScheme.getId());
 
         return schemaMapper.toSchemeDTO(savedScheme, schemaMapper.toVersionDTO(savedVersion, state));
+    }
+
+    @Transactional(readOnly = true)
+    public List<SchemeDTO> filterSchemes(boolean takeParticipation, String query, UUID userId) {
+        return schemeRepository.findAll(SchemeSpecification.findSchemesFiltered(takeParticipation, query, userId))
+                .stream()
+                .map(schemaMapper::toSchemeDTO)
+                .toList();
     }
 
     public SchemeDTO getScheme(UUID schemeId) {

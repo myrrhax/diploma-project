@@ -13,6 +13,9 @@ public interface SchemaMapper {
     @Mapping(target = "currentVersion", source = "dto")
     SchemeDTO toSchemeDTO(SchemeEntity scheme, VersionDTO dto);
 
+    @Mapping(target = "currentVersion", ignore = true)
+    SchemeDTO toSchemeDTO(SchemeEntity scheme);
+
     @Mapping(target = "versionId", source = "entity.id")
     @Mapping(target = "schemeId", source = "entity.scheme.id")
     @Mapping(target = "currentState", source = "state")
