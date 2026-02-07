@@ -35,6 +35,7 @@ const router = createBrowserRouter([
                 element: <ProtectedRoute afterConfirmationOnly={true} />,
                 children: [
                     {
+                        path: '/',
                         element: <HomePage />
                     }
                 ]
