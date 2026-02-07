@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<ErrorResponseDTO> handle(ApplicationException ex) {
-        log.error("An application error occurred while processing the request: {}", ex.getMessage(), ex);
+        log.error("An application error occurred while processing the request: {}", ex.getMessage());
 
         return ResponseEntity.status(ex.getStatus())
                 .body(new ErrorResponseDTO(ex.getMessage(), null));
@@ -40,5 +40,12 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponseDTO("Validation Failed", violations));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Void> handle(Exception ex) {
+        log.error("A fatal exception", ex);
+
+        return ResponseEntity.internalServerError().build();
     }
 }

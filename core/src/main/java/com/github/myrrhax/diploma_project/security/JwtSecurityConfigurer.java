@@ -5,8 +5,8 @@ import lombok.Setter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.authentication.AuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 
@@ -27,8 +27,7 @@ public class JwtSecurityConfigurer extends AbstractHttpConfigurer<JwtSecurityCon
     public void configure(HttpSecurity builder) {
         AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
 
-        var jwtFilter = new AuthenticationFilter(authenticationManager,
-                new TokenAuthenticationConverter(jwsTokenProvider));
+        var jwtFilter = new AuthenticationFilter(authenticationManager, new TokenAuthenticationConverter());
         jwtFilter.setSuccessHandler((req, resp, auth) -> {});
         jwtFilter.setFailureHandler((req, resp, e) ->
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED));
@@ -36,7 +35,7 @@ public class JwtSecurityConfigurer extends AbstractHttpConfigurer<JwtSecurityCon
         var provider = new PreAuthenticatedAuthenticationProvider();
         provider.setPreAuthenticatedUserDetailsService(tokenAuthenticationDetailsService);
 
-        builder.addFilterAfter(jwtFilter, ExceptionTranslationFilter.class)
+        builder.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(provider);
     }
 }
