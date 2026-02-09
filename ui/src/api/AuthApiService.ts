@@ -3,10 +3,10 @@ import $api from "./AxiosClient";
 import { authStore } from "../store/AuthStore";
 import type ErrorResponse from "../model/ErrorResponse";
 import type AuthRequest from "../model/AuthRequest";
-import axios from "axios";
 import type { User } from "../model/User";
+import { AbstractApiService } from "./AbstractApiService";
 
-class AuthApiService {
+class AuthApiService extends AbstractApiService {
     async login(request: AuthRequest): Promise<ErrorResponse | null> {
         return this.authenticate(request, '/auth/login');
     }
@@ -67,16 +67,6 @@ class AuthApiService {
         } catch(e: any) {
             return this.processApiError(e);
         }
-    }
-
-    private processApiError(e: Error): ErrorResponse {
-        if (axios.isAxiosError(e)) {
-            const serverError = e.response?.data as ErrorResponse;
-            return serverError || { message: 'Ошибка на стороне сервера' }
-        }
-
-        console.error('Сетевая ошибка или сервер временно не доступен');
-        throw e;
     }
 
     private updateUserInfo(data: AuthResponse) {

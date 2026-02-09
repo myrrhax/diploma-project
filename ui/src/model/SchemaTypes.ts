@@ -5,7 +5,7 @@ export interface Schema {
     id: string,
     name: string,
     creator: User,
-    currentVersion: Version,
+    currentVersion: Version | null
 }
 
 export interface Version {
