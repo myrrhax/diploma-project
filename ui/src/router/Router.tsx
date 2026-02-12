@@ -6,6 +6,7 @@ import { Layout } from "../components/Layout";
 import { authStore } from "../store/AuthStore";
 import { RegisterPage } from "../pages/RegisterPage";
 import { AccountConfirmationPage } from "../pages/AccountConfirmationPage";
+import { SchemaEditorPage } from "../pages/SchemaEditorPage";
 
 const router = createBrowserRouter([
     {
@@ -37,9 +38,13 @@ const router = createBrowserRouter([
                     {
                         path: '/',
                         element: <HomePage />
+                    },
+                    {
+                        path: '/schema/edit/:id',
+                        element: <SchemaEditorPage />
                     }
                 ]
-            }, 
+            }
         ]
     }
     
