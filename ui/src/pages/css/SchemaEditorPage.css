@@ -1,162 +1,164 @@
+.schema_page__container {
+    height: 100%; /* Занимает всё место, выделенное в Layout */
+    display: flex;
+    flex-direction: column;
+    font-family: 'Courier New', monospace;
+    background-color: white;
+    width: 100%;
+}
+
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
-/* --- Global Page Layout --- */
-.schema-page {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100vw; /* Используем vw, чтобы точно не вылезать */
-  background-color: var(--bg-color);
-  overflow: hidden;
+.schema_page__header {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 3px solid black;
+    background: white;
+    z-index: 20;
 }
 
-/* --- Header --- */
-.schema-header {
-  height: 60px;
-  width: 100%; /* Фиксируем ширину */
-  background: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  z-index: 10;
-  box-shadow: var(--shadow-sm);
-  flex-shrink: 0; /* Чтобы хедер не сжимался */
+/* Кнопки и заголовок */
+.schema_page__name {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.schema_controls {
+    margin-left: 32px;
 }
 
-.back-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-secondary);
-  padding: 4px;
-  border-radius: 4px;
+.schema_controls button {
+    border: 2px solid black;
+    background: white;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: bold;
+    font-size: 16px;
+    margin-left: 10px;
 }
 
-.back-btn:hover {
-  background-color: var(--bg-color);
-  color: var(--text-main);
+.btn_save, .btn_versionate { background-color: lime !important; }
+
+/* Workspace */
+.schema_page__workspace {
+    flex: 1;
+    display: flex;
+    position: relative; /* Чтобы пользователи позиционировались относительно этой зоны */
+    overflow: hidden;
 }
 
-.schema-name {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-main);
-  margin: 0;
+/* Sidebar Версии */
+.versions_sidebar {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 20%;
+    padding: 10px;
+    min-width: 200px;
+    background: white;
+    border-right: 3px solid black;
+    transform: translateX(-100%); /* Прячем полностью */
+    transition: transform 0.3s ease;
+    z-index: 100;
+}
+.versions_sidebar.open { transform: translateX(0); }
+
+.version_item {
+    padding: 5px;
+    cursor: pointer;
 }
 
-.schema-controls {
-  display: flex;
-  gap: 10px;
+.sidebar_toggle {
+    position: absolute;
+    right: -33px;
+    top: 20px;
+    width: 30px;
+    height: 40px;
+    background: black;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid black;
 }
 
-.btn-primary {
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 8px 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
+/* Канвас */
+.schema_canvas_area {
+    flex: 1;
+    position: relative; /* Важно для абсолютного списка юзеров */
+    background-color: #eee;
+    background-image: radial-gradient(#000 0.5px, transparent 0.5px); /* Точечки как на чертеже */
+    background-size: 20px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.btn-primary:hover {
-  background-color: var(--primary-hover);
+/* НОВЫЙ БЛОК ПОЛЬЗОВАТЕЛЕЙ (ABSOLUTE) */
+.users_overlay {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 20%;
+    min-width: 250px;
+    /* Убираем фиксированный height отсюда */
+    height: 50%; 
+    border: 3px solid black;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 8px 8px 0px rgba(0,0,0,0.1);
+    z-index: 50;
+    transition: height 0.2s ease-in-out; /* Плавное схлопывание */
 }
 
-.btn-secondary {
-  background-color: transparent;
-  color: var(--text-main);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: 8px 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
+.users_overlay.collapsed {
+    height: auto; /* Блок примет высоту только заголовка */
 }
 
-.btn-secondary:hover {
-  background-color: #f9fafb;
-  border-color: #d1d5db;
+.users_list_header {
+    background: wheat;
+    color: black;
+    padding: 8px;
+    font-weight: bold;
+    text-align: center;
+    flex-shrink: 0; /* Чтобы заголовок не сжимался */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-/* --- Workspace --- */
-.schema-workspace {
-  flex: 1;
-  display: flex;
-  position: relative;
-  overflow: hidden;
+.users_scroll_container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    /* Важно: если список скрыт через && в React, этот блок просто исчезнет, 
+       и .users_overlay.collapsed стянется к заголовку */
 }
 
-/* --- Canvas Area --- */
-.canvas-area {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  position: relative;
+.user_element {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 2px solid #f0f0f0;
 }
 
-.react-flow__handle {
-  width: 10px;
-  height: 10px;
-  background: var(--primary-color);
-  border: 2px solid white;
-  transition: transform 0.1s;
+.user_element img {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
 }
 
-.react-flow__handle:hover {
-  transform: scale(1.2);
-  background: var(--primary-hover);
-}
+.user_email { font-size: 14px; }
 
-.handle-target {
-  left: -6px !important; /* Сдвигаем влево за границу */
-}
-
-.handle-source {
-  right: -6px !important; /* Сдвигаем вправо за границу */
-}
-
-/* --- Context Menu --- */
-.context-menu {
-  position: fixed;
-  background: white;
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-lg);
-  border-radius: var(--radius-sm);
-  padding: 4px;
-  z-index: 1000;
-  min-width: 160px;
-}
-
-.menu-item {
-  padding: 8px 12px;
-  font-size: 13px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text-main);
-  border-radius: 4px;
-}
-
-.menu-item:hover {
-  background-color: #eff6ff;
-  color: var(--primary-color);
-}
-
-.menu-divider {
-  height: 1px;
-  background-color: var(--border-color);
-  margin: 4px 0;
+.show_hide_logo {
+    width: 23px;
+    height: 23px;
+    margin-right: 10px;
+    cursor: pointer;
 }
