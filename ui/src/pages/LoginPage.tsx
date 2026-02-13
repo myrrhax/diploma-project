@@ -51,7 +51,7 @@ export const LoginPage = () => {
         if (user && !user.isConfirmed) {
           navigate('/account-confirmation');
         } else {
-          navigate('/dashboard'); // Или куда нужно после логина
+          navigate('/'); // Или куда нужно после логина
         }
       }
     } catch (e) {
