@@ -19,7 +19,8 @@ import '@xyflow/react/dist/style.css';
 
 import { TableNode } from '@/components/TableNode/TableNode.tsx';
 import './css/SchemaEditorPage.css';
-import profilePic from '@/assets/user.png';
+
+import { UsersOverlay } from '@/components/UsersOverlay/UsersOverlay';
 
 const nodeTypes = { table: TableNode };
 
@@ -29,7 +30,7 @@ const FAKE_VERSIONS = [
   ];
   
 const FAKE_USERS = [
-    { id: 1, email: 'admin@test.com' },
+    { id: 'first-id', email: 'admin@test.com', isConfirmed: true },
 ];
 
 const SchemaEditorContent = observer(() => {
@@ -48,7 +49,6 @@ const SchemaEditorContent = observer(() => {
 
   const schemaName = "Система управления складом v2";
 
-  // Подключение: по умолчанию ставим стрелку на конце (1 к М, где стрелка указывает на М)
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge({ 
         ...params, 
@@ -59,14 +59,12 @@ const SchemaEditorContent = observer(() => {
     [setEdges],
   );
 
-  // --- NODE CONTEXT MENU HANDLERS ---
   const onPaneContextMenu = useCallback((event: React.MouseEvent | MouseEvent) => {
       event.preventDefault();
       setNodeMenu({ x: event.clientX, y: event.clientY, visible: true });
-      setEdgeMenu(null); // Закрываем меню связей
+      setEdgeMenu(null); 
     }, []);
 
-  // --- EDGE CONTEXT MENU HANDLERS ---
   const onEdgeContextMenu = useCallback((event: React.MouseEvent, edge: Edge) => {
     event.preventDefault();
     setEdgeMenu({ 
@@ -75,7 +73,7 @@ const SchemaEditorContent = observer(() => {
         edgeId: edge.id, 
         visible: true 
     });
-    setNodeMenu(null); // Закрываем меню узлов
+    setNodeMenu(null);
   }, []);
 
   const closeMenus = useCallback(() => {
@@ -83,7 +81,6 @@ const SchemaEditorContent = observer(() => {
       setEdgeMenu(null);
   }, []);
 
-  // --- ACTIONS ---
 
   const createTable = useCallback(() => {
     if (!nodeMenu) return;
@@ -117,7 +114,6 @@ const SchemaEditorContent = observer(() => {
             let markerStart = undefined;
             let markerEnd = undefined;
 
-            // Логика визуализации UML через стрелки
             switch (type) {
                 case '1:1':
                     // Две вертикальные черты (имитируем отсутствием стрелок или специальным SVG, пока просто линии)
@@ -240,30 +236,8 @@ const SchemaEditorContent = observer(() => {
                   </div>
                </div>
             )}
-
           </ReactFlow>
-
-          <aside className={`users-overlay ${!isUsersOpen ? 'collapsed' : ''}`}>
-            <div className="users-header" onClick={() => setUsersOpen(!isUsersOpen)}>
-              <span>В сети ({FAKE_USERS.length})</span>
-              <button className="toggle-users-btn">
-                {isUsersOpen ? 
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg> : 
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 15l-6-6-6 6"/></svg>
-                }
-              </button>
-            </div>
-            {isUsersOpen && (
-              <div className="users-list">
-                {FAKE_USERS.map(user => (
-                  <div key={user.id} className="user-item">
-                    <img src={profilePic} alt="user" className="user-avatar" />
-                    <span className="user-email">{user.email}</span>
-                  </div>
-                ))}
-              </div>
-            )}  
-          </aside>
+          <UsersOverlay isUsersOpen={isUsersOpen} users={FAKE_USERS} closeCallback={(close) => setUsersOpen(close)} />
         </main>
       </div>
     </div>

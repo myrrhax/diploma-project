@@ -1,0 +1,76 @@
+/* --- Users Overlay --- */
+.users-overlay {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 240px;
+  background: var(--card-bg);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  z-index: 50;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  max-height: 400px;
+}
+
+.users-overlay.collapsed {
+  max-height: 46px; /* Высота хедера */
+}
+
+.users-header {
+  padding: 12px 16px;
+  background: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-users-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0;
+  display: flex;
+}
+
+.users-list {
+  padding: 8px 0;
+  overflow-y: auto;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  gap: 10px;
+  transition: background 0.2s;
+}
+
+.user-item:hover {
+  background-color: #f9fafb;
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.user-email {
+  font-size: 13px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
