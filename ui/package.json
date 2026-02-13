@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@xyflow/react": "^12.10.0",
     "axios": "^1.13.4",
     "jwt-decode": "^4.0.0",
     "mobx": "^6.15.0",
