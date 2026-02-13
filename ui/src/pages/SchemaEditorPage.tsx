@@ -21,6 +21,7 @@ import { TableNode } from '@/components/TableNode/TableNode.tsx';
 import './css/SchemaEditorPage.css';
 
 import { UsersOverlay } from '@/components/UsersOverlay/UsersOverlay';
+import { VersionsSidebar } from '@/components/VersionsSidebar/VersionsSidebar';
 
 const nodeTypes = { table: TableNode };
 
@@ -40,11 +41,7 @@ const SchemaEditorContent = observer(() => {
 
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isUsersOpen, setUsersOpen] = useState(true);
-  
-  // Меню для Узлов (Nodes)
   const [nodeMenu, setNodeMenu] = useState<{ x: number; y: number; visible: boolean } | null>(null);
-  
-  // Меню для Связей (Edges)
   const [edgeMenu, setEdgeMenu] = useState<{ x: number; y: number; edgeId: string; visible: boolean } | null>(null);
 
   const schemaName = "Система управления складом v2";
@@ -54,7 +51,8 @@ const SchemaEditorContent = observer(() => {
         ...params, 
         animated: true, 
         style: { stroke: '#2563eb', strokeWidth: 2 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#2563eb' }, // Стрелка по умолчанию
+        markerStart: undefined,
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#2563eb' },
     }, eds)),
     [setEdges],
   );
@@ -90,7 +88,6 @@ const SchemaEditorContent = observer(() => {
       id: `table-${Date.now()}`,
       type: 'table',
       position,
-      // ВАЖНО: Указываем селектор класса для перетаскивания
       dragHandle: '.custom-drag-handle', 
       data: { 
         label: 'New_Table', 
@@ -105,7 +102,6 @@ const SchemaEditorContent = observer(() => {
     closeMenus();
   }, [nodeMenu, screenToFlowPosition, setNodes, closeMenus]);
 
-  // Функция изменения типа связи
   const updateEdgeType = (type: '1:1' | '1:M' | 'M:1' | 'M:M') => {
       if (!edgeMenu) return;
 
@@ -116,22 +112,19 @@ const SchemaEditorContent = observer(() => {
 
             switch (type) {
                 case '1:1':
-                    // Две вертикальные черты (имитируем отсутствием стрелок или специальным SVG, пока просто линии)
-                    markerStart = { type: MarkerType.ArrowClosed, width: 10, height: 10, color: '#2563eb' }; // Временно стрелки с двух сторон
+                    // markerStart = { type: MarkerType.ArrowClosed, width: 10, height: 10, color: '#2563eb' }; 
+                    markerStart = undefined;
                     markerEnd = { type: MarkerType.ArrowClosed, width: 10, height: 10, color: '#2563eb' };
                     break;
                 case '1:M':
-                    // Стрелка указывает на Many
                     markerStart = undefined; 
                     markerEnd = { type: MarkerType.ArrowClosed, width: 20, height: 20, color: '#2563eb' };
                     break;
                 case 'M:1':
-                    // Стрелка указывает на Many (в обратную сторону)
                     markerStart = { type: MarkerType.ArrowClosed, width: 20, height: 20, color: '#2563eb' };
                     markerEnd = undefined;
                     break;
                 case 'M:M':
-                    // Crow's feet с обеих сторон (имитируем большими стрелками)
                     markerStart = { type: MarkerType.Arrow, width: 15, height: 15, color: '#2563eb' };
                     markerEnd = { type: MarkerType.Arrow, width: 15, height: 15, color: '#2563eb' };
                     break;
@@ -167,24 +160,8 @@ const SchemaEditorContent = observer(() => {
         </div>
       </header>
 
-      <div className="schema-workspace">
-        {/* SIDEBAR VERSIONS*/}
-        <aside className={`versions-sidebar ${isSidebarOpen ? 'open' : ''}`}>
-          <div className="sidebar-toggle" onClick={() => setSidebarOpen(!isSidebarOpen)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d={isSidebarOpen ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"}/></svg>
-          </div>
-          <div className="sidebar-content">
-            <h3>История версий</h3>
-            <div className="version-list">
-              {FAKE_VERSIONS.map(v => (
-                <div key={v.id} className="version-item">
-                  <span className="version-name">{v.name}</span>
-                  <span className="version-date">{v.date}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </aside>
+      <div className="schema-workspace">        
+        <VersionsSidebar isOpen={isSidebarOpen} versions={FAKE_VERSIONS} changeVisibleCallback={(visible) => setSidebarOpen(visible)} />
 
         <main className="canvas-area">
           <ReactFlow
@@ -194,9 +171,9 @@ const SchemaEditorContent = observer(() => {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             nodeTypes={nodeTypes}
-            onPaneContextMenu={onPaneContextMenu} // ПКМ по пустому месту
-            onEdgeContextMenu={onEdgeContextMenu} // ПКМ по связи
-            onPaneClick={closeMenus} // Закрыть меню при клике
+            onPaneContextMenu={onPaneContextMenu}
+            onEdgeContextMenu={onEdgeContextMenu}
+            onPaneClick={closeMenus}
             fitView
           >
             <Background color="#e5e7eb" gap={20} size={1} />
