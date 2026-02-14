@@ -1,0 +1,135 @@
+.er_table_card {
+  position: absolute;
+  width: 220px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 1. Header */
+.er_table_header {
+  background: #2563eb; /* Primary Blue */
+  padding: 8px;
+  border-radius: 7px 7px 0 0;
+  cursor: grab;
+}
+
+.er_table_header:active {
+  cursor: grabbing;
+}
+
+.er_table_name_input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  outline: none;
+  text-align: center;
+}
+
+.er_table_name_input::selection {
+    background: rgba(255,255,255,0.3);
+}
+
+/* Separator */
+.er_table_separator {
+  height: 2px;
+  background: #1e40af; /* Darker Blue */
+  width: 100%;
+}
+
+/* 2. Body */
+.er_column_list {
+  background: white;
+  padding: 4px 0;
+}
+
+.er_column_row {
+  position: relative; /* Для позиционирования портов */
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.col_name {
+  font-size: 13px;
+  color: #374151;
+}
+
+/* --- PORTS (Dots) --- */
+.er_port {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #9ca3af; /* Gray default */
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 0 2px rgba(0,0,0,0.2);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 10;
+}
+
+.er_port:hover {
+  background: #2563eb;
+  transform: scale(1.2);
+}
+
+.port_left {
+  left: -5px; /* Сдвигаем влево, чтобы сидел на границе */
+  background: #ef4444; /* Red hint for input */
+}
+
+.port_right {
+  right: -5px; /* Сдвигаем вправо */
+  background: #10b981; /* Green hint for output */
+}
+
+/* Выбранное состояние */
+.port_selected {
+  background: #2563eb;
+  transform: scale(1.6) translateX(3px); /* Увеличиваем и сдвигаем */
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+  z-index: 11;
+}
+
+.port_badge {
+  position: absolute;
+  top: -12px;
+  right: -8px;
+  background: #2563eb;
+  color: white;
+  font-size: 8px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* --- FOOTER --- */
+.er_add_col_btn {
+  width: 100%;
+  border: none;
+  background: #f9fafb;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 0 0 7px 7px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.er_add_col_btn:hover {
+  background: #eff6ff;
+}

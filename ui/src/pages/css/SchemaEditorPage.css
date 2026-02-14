@@ -1,164 +1,74 @@
-.schema_page__container {
-    height: 100%; /* Занимает всё место, выделенное в Layout */
-    display: flex;
-    flex-direction: column;
-    font-family: 'Courier New', monospace;
-    background-color: white;
-    width: 100%;
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-page: #f3f4f6;
+  --white: #ffffff;
+  --text-dark: #111827;
+  --text-gray: #6b7280;
+  --border: #e5e7eb;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --radius: 12px;
 }
 
-* {
-    box-sizing: border-box;
+.schema_page__container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-page);
+  font-family: 'Inter', sans-serif;
 }
 
 .schema_page__header {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 3px solid black;
-    background: white;
-    z-index: 20;
+  height: 64px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 10;
 }
 
-/* Кнопки и заголовок */
+.header_left { display: flex; align-items: center; gap: 16px; }
+
 .schema_page__name {
-    font-size: 24px;
-    font-weight: bold;
-    margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dark);
 }
 
-.schema_controls {
-    margin-left: 32px;
+.schema_controls { display: flex; gap: 12px; }
+
+/* Кнопки в твоем стиле */
+.btn_primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.schema_controls button {
-    border: 2px solid black;
-    background: white;
-    padding: 8px 15px;
-    cursor: pointer;
-    font-family: inherit;
-    font-weight: bold;
-    font-size: 16px;
-    margin-left: 10px;
+.btn_secondary {
+  background: white;
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: var(--text-dark);
+  cursor: pointer;
 }
 
-.btn_save, .btn_versionate { background-color: lime !important; }
-
-/* Workspace */
 .schema_page__workspace {
-    flex: 1;
-    display: flex;
-    position: relative; /* Чтобы пользователи позиционировались относительно этой зоны */
-    overflow: hidden;
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
 }
 
-/* Sidebar Версии */
-.versions_sidebar {
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 20%;
-    padding: 10px;
-    min-width: 200px;
-    background: white;
-    border-right: 3px solid black;
-    transform: translateX(-100%); /* Прячем полностью */
-    transition: transform 0.3s ease;
-    z-index: 100;
-}
-.versions_sidebar.open { transform: translateX(0); }
-
-.version_item {
-    padding: 5px;
-    cursor: pointer;
-}
-
-.sidebar_toggle {
-    position: absolute;
-    right: -33px;
-    top: 20px;
-    width: 30px;
-    height: 40px;
-    background: black;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: 1px solid black;
-}
-
-/* Канвас */
 .schema_canvas_area {
-    flex: 1;
-    position: relative; /* Важно для абсолютного списка юзеров */
-    background-color: #eee;
-    background-image: radial-gradient(#000 0.5px, transparent 0.5px); /* Точечки как на чертеже */
-    background-size: 20px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* НОВЫЙ БЛОК ПОЛЬЗОВАТЕЛЕЙ (ABSOLUTE) */
-.users_overlay {
-    position: absolute;
-    right: 20px;
-    top: 20px;
-    width: 20%;
-    min-width: 250px;
-    /* Убираем фиксированный height отсюда */
-    height: 50%; 
-    border: 3px solid black;
-    background: white;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 8px 8px 0px rgba(0,0,0,0.1);
-    z-index: 50;
-    transition: height 0.2s ease-in-out; /* Плавное схлопывание */
-}
-
-.users_overlay.collapsed {
-    height: auto; /* Блок примет высоту только заголовка */
-}
-
-.users_list_header {
-    background: wheat;
-    color: black;
-    padding: 8px;
-    font-weight: bold;
-    text-align: center;
-    flex-shrink: 0; /* Чтобы заголовок не сжимался */
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.users_scroll_container {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
-    /* Важно: если список скрыт через && в React, этот блок просто исчезнет, 
-       и .users_overlay.collapsed стянется к заголовку */
-}
-
-.user_element {
-    display: flex;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 2px solid #f0f0f0;
-}
-
-.user_element img {
-    width: 24px;
-    height: 24px;
-    margin-right: 10px;
-}
-
-.user_email { font-size: 14px; }
-
-.show_hide_logo {
-    width: 23px;
-    height: 23px;
-    margin-right: 10px;
-    cursor: pointer;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
 }

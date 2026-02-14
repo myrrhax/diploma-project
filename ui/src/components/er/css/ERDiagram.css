@@ -1,0 +1,72 @@
+.er_diagram_wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: #f3f4f6;
+  background-image: 
+    linear-gradient(#e5e7eb 1px, transparent 1px),
+    linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+  background-size: 20px 20px;
+  overflow: hidden;
+  user-select: none;
+}
+
+.er_viewport {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  transform-origin: 0 0;
+}
+
+.er_svg_layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.er_line {
+  fill: none;
+  stroke: #64748b;
+  stroke-width: 2;
+}
+
+/* --- CONTEXT MENU --- */
+.er_ctx_menu {
+  position: absolute;
+  background: white;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  border-radius: 6px;
+  padding: 4px;
+  z-index: 100;
+  min-width: 140px;
+}
+
+.er_ctx_item {
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #374151;
+  border-radius: 4px;
+}
+
+.er_ctx_item:hover {
+  background: #f3f4f6;
+}
+
+.er_hint {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(255,255,255,0.9);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #666;
+    pointer-events: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
