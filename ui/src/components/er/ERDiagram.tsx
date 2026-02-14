@@ -4,58 +4,7 @@ import { erStore, type Table } from '@/store/ERStore';
 import { TableNode } from './TableNode';
 import './css/ERDiagram.css';
 
-// --- ALGORITHM: Smart Orthogonal Routing ---
-const getSmartEdgePath = (
-    sX: number, sY: number, // Точные координаты правого порта (Start)
-    tX: number, tY: number, // Точные координаты левого порта (End)
-    sTableId: string, 
-    tTableId: string, 
-    index: number // индекс для отступа параллельных линий
-) => {
-    // Получаем высоты таблиц для расчета обхода снизу
-    const sHeight = erStore.getTableHeight(sTableId);
-    const tHeight = erStore.getTableHeight(tTableId);
-    
-    // Находим Y-координаты низа таблиц
-    const sTableY = erStore.tables.find(t => t.id === sTableId)?.y || 0;
-    const tTableY = erStore.tables.find(t => t.id === tTableId)?.y || 0;
-    const sBottom = sTableY + sHeight;
-    const tBottom = tTableY + tHeight;
-    
-    // Динамический отступ между линиями
-    const gap = index * 10; 
-
-    // Сценарий 1: ПРЯМАЯ СВЯЗЬ (Target значительно правее Source)
-    // Условие: tX правее sX хотя бы на 50px
-    if (tX > sX + 50) {
-        const midX = (sX + tX) / 2;
-        // Start -> Середина вправо -> Середина вертикально -> End
-        return `M ${sX} ${sY} L ${midX} ${sY} L ${midX} ${tY} L ${tX} ${tY}`;
-    }
-
-    // Сценарий 2: ОБРАТНАЯ СВЯЗЬ / ПЕТЛЯ / БЛИЗКАЯ СВЯЗЬ (Огибаем снизу)
-    else {
-        // Безопасная зона Y под самой нижней таблицей + базовый отступ 20px + динамический gap
-        const safeY = Math.max(sBottom, tBottom) + 20 + gap;
-        
-        // 1. Старт точно из порта
-        const p1 = { x: sX, y: sY };
-        // 2. Короткий "пенек" вправо на 20px
-        const p2 = { x: sX + 20, y: sY };
-        // 3. Вниз до безопасной зоны
-        const p3 = { x: sX + 20, y: safeY };
-        // 4. Влево до уровня входа Target (с отступом 20px)
-        const p4 = { x: tX - 20, y: safeY };
-        // 5. Вверх до уровня Target Y
-        const p5 = { x: tX - 20, y: tY };
-        // 6. Финиш точно во входной порт
-        const p6 = { x: tX, y: tY };
-
-        return `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y} L ${p5.x} ${p5.y} L ${p6.x} ${p6.y}`;
-    }
-};
-
-// Хелпер координат порта (остался прежним, он корректен)
+// --- Хелпер для получения координат порта ---
 const getPortPosition = (table: Table, colId: string, side: 'left' | 'right') => {
     const colIndex = table.columns.findIndex(c => c.id === colId);
     if (colIndex === -1) return { x: 0, y: 0 };
@@ -63,6 +12,53 @@ const getPortPosition = (table: Table, colId: string, side: 'left' | 'right') =>
     const y = table.y + erStore.HEADER_HEIGHT + (colIndex * erStore.ROW_HEIGHT) + (erStore.ROW_HEIGHT / 2);
     const x = side === 'left' ? table.x : table.x + erStore.TABLE_WIDTH;
     return { x, y };
+};
+
+// --- ALGORITHM: Smart Orthogonal Routing (TRUNK) ---
+// Рассчитывает путь ГЛАВНОЙ (толстой) линии между двумя "шинами" или точками
+const getTrunkPath = (
+    sX: number, sY: number, // Координаты начала магистрали (от шины источника)
+    tX: number, tY: number, // Координаты конца магистрали (у шины приемника)
+    sTableId: string, 
+    tTableId: string,
+    offsetIndex: number = 0
+) => {
+    const sHeight = erStore.getTableHeight(sTableId);
+    const tHeight = erStore.getTableHeight(tTableId);
+    
+    const sTableY = erStore.tables.find(t => t.id === sTableId)?.y || 0;
+    const tTableY = erStore.tables.find(t => t.id === tTableId)?.y || 0;
+    
+    // Низ таблиц для огибания
+    const sBottom = sTableY + sHeight;
+    const tBottom = tTableY + tHeight;
+    
+    const gap = offsetIndex * 15; // Отступ между параллельными магистралями
+
+    // 1. ПРЯМАЯ МАГИСТРАЛЬ (Target справа)
+    // Условие: tX правее sX хотя бы на 40px
+    if (tX > sX + 40) {
+        const midX = (sX + tX) / 2;
+        return `M ${sX} ${sY} L ${midX} ${sY} L ${midX} ${tY} L ${tX} ${tY}`;
+    }
+    
+    // 2. ОГИБАЮЩАЯ МАГИСТРАЛЬ (Target слева или близко)
+    else {
+        const safeY = Math.max(sBottom, tBottom) + 20 + gap;
+        
+        // P1: Start
+        // P2: Вниз до безопасной зоны
+        // P3: Влево до уровня Target
+        // P4: Вверх до уровня Target Y
+        // P5: Finish
+        
+        return `M ${sX} ${sY} 
+                L ${sX + 20} ${sY} 
+                L ${sX + 20} ${safeY} 
+                L ${tX - 20} ${safeY} 
+                L ${tX - 20} ${tY} 
+                L ${tX} ${tY}`;
+    }
 };
 
 export const ERDiagram = observer(() => {
@@ -102,34 +98,94 @@ export const ERDiagram = observer(() => {
                         <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
                             <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
                         </marker>
+                        {/* Маркер для начала ветвления (опционально, точка) */}
+                        <marker id="dot" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+                             <circle cx="3" cy="3" r="2" fill="#64748b" />
+                        </marker>
                     </defs>
                     
-                    {erStore.relations.map(rel => {
+                    {erStore.relations.map((rel, relIndex) => {
                         const sTable = erStore.tables.find(t => t.id === rel.sourceTableId);
                         const tTable = erStore.tables.find(t => t.id === rel.targetTableId);
                         if (!sTable || !tTable) return null;
 
-                        return rel.pairs.map((pair, idx) => {
+                        // 1. SINGLE CONNECTION (Простая линия)
+                        if (rel.pairs.length === 1) {
+                            const pair = rel.pairs[0];
                             const start = getPortPosition(sTable, pair.sourceColId, 'right');
                             const end = getPortPosition(tTable, pair.targetColId, 'left');
                             
-                            // Генерируем "умный" путь
-                            const pathData = getSmartEdgePath(
-                                start.x, start.y, 
-                                end.x, end.y, 
-                                sTable.id, tTable.id, 
-                                idx 
-                            );
-
+                            const d = getTrunkPath(start.x, start.y, end.x, end.y, sTable.id, tTable.id, relIndex);
+                            
                             return (
                                 <path 
-                                    key={`${rel.id}-${idx}`}
-                                    d={pathData}
-                                    className="er_line"
-                                    markerEnd="url(#arrow)"
+                                    key={rel.id} 
+                                    d={d} 
+                                    className="er_line" 
+                                    markerEnd="url(#arrow)" 
                                 />
                             );
-                        });
+                        }
+
+                        // 2. MULTI CONNECTION (Разветвление / Шина)
+                        else {
+                            // Собираем координаты всех точек
+                            const sourcePoints = rel.pairs.map(p => getPortPosition(sTable, p.sourceColId, 'right'));
+                            const targetPoints = rel.pairs.map(p => getPortPosition(tTable, p.targetColId, 'left'));
+
+                            // Находим границы для вертикальной "скобки"
+                            const sMinY = Math.min(...sourcePoints.map(p => p.y));
+                            const sMaxY = Math.max(...sourcePoints.map(p => p.y));
+                            const tMinY = Math.min(...targetPoints.map(p => p.y));
+                            const tMaxY = Math.max(...targetPoints.map(p => p.y));
+
+                            // Определяем X-координаты "шин" (отступ 20px от таблицы)
+                            const sBusX = sTable.x + erStore.TABLE_WIDTH + 20;
+                            const tBusX = tTable.x - 20;
+
+                            // Центры шин (откуда пойдет главная линия)
+                            const sCenterY = (sMinY + sMaxY) / 2;
+                            const tCenterY = (tMinY + tMaxY) / 2;
+
+                            // Генерируем пути
+                            let pathData = "";
+
+                            // А. Отростки от Source Port до Source Bus
+                            sourcePoints.forEach(p => {
+                                pathData += `M ${p.x} ${p.y} L ${sBusX} ${p.y} `;
+                            });
+
+                            // Б. Вертикальная линия Source Bus
+                            pathData += `M ${sBusX} ${sMinY} L ${sBusX} ${sMaxY} `;
+
+                            // В. Отростки от Target Bus до Target Port
+                            targetPoints.forEach(p => {
+                                pathData += `M ${tBusX} ${p.y} L ${p.x} ${p.y} `; // Здесь стрелка придет в порт
+                            });
+
+                            // Г. Вертикальная линия Target Bus
+                            pathData += `M ${tBusX} ${tMinY} L ${tBusX} ${tMaxY} `;
+
+                            // Д. ГЛАВНАЯ МАГИСТРАЛЬ (Trunk) между центрами шин
+                            // Используем sBusX и tBusX как точки старта/конца магистрали
+                            const trunkPath = getTrunkPath(sBusX, sCenterY, tBusX, tCenterY, sTable.id, tTable.id, relIndex);
+                            
+                            pathData += trunkPath;
+
+                            return (
+                                <g key={rel.id} className="er_relation_group">
+                                    <path 
+                                        d={pathData} 
+                                        className="er_line" 
+                                        markerEnd="url(#arrow)" // Стрелка будет только в самом конце путей (у портов)
+                                        fill="none"
+                                    />
+                                    {/* Можно добавить кружочек в центре разветвления */}
+                                    <circle cx={sBusX} cy={sCenterY} r="3" fill="#64748b" />
+                                    <circle cx={tBusX} cy={tCenterY} r="3" fill="#64748b" />
+                                </g>
+                            );
+                        }
                     })}
                 </svg>
 
