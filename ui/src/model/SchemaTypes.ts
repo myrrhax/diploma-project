@@ -5,19 +5,19 @@ export interface Schema {
     id: string,
     name: string,
     creator: User,
-    currentVersion: Version | null
+    currentVersion: Version
 }
 
 export interface Version {
     schemeId: string,
-    versionId: bigint,
-    tag: string | null,
+    versionId: number,
+    tag?: string,
     currentState: VersionState,
     isInitial: boolean,
     isWorkingCopy: boolean 
 };
 
 export interface VersionState {
-    tables: Map<string, Table>;
-    references: Map<ReferenceKey, Reference>;
+    tables: { key: string, table: Table }[];
+    references: { key: ReferenceKey, ref: Reference }[];
 }

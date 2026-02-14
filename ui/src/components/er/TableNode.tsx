@@ -1,7 +1,8 @@
-import React from 'react';
 import { observer } from 'mobx-react-lite';
-import { erStore, type Table } from '@/store/ERStore';
+import { erStore } from '@/store/ERStore';
 import './css/TableNode.css';
+import { type Table } from '@/model/SchemaElements';
+
 
 interface TableNodeProps {
     table: Table;
@@ -37,7 +38,7 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
 
             {/* Columns */}
             <div className="er_column_list">
-                {table.columns.map((col, index) => {
+                {table.columns?.map((col, index) => {
                     const srcIdx = erStore.selectedSources.findIndex(s => s.colId === col.id);
                     const tgtIdx = erStore.selectedTargets.findIndex(t => t.colId === col.id);
                     const isSource = srcIdx !== -1;
@@ -54,7 +55,7 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
                                 {isTarget && <span className="port_badge badge_left">{tgtIdx + 1}</span>}
                             </div>
 
-                            <span className="col_name">{col.name}</span>
+                            <span className="col_name">{col.column.name}</span>
                             
                             {/* Output Port (Right) */}
                             <div 

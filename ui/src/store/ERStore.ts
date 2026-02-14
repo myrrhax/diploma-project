@@ -1,26 +1,9 @@
 import { makeAutoObservable } from "mobx";
 import { v4 as uuidv4 } from "uuid";
-
-export interface Column {
-    id: string;
-    name: string;
-    type: string;
-}
-
-export interface Table {
-    id: string;
-    name: string;
-    x: number;
-    y: number;
-    columns: Column[];
-}
-
-export interface Relation {
-    id: string;
-    sourceTableId: string;
-    targetTableId: string;
-    pairs: { sourceColId: string; targetColId: string }[];
-}
+import { type ReferenceKey } from "@/model/SchemaElements";
+import type { Schema, VersionState } from "@/model/SchemaTypes";
+import { authStore } from "./AuthStore";
+import { type Table } from "@/model/SchemaElements";
 
 interface SelectedPort {
     tableId: string;
@@ -33,8 +16,8 @@ class ERStore {
     readonly ROW_HEIGHT = 32;
     readonly FOOTER_HEIGHT = 32;
 
-    tables: Table[] = [];
-    relations: Relation[] = [];
+    schema: Schema;
+    state: VersionState;
     
     scale = 1;
     offsetX = 0;
@@ -42,13 +25,31 @@ class ERStore {
     
     draggingTableId: string | null = null;
     
-    selectedSources: SelectedPort[] = []; // Очередь выходов (Right)
-    selectedTargets: SelectedPort[] = []; // Очередь входов (Left)
+    selectedSources: SelectedPort[] = [];
+    selectedTargets: SelectedPort[] = [];
 
     contextMenu = { visible: false, x: 0, y: 0, screenX: 0, screenY: 0 };
 
     constructor() {
         makeAutoObservable(this);
+
+        // ToDo заменить на вызов API
+        this.schema = {
+			id: uuidv4().toString(),
+			name: 'Схема v1',
+			creator: authStore.user!!,
+			currentVersion: {
+				schemeId: uuidv4().toString(),
+				versionId: 1,
+				isInitial: true,
+				isWorkingCopy: true,
+				currentState: {
+					tables: [],
+					references: []
+				}
+			}
+        }
+		this.state = this.schema.currentVersion.currentState;
     }
 
     setPan(dx: number, dy: number) {
@@ -59,51 +60,58 @@ class ERStore {
     addTable() {
         const worldX = (this.contextMenu.screenX - this.offsetX) / this.scale;
         const worldY = (this.contextMenu.screenY - this.offsetY) / this.scale;
+        const colId = uuidv4().toString();
 
-        this.tables.push({
-            id: uuidv4(),
-            name: `Table ${this.tables.length + 1}`,
+        // ToDo поменять на вызов API
+		const id = uuidv4().toString();
+        this.state.tables.push({key: id, table: {
+            id: id,
+            name: `Table ${this.state.tables.length + 1}`,
             x: worldX,
             y: worldY,
-            columns: [{ id: uuidv4(), name: 'id', type: 'int' }]
-        });
+            columns: [{ id: colId, column: { id: colId, name: 'id', type: 'INT' } }],
+        }});
         this.closeContextMenu();
     }
 
     updateTableName(id: string, newName: string) {
-        const t = this.tables.find(t => t.id === id);
-        if (t) t.name = newName;
+        const t = this.state.tables.find(t => t.key === id);
+        if (t) t.table.name = newName;
     }
 
     moveTable(id: string, dx: number, dy: number) {
-        const table = this.tables.find(t => t.id === id);
+        const table = this.state.tables.find(t => t.key === id);
         if (table) {
-            table.x += dx / this.scale;
-            table.y += dy / this.scale;
+            table.table.x += dx / this.scale;
+            table.table.y += dy / this.scale;
         }
     }
 
     addColumn(tableId: string) {
-        const table = this.tables.find(t => t.id === tableId);
+        const table = this.state.tables.find(t => t.key === tableId);
         if (table) {
-            table.columns.push({
+            const id = uuidv4().toString();
+            table.table.columns?.push({id: id, column: {
                 id: uuidv4(),
                 name: `field_${Math.floor(Math.random() * 1000)}`,
-                type: 'varchar'
-            });
+                type: 'VARCHAR'
+            }});
         }
     }
 
+	getTable(tableId: string): Table {
+		return this.state.tables.find(t => t.key === tableId)!!.table;
+	}
+
     getTableHeight(tableId: string): number {
-        const table = this.tables.find(t => t.id === tableId);
+        const table = this.state.tables.find(t => t.key === tableId);
         if (!table) return 0;
-        return this.HEADER_HEIGHT + (table.columns.length * this.ROW_HEIGHT) + this.FOOTER_HEIGHT;
+        return this.HEADER_HEIGHT + ((table.table.columns?.length ?? 0) * this.ROW_HEIGHT) + this.FOOTER_HEIGHT;
     }
 
     // --- ЛОГИКА СОЕДИНЕНИЯ ---
     handlePortClick(side: 'left' | 'right', tableId: string, colId: string) {
         if (side === 'right') {
-            // Клик по ВЫХОДУ (Source)
             
             // Если начали выбирать из новой таблицы, сбрасываем старый выбор
             if (this.selectedSources.length > 0 && this.selectedSources[0].tableId !== tableId) {
@@ -122,17 +130,9 @@ class ERStore {
                 this.selectedSources.push({ tableId, colId });
             }
         } else {
-            // Клик по ВХОДУ (Target)
             if (this.selectedSources.length === 0) return; 
-
-            // Находим какой по счету это будет таргет (0-й для 0-го сорса и т.д.)
-            const currentIndex = this.selectedTargets.length;
-            
-            // Если мы уже выбрали все таргеты для текущих сорсов, ничего не делаем
+            const currentIndex = this.selectedTargets.length;            
             if (currentIndex >= this.selectedSources.length) return;
-
-            // ВАЛИДАЦИЯ:
-            // 1. Берем сорс, который соответствует текущей очереди
             const matchingSource = this.selectedSources[currentIndex];
             
             // 2. Запрещаем связь колонки саму на себя
@@ -140,11 +140,11 @@ class ERStore {
                 alert("Нельзя создать связь колонки на саму себя!");
                 return;
             }
-
-            // Добавляем в очередь
+			if (this.selectedTargets.some(t => t.colId === colId)) {
+				return;
+			}
             this.selectedTargets.push({ tableId, colId });
 
-            // Если заполнили все пары -> создаем связь
             if (this.selectedTargets.length === this.selectedSources.length) {
                 this.createMultiRelation();
             }
@@ -153,31 +153,24 @@ class ERStore {
 
     createMultiRelation() {
         const sourceTableId = this.selectedSources[0].tableId;
-        // Таргет берем из первого выбора, но учитываем, что мультисвязь должна идти в одну таблицу
-        // В текущей реализации предполагаем, что пользователь кликает в одну таблицу-таргет
         const targetTableId = this.selectedTargets[0].tableId;
 
-        const newPairs = this.selectedSources.map((src, index) => ({
-            sourceColId: src.colId,
-            targetColId: this.selectedTargets[index].colId
-        }));
+        const fromColumns = this.selectedSources.map((src, _) => src.colId);
+        const toColumns = this.selectedTargets.map((src, _) => src.colId);
+        const key: ReferenceKey = { 
+			fromTableId: sourceTableId,
+			toTableId: targetTableId,
+			fromColumns: fromColumns,
+			toColumns: toColumns
+        };
 
-        const existingRel = this.relations.find(r => 
-            r.sourceTableId === sourceTableId && r.targetTableId === targetTableId
-        );
+        const existingRel = this.state.references.find(r => r.key === key);
 
-        if (existingRel) {
-            newPairs.forEach(pair => {
-                const isDup = existingRel.pairs.some(p => p.sourceColId === pair.sourceColId && p.targetColId === pair.targetColId);
-                if (!isDup) existingRel.pairs.push(pair);
-            });
-        } else {
-            this.relations.push({
-                id: uuidv4(),
-                sourceTableId,
-                targetTableId,
-                pairs: newPairs
-            });
+        if (!existingRel) {
+            this.state.references.push({key: key, ref: {
+                key: key,
+				type: 'MANY_TO_ONE'
+            }});
         }
 
         this.selectedSources = [];

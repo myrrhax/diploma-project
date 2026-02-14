@@ -1,40 +1,41 @@
 export interface Table {
     id: string;
     name: string;
-    description: string | null;
+    description?: string;
     x: number;
     y: number;
-    primaryKeyParts: Column[];
-    columns: Map<string, Column>;
-    indexes: Map<string, Index>;
+    primaryKeyParts?: Column[];
+    columns?: { id: string, column: Column }[];
+    indexes?: { id: string, index: Index }[];
+    references?: { key: ReferenceKey, ref: Reference }[];
 }
 
 export interface Column {
     id: string;
     name: string;
-    description: string | null;
+    description?: string;
     type: ColumnType;
-    defaultValue: string | null;
-    precision: number | null;
-    scale: number | null;
-    length: number | null;
-    constraints: ConstraintType[];
-    additions: AdditionType[];
+    defaultValue?: string;
+    precision?: number;
+    scale?: number;
+    length?: number;
+    constraints?: ConstraintType[];
+    additions?: AdditionType[];
 }
 
 export interface Index {
     id: string;
     columnIds: string[];
     indexType: IndexType;
-    indexName: string | null;
+    indexName?: string;
     isUnique: boolean;
 }
 
 export interface Reference {
     key: ReferenceKey;
     type: ReferenceType;
-    onDeleteAction: OnDeleteAction;
-    onUpdateAction: OnUpdateAction;
+    onDeleteAction?: OnDeleteAction;
+    onUpdateAction?: OnUpdateAction;
 }
 
 export interface ReferenceKey {
@@ -42,7 +43,7 @@ export interface ReferenceKey {
     fromColumns: string[];
     toTableId: string;
     toColumns: string[];
-    name: string | null;
+    name?: string;
 }
 
 export type ReferenceType = 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_ONE' | 'MANY_TO_MANY';
@@ -62,3 +63,7 @@ export type ConstraintType = 'NOT_NULL' | 'UNIQUE';
 export type AdditionType = 'AUTO_INCREMENT';
 
 export type IndexType = 'B_TREE' | 'HASH';
+
+export const refKeyToString = (key: ReferenceKey) => {
+    return `${key.fromTableId}:(${key.fromColumns.join(',')})->${key.toTableId}:(${key.toColumns.join(',')})`
+}
