@@ -19,31 +19,31 @@ export interface Relation {
     id: string;
     sourceTableId: string;
     targetTableId: string;
-    // Храним пары ID колонок: [ {sourceColId, targetColId}, ... ]
     pairs: { sourceColId: string; targetColId: string }[];
 }
 
-// Тип для выбранного порта
 interface SelectedPort {
     tableId: string;
     colId: string;
 }
 
 class ERStore {
+    readonly TABLE_WIDTH = 220;
+    readonly HEADER_HEIGHT = 42; // Header + Separator
+    readonly ROW_HEIGHT = 32;
+    readonly FOOTER_HEIGHT = 32;
+
     tables: Table[] = [];
     relations: Relation[] = [];
     
-    // Canvas State
     scale = 1;
     offsetX = 0;
     offsetY = 0;
     
-    // Logic State
     draggingTableId: string | null = null;
     
-    // Multi-select connection logic
-    selectedSources: SelectedPort[] = []; // Правые порты (Outputs)
-    selectedTargets: SelectedPort[] = []; // Левые порты (Inputs)
+    selectedSources: SelectedPort[] = []; // Очередь выходов (Right)
+    selectedTargets: SelectedPort[] = []; // Очередь входов (Left)
 
     contextMenu = { visible: false, x: 0, y: 0, screenX: 0, screenY: 0 };
 
@@ -51,14 +51,11 @@ class ERStore {
         makeAutoObservable(this);
     }
 
-    // --- CANVAS ACTIONS ---
     setPan(dx: number, dy: number) {
         this.offsetX += dx;
         this.offsetY += dy;
     }
 
-    // --- TABLE ACTIONS ---
-    // Создаем таблицу точно в месте клика (screenX/Y берем из saved context menu)
     addTable() {
         const worldX = (this.contextMenu.screenX - this.offsetX) / this.scale;
         const worldY = (this.contextMenu.screenY - this.offsetY) / this.scale;
@@ -68,9 +65,7 @@ class ERStore {
             name: `Table ${this.tables.length + 1}`,
             x: worldX,
             y: worldY,
-            columns: [
-                { id: uuidv4(), name: 'id', type: 'int' }
-            ]
+            columns: [{ id: uuidv4(), name: 'id', type: 'int' }]
         });
         this.closeContextMenu();
     }
@@ -88,50 +83,68 @@ class ERStore {
         }
     }
 
-    // --- COLUMN ACTIONS ---
     addColumn(tableId: string) {
         const table = this.tables.find(t => t.id === tableId);
         if (table) {
-            // Случайное имя колонки
-            const randomName = `field_${Math.floor(Math.random() * 1000)}`;
             table.columns.push({
                 id: uuidv4(),
-                name: randomName,
+                name: `field_${Math.floor(Math.random() * 1000)}`,
                 type: 'varchar'
             });
         }
     }
 
-    // --- CONNECTION LOGIC (CLICK BASED) ---
+    getTableHeight(tableId: string): number {
+        const table = this.tables.find(t => t.id === tableId);
+        if (!table) return 0;
+        return this.HEADER_HEIGHT + (table.columns.length * this.ROW_HEIGHT) + this.FOOTER_HEIGHT;
+    }
+
+    // --- ЛОГИКА СОЕДИНЕНИЯ ---
     handlePortClick(side: 'left' | 'right', tableId: string, colId: string) {
         if (side === 'right') {
-            // 1. Клик по ВЫХОДУ (Source)
+            // Клик по ВЫХОДУ (Source)
             
-            // Если мы уже выбрали сорс из ДРУГОЙ таблицы, сбрасываем (нельзя вести из двух таблиц одновременно)
+            // Если начали выбирать из новой таблицы, сбрасываем старый выбор
             if (this.selectedSources.length > 0 && this.selectedSources[0].tableId !== tableId) {
                 this.selectedSources = [];
                 this.selectedTargets = [];
             }
 
-            // Тоггл выбора (если кликнули повторно - убираем)
             const existsIdx = this.selectedSources.findIndex(p => p.colId === colId);
             if (existsIdx !== -1) {
                 this.selectedSources.splice(existsIdx, 1);
+                // Если убрали сорс, нужно убрать и соответствующий таргет, если он был выбран
+                if (this.selectedTargets.length > existsIdx) {
+                    this.selectedTargets.splice(existsIdx, 1);
+                }
             } else {
                 this.selectedSources.push({ tableId, colId });
             }
-
-            // При изменении сорсов, таргеты сбрасываем, так как валидация очереди нарушается
-            this.selectedTargets = [];
-
         } else {
-            // 2. Клик по ВХОДУ (Target)
-            if (this.selectedSources.length === 0) return; // Нельзя выбрать таргет без сорса
-            if (this.selectedSources[0].tableId === tableId) return; // Нельзя связывать таблицу саму с собой (пока)
+            // Клик по ВХОДУ (Target)
+            if (this.selectedSources.length === 0) return; 
 
+            // Находим какой по счету это будет таргет (0-й для 0-го сорса и т.д.)
+            const currentIndex = this.selectedTargets.length;
+            
+            // Если мы уже выбрали все таргеты для текущих сорсов, ничего не делаем
+            if (currentIndex >= this.selectedSources.length) return;
+
+            // ВАЛИДАЦИЯ:
+            // 1. Берем сорс, который соответствует текущей очереди
+            const matchingSource = this.selectedSources[currentIndex];
+            
+            // 2. Запрещаем связь колонки саму на себя
+            if (matchingSource.colId === colId) {
+                alert("Нельзя создать связь колонки на саму себя!");
+                return;
+            }
+
+            // Добавляем в очередь
             this.selectedTargets.push({ tableId, colId });
 
-            // 3. ПРОВЕРКА: Если число таргетов совпало с числом сорсов -> СОЗДАЕМ СВЯЗЬ
+            // Если заполнили все пары -> создаем связь
             if (this.selectedTargets.length === this.selectedSources.length) {
                 this.createMultiRelation();
             }
@@ -140,27 +153,25 @@ class ERStore {
 
     createMultiRelation() {
         const sourceTableId = this.selectedSources[0].tableId;
+        // Таргет берем из первого выбора, но учитываем, что мультисвязь должна идти в одну таблицу
+        // В текущей реализации предполагаем, что пользователь кликает в одну таблицу-таргет
         const targetTableId = this.selectedTargets[0].tableId;
 
-        // Формируем пары по очередности выбора (1-й сорс к 1-му таргету, 2-й ко 2-му)
         const newPairs = this.selectedSources.map((src, index) => ({
             sourceColId: src.colId,
             targetColId: this.selectedTargets[index].colId
         }));
 
-        // Проверяем, есть ли уже связь между этими таблицами
         const existingRel = this.relations.find(r => 
             r.sourceTableId === sourceTableId && r.targetTableId === targetTableId
         );
 
         if (existingRel) {
-            // Добавляем новые пары в существующую связь, избегая дубликатов
             newPairs.forEach(pair => {
                 const isDup = existingRel.pairs.some(p => p.sourceColId === pair.sourceColId && p.targetColId === pair.targetColId);
                 if (!isDup) existingRel.pairs.push(pair);
             });
         } else {
-            // Создаем новую связь
             this.relations.push({
                 id: uuidv4(),
                 sourceTableId,
@@ -169,20 +180,12 @@ class ERStore {
             });
         }
 
-        // Сброс
         this.selectedSources = [];
         this.selectedTargets = [];
     }
 
-    // --- CONTEXT MENU ---
     openContextMenu(screenX: number, screenY: number, relativeX: number, relativeY: number) {
-        this.contextMenu = { 
-            visible: true, 
-            screenX: screenX, // Абсолютные координаты курсора для логики
-            screenY: screenY, 
-            x: relativeX,     // Координаты для отрисовки меню
-            y: relativeY 
-        };
+        this.contextMenu = { visible: true, screenX, screenY, x: relativeX, y: relativeY };
     }
     closeContextMenu() { this.contextMenu.visible = false; }
 }

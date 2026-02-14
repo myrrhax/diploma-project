@@ -1,12 +1,23 @@
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { erStore, type Table } from '@/store/ERStore';
 import './css/TableNode.css';
 
-export const TableNode = observer(({ table }: { table: Table }) => {
+interface TableNodeProps {
+    table: Table;
+}
+
+export const TableNode = observer(({ table }: TableNodeProps) => {
     return (
-        <div className="er_table_card" style={{ left: table.x, top: table.y }}>
-            
-            {/* 1. HEADER (Draggable, Editable Name) */}
+        <div 
+            className="er_table_card" 
+            style={{ 
+                left: table.x, 
+                top: table.y,
+                width: erStore.TABLE_WIDTH // Используем константу из стора
+            }}
+        >
+            {/* Header */}
             <div 
                 className="er_table_header"
                 onMouseDown={(e) => {
@@ -18,48 +29,49 @@ export const TableNode = observer(({ table }: { table: Table }) => {
                     className="er_table_name_input"
                     value={table.name}
                     onChange={(e) => erStore.updateTableName(table.id, e.target.value)}
-                    onMouseDown={(e) => e.stopPropagation()} // Чтобы текст выделялся, а не тащился
+                    onMouseDown={(e) => e.stopPropagation()} 
                 />
             </div>
 
-            {/* Separator Line */}
             <div className="er_table_separator" />
 
-            {/* 2. BODY (Columns + Ports) */}
+            {/* Columns */}
             <div className="er_column_list">
-                {table.columns.map(col => {
-                    // Проверяем, выбран ли порт
-                    const isSourceSelected = erStore.selectedSources.some(s => s.colId === col.id);
-                    // Вычисляем индекс выбора для отображения (1, 2, 3...)
-                    const selectionIndex = erStore.selectedSources.findIndex(s => s.colId === col.id) + 1;
+                {table.columns.map((col, index) => {
+                    const srcIdx = erStore.selectedSources.findIndex(s => s.colId === col.id);
+                    const tgtIdx = erStore.selectedTargets.findIndex(t => t.colId === col.id);
+                    const isSource = srcIdx !== -1;
+                    const isTarget = tgtIdx !== -1;
 
                     return (
                         <div key={col.id} className="er_column_row">
-                            {/* LEFT PORT (Input) */}
+                            {/* Input Port (Left) */}
                             <div 
-                                className="er_port port_left"
+                                className={`er_port port_left ${isTarget ? 'port_target_active' : ''}`}
                                 onClick={() => erStore.handlePortClick('left', table.id, col.id)}
                                 title="Input (Target)"
-                            />
+                            >
+                                {isTarget && <span className="port_badge badge_left">{tgtIdx + 1}</span>}
+                            </div>
 
                             <span className="col_name">{col.name}</span>
                             
-                            {/* RIGHT PORT (Output) */}
+                            {/* Output Port (Right) */}
                             <div 
-                                className={`er_port port_right ${isSourceSelected ? 'port_selected' : ''}`}
+                                className={`er_port port_right ${isSource ? 'port_source_active' : ''}`}
                                 onClick={() => erStore.handlePortClick('right', table.id, col.id)}
                                 title="Output (Source)"
                             >
-                                {isSourceSelected && <span className="port_badge">{selectionIndex}</span>}
+                                {isSource && <span className="port_badge badge_right">{srcIdx + 1}</span>}
                             </div>
                         </div>
                     );
                 })}
             </div>
 
-            {/* Footer Button */}
+            {/* Footer */}
             <button className="er_add_col_btn" onClick={() => erStore.addColumn(table.id)}>
-                + Добавить колонку
+                + Add
             </button>
         </div>
     );
