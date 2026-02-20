@@ -1,6 +1,7 @@
 package com.github.myrrhax.diploma_project.command.table;
 
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
+import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import jakarta.validation.constraints.NotBlank;
@@ -19,17 +20,21 @@ public class AddTableCommand extends MetadataCommand {
     private Double yCoord;
 
     @Override
-    public void execute(SchemaStateMetadata metadata) {
+    public SchemaDifference execute(SchemaStateMetadata metadata) {
         if (metadata.getTable(tableName).isPresent()) {
             throw new RuntimeException("Table already exists");
         }
 
-        metadata.addTable(
-                TableMetadata.builder()
-                        .name(tableName)
-                        .xCoord(xCoord)
-                        .yCoord(yCoord)
-                        .build()
-        );
+        TableMetadata table = TableMetadata.builder()
+                .name(tableName)
+                .xCoord(xCoord)
+                .yCoord(yCoord)
+                .build();
+
+        metadata.addTable(table);
+        SchemaDifference diff = new SchemaDifference();
+        diff.upsertTable(table);
+
+        return diff;
     }
 }

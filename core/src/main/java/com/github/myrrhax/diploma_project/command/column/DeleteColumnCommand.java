@@ -9,7 +9,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -27,7 +26,12 @@ public class DeleteColumnCommand extends MetadataCommand {
         ColumnMetadata column = table.getColumn(columnId).orElseThrow();
 
         SchemaDifference diff = new SchemaDifference();
-        table.removeColumn(column, metadata, diff);
+        diff.applyDifference(table.removeColumn(column, metadata));
+        // Каскадное удаление связей
+        var refDiff = metadata.deleteHangingReferences(column, true);
+        diff.applyDifference(refDiff);
+
+        // ToDo каскадно удалять индексы
 
         return diff;
     }

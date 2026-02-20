@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +21,9 @@ public class ReferenceMetadata {
     private OnDeleteAction onDeleteAction;
     private OnUpdateAction onUpdateAction;
     private String name;
+
+    @JsonIgnore
+    private SchemaStateMetadata schemaState;
 
     public enum ReferenceType {
         ONE_TO_ONE,

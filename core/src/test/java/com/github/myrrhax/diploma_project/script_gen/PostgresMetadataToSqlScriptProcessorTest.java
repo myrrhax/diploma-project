@@ -103,7 +103,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .name("id")
                 .type(ColumnMetadata.ColumnType.BIGINT)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
-                .additions(List.of(ColumnMetadata.AdditionalComponent.AUTO_INCREMENT))
+                .autoIncrement(true)
                 .build();
         ColumnMetadata cmUsername = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
@@ -144,7 +144,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .name("id")
                 .type(ColumnMetadata.ColumnType.BIGINT)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
-                .additions(List.of(ColumnMetadata.AdditionalComponent.AUTO_INCREMENT))
+                .autoIncrement(true)
                 .build();
         ColumnMetadata cmAirplaneCode = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
@@ -284,7 +284,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .name("id")
                 .type(type);
         if (autoIncrementTypes.contains(type)) {
-            builder.additions(List.of(ColumnMetadata.AdditionalComponent.AUTO_INCREMENT));
+            builder.autoIncrement(true);
         }
         return builder.build();
     }

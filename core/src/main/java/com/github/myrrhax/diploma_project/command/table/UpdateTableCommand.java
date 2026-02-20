@@ -1,7 +1,7 @@
 package com.github.myrrhax.diploma_project.command.table;
 
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
-import com.github.myrrhax.diploma_project.model.ColumnMetadata;
+import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
@@ -12,7 +12,6 @@ import lombok.Setter;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 @Getter
@@ -27,32 +26,20 @@ public class UpdateTableCommand extends MetadataCommand {
     private Double yCoord;
 
     @Override
-    public void execute(SchemaStateMetadata metadata) {
+    public SchemaDifference execute(SchemaStateMetadata metadata) {
         TableMetadata table = metadata.getTable(tableId).orElse(null);
         Objects.requireNonNull(table);
         TableMetadata clone = table.clone();
 
-        if (xCoord != null) {
-            clone.setXCoord(xCoord);
-        }
-
-        if (yCoord != null) {
-            clone.setYCoord(yCoord);
-        }
-
-        if (newTableName != null && !newTableName.isBlank() && !table.getName().equals(newTableName)) {
-            if (metadata.getTable(newTableName).isPresent()) {
-                throw new RuntimeException("Table with name " + newTableName + " already exists");
-            }
-            clone.setName(newTableName);
-        }
-        if (newDescription != null && !newDescription.isBlank()) {
-            clone.setDescription(newDescription);
-        }
+        clone.setXCoord(xCoord);
+        clone.setYCoord(yCoord);
+        clone.setName(newTableName);
+        clone.setDescription(newDescription);
 
         List<UUID> oldPk = table.getPrimaryKeyParts()
                 .stream()
                 .toList();
+        SchemaDifference diff = new SchemaDifference();
 
         if (newPrimaryKeyParts != null
                 && !newPrimaryKeyParts.isEmpty()
@@ -65,13 +52,16 @@ public class UpdateTableCommand extends MetadataCommand {
                 for (ReferenceMetadata.ReferenceKey ref : metadata.getReferences().keySet()) {
                     ReferenceMetadata.ReferenceType type = metadata.getReferences().get(ref).getType();
                     if (!MetadataTypeUtils.isRefValid(metadata, ref, type)) {
-                        throw new RuntimeException("Invalid reference after primary key update");
+                        diff.removeReference(ref);
+                        metadata.removeReference(ref);
                     }
                 }
             }
             clone.setPrimaryKeyParts(newPrimaryKeyParts.stream().toList());
         }
-
         metadata.updateTable(clone);
+        diff.upsertTable(clone);
+
+        return diff;
     }
 }

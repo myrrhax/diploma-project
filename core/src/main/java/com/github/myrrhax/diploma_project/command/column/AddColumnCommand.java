@@ -49,22 +49,10 @@ public class AddColumnCommand extends MetadataCommand {
                 .build();
 
         if (length == null && (type == ColumnMetadata.ColumnType.CHAR || type == ColumnMetadata.ColumnType.NUMERIC)) {
-                throw new RuntimeException("Char or numeric columns must have max length");
+            throw new RuntimeException("Char or numeric columns must have max length");
         }
-
-        if (length != null) {
-            if (!MetadataTypeUtils.isCompactibleLengthLimitedType(column, length, defaultValue)) {
-                throw new RuntimeException("Incompatible length value");
-            }
-            column.setLength(length);
-        }
-
-        if (defaultValue != null) {
-            if (!MetadataTypeUtils.isCompatibleDefaultValue(defaultValue, column, length)) {
-                throw new RuntimeException("Incompatible default value");
-            }
-            column.setDefaultValue(defaultValue);
-        }
+        column.setLength(length);
+        column.setDefaultValue(defaultValue);
 
         if (type == ColumnMetadata.ColumnType.DECIMAL) {
             if (precision == null || scale == null) {

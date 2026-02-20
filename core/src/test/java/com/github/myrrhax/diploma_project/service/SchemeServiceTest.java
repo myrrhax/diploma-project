@@ -396,8 +396,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(usersTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
-                List.of(ColumnMetadata.AdditionalComponent.AUTO_INCREMENT));
+                Collections.emptyList());
         UpdateTableCommand cmd = new UpdateTableCommand();
         cmd.setSchemeId(uuid);
         cmd.setTableId(usersTable.getId());
@@ -410,8 +409,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(profileTable.getId(),
                 "user_id",
                 ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.NOT_NULL),
-                Collections.emptyList());
+                List.of(ColumnMetadata.ConstraintType.NOT_NULL));
         ColumnMetadata userIdColumn = profileTable.getColumn("user_id").orElseThrow();
 
         AddReferenceCommand addRefCmd = new AddReferenceCommand();
@@ -441,8 +439,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(usersTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
-                List.of(ColumnMetadata.AdditionalComponent.AUTO_INCREMENT));
+                Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
 
         performAddTable(USER_PROFILE_TABLE);
@@ -450,8 +447,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(profileTable.getId(),
                 "user_id",
                 ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.NOT_NULL),
-                Collections.emptyList());
+                List.of(ColumnMetadata.ConstraintType.NOT_NULL));
         ColumnMetadata userIdColumn = profileTable.getColumn("user_id").orElseThrow();
         AddReferenceCommand addRefCmd = new AddReferenceCommand();
         addRefCmd.setSchemeId(uuid);
@@ -476,8 +472,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(usersTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
-                List.of(ColumnMetadata.AdditionalComponent.AUTO_INCREMENT));
+                Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
         setPk(uuid, usersTable, List.of(idColumn));
 
@@ -486,14 +481,12 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(courseTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.NOT_NULL),
-                Collections.emptyList());
+                List.of(ColumnMetadata.ConstraintType.NOT_NULL));
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
         performAddColumn(courseTable.getId(),
                 "author_id",
                 ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.NOT_NULL),
-                Collections.emptyList());
+                List.of(ColumnMetadata.ConstraintType.NOT_NULL));
         ColumnMetadata authorIdCol = courseTable.getColumn("author_id").orElseThrow();
 
         ReferenceMetadata.ReferenceKey key = ReferenceMetadata.ReferenceKey.builder()
@@ -526,8 +519,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(usersTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
-                List.of(ColumnMetadata.AdditionalComponent.AUTO_INCREMENT));
+                Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
         setPk(uuid, usersTable, List.of(idColumn));
 
@@ -536,14 +528,12 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(courseTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.NOT_NULL),
-                Collections.emptyList());
+                List.of(ColumnMetadata.ConstraintType.NOT_NULL));
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
         performAddColumn(courseTable.getId(),
                 "author_id",
                 ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.NOT_NULL),
-                Collections.emptyList());
+                List.of(ColumnMetadata.ConstraintType.NOT_NULL));
         ColumnMetadata authorIdCol = courseTable.getColumn("author_id").orElseThrow();
 
         ReferenceMetadata.ReferenceKey key = ReferenceMetadata.ReferenceKey.builder()
@@ -576,8 +566,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(usersTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
-                List.of(ColumnMetadata.AdditionalComponent.AUTO_INCREMENT));
+                Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
         setPk(uuid, usersTable, List.of(idColumn));
 
@@ -586,8 +575,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(courseTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.NOT_NULL),
-                Collections.emptyList());
+                List.of(ColumnMetadata.ConstraintType.NOT_NULL));
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
         setPk(uuid, courseTable, List.of(courseIdCol));
 
@@ -622,8 +610,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(usersTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.UNIQUE),
-                Collections.emptyList());
+                List.of(ColumnMetadata.ConstraintType.UNIQUE));
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
 
         performAddTable(COURSE_TABLE);
@@ -631,7 +618,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(courseTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
                 Collections.emptyList());
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
 
@@ -659,12 +645,10 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(usersTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.UNIQUE),
-                Collections.emptyList());
+                List.of(ColumnMetadata.ConstraintType.UNIQUE));
         performAddColumn(usersTable.getId(),
                 "sec_id",
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
                 Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata secIdColumn = usersTable.getColumn("sec_id").orElseThrow();
@@ -675,12 +659,10 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(courseTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
                 Collections.emptyList());
         performAddColumn(courseTable.getId(),
                 "sec_id",
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
                 Collections.emptyList());
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata courseSecIdCol = courseTable.getColumn("sec_id").orElseThrow();
@@ -710,12 +692,10 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(usersTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.UNIQUE),
-                Collections.emptyList());
+                List.of(ColumnMetadata.ConstraintType.UNIQUE));
         performAddColumn(usersTable.getId(),
                 "sec_id",
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
                 Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata secIdColumn = usersTable.getColumn("sec_id").orElseThrow();
@@ -726,7 +706,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(courseTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
                 Collections.emptyList());
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
 
@@ -752,12 +731,10 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(usersTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.UNIQUE),
-                Collections.emptyList());
+                List.of(ColumnMetadata.ConstraintType.UNIQUE));
         performAddColumn(usersTable.getId(),
                 "sec_id",
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
                 Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata secIdColumn = usersTable.getColumn("sec_id").orElseThrow();
@@ -768,12 +745,10 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(courseTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
                 Collections.emptyList());
         performAddColumn(courseTable.getId(),
                 "sec_id",
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
                 Collections.emptyList());
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata courseSecIdCol = courseTable.getColumn("sec_id").orElseThrow();
@@ -801,12 +776,10 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(usersTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.UNIQUE),
-                Collections.emptyList());
+                List.of(ColumnMetadata.ConstraintType.UNIQUE));
         performAddColumn(usersTable.getId(),
                 "sec_id",
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
                 Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata secIdColumn = usersTable.getColumn("sec_id").orElseThrow();
@@ -817,12 +790,10 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddColumn(courseTable.getId(),
                 ID_COLUMN,
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
                 Collections.emptyList());
         performAddColumn(courseTable.getId(),
                 "sec_id",
                 ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList(),
                 Collections.emptyList());
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata courseSecIdCol = courseTable.getColumn("sec_id").orElseThrow();
@@ -861,8 +832,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     private void performAddColumn(UUID tableId,
                                   String name,
                                   ColumnMetadata.ColumnType type,
-                                  List<ColumnMetadata.ConstraintType> constraints,
-                                  List<ColumnMetadata.AdditionalComponent> additions) {
+                                  List<ColumnMetadata.ConstraintType> constraints) {
         AddColumnCommand cmd = new AddColumnCommand();
         cmd.setSchemeId(uuid);
         cmd.setTableId(tableId);

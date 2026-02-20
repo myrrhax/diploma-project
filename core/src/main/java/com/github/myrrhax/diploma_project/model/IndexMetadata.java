@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,15 +20,18 @@ import java.util.UUID;
 public class IndexMetadata {
     @Builder.Default
     private UUID id = UUID.randomUUID();
-
     private UUID tableId;
     @Builder.Default
     private List<UUID> columnIds = new ArrayList<>();
     @Builder.Default
     private IndexType indexType = IndexType.B_TREE;
     private String indexName;
-
     private boolean isUnique;
+
+    @JsonIgnore
+    private SchemaStateMetadata schemaState;
+    @JsonIgnore
+    private TableMetadata table;
 
     public enum IndexType {
         B_TREE,

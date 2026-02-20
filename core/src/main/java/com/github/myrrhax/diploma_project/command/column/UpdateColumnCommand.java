@@ -1,6 +1,7 @@
 package com.github.myrrhax.diploma_project.command.column;
 
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
+import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
@@ -31,55 +32,43 @@ public class UpdateColumnCommand extends MetadataCommand {
     @Positive
     private Integer newLength;
     private List<ColumnMetadata.ConstraintType> constraints;
-    private List<ColumnMetadata.AdditionalComponent> additionalComponents;
+    private Boolean autoIncrement;
 
     @Override
-    public void execute(SchemaStateMetadata metadata) {
-        TableMetadata table = metadata.getTable(tableId).orElse(null);
-        Objects.requireNonNull(table);
-
-        ColumnMetadata column = table.getColumn(columnId).orElse(null);
-        Objects.requireNonNull(column);
-
+    public SchemaDifference execute(SchemaStateMetadata metadata) {
+        TableMetadata table = metadata.getTable(tableId).orElseThrow();
+        ColumnMetadata column = table.getColumn(columnId).orElseThrow();
         ColumnMetadata clone = column.clone();
 
-        if (newColumnName != null && !newColumnName.isBlank()) {
-            if (table.getColumn(newColumnName).isPresent()) {
-                throw new RuntimeException("Column with name " + newColumnName + " already exists");
-            }
-            clone.setName(newColumnName);
-        }
-        if (newDescription != null && !newDescription.isBlank()) {
-            clone.setDescription(newDescription);
-        }
-        if (newLength != null && MetadataTypeUtils.isCompactibleLengthLimitedType(clone, newLength, newDefaultValue)) {
+        clone.setName(newColumnName);
+        clone.setDescription(newDescription);
+        if (newDefaultValue != null
+                && MetadataTypeUtils.isCompatibleDefaultValue(newDefaultValue, clone, newLength)) {
+            clone.setDefaultValue(newDefaultValue);
             clone.setLength(newLength);
         }
-        if (column.getType() == ColumnMetadata.ColumnType.DECIMAL
-                && newScale != null || newPrecision != null
-                && MetadataTypeUtils.isCompactibleDecimal(newPrecision, newScale, clone)) {
-            if (newScale != null) {
-                clone.setScale(newScale);
-            }
-            if (newPrecision != null) {
-                clone.setPrecision(newPrecision);
-            }
-        }
-        if (newDefaultValue != null && MetadataTypeUtils.isCompatibleDefaultValue(newDefaultValue, clone, newLength)) {
-            clone.setDefaultValue(newDefaultValue);
+
+        if (clone.getType() == ColumnMetadata.ColumnType.DECIMAL
+                && MetadataTypeUtils.isCompactibleDecimal(newPrecision, newScale, column)) {
+            clone.setPrecision(newPrecision);
+            clone.setScale(newScale);
         }
         if (constraints != null) {
             clone.setConstraints(constraints);
         }
-        if (additionalComponents != null) {
-            additionalComponents.forEach(it -> {
-                if (it == ColumnMetadata.AdditionalComponent.AUTO_INCREMENT
-                    && MetadataTypeUtils.isValidAutoincrement(clone)) {
-                    clone.getAdditions().add(it);
-                }
-            });
+        clone.setAutoIncrement(autoIncrement);
+        table.updateColumn(clone);
+
+        SchemaDifference diff = new SchemaDifference();
+        diff.upsertColumn(clone);
+
+        // Ограничение уникальности было убрано
+        if (!clone.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)
+                && column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)) {
+            SchemaDifference refDiff = metadata.deleteHangingReferences(clone, false);
+            diff.applyDifference(refDiff);
         }
 
-        table.updateColumn(clone);
+        return diff;
     }
 }

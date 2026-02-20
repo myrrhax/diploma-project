@@ -10,9 +10,13 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -44,6 +48,20 @@ public class MetadataTypeUtils {
             return newPrecision > Objects.requireNonNullElseGet(newScale, column::getScale);
         }
         return newScale > column.getPrecision();
+    }
+
+    public static <T> List<T> joinUnique(List<T> list1, List<? extends T> list2) {
+        HashSet<T> set = new HashSet<>(list1);
+        set.addAll(list2);
+
+        return new ArrayList<>(set);
+    }
+
+    public static <K, V> Map<K,V> joinUnique(Map<K,V> map1, Map<? extends K, ? extends V> map2) {
+        Map<K,V> result = new HashMap<>(map1);
+        result.putAll(map2);
+
+        return result;
     }
 
     public static boolean isCompatibleDefaultValue(String defaultValue,

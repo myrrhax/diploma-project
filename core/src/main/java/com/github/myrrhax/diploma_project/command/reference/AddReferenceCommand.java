@@ -1,6 +1,7 @@
 package com.github.myrrhax.diploma_project.command.reference;
 
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
+import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
@@ -22,7 +23,7 @@ public class AddReferenceCommand extends MetadataCommand {
     private ReferenceMetadata.OnUpdateAction updateAction;
 
     @Override
-    public void execute(SchemaStateMetadata metadata) {
+    public SchemaDifference execute(SchemaStateMetadata metadata) {
         Objects.requireNonNull(referenceKey.getFromTableId());
         Objects.requireNonNull(referenceKey.getToTableId());
         Objects.requireNonNull(referenceKey.getFromColumns());
@@ -34,11 +35,16 @@ public class AddReferenceCommand extends MetadataCommand {
             throw new RuntimeException("Invalid reference");
         }
 
-        metadata.addReference(ReferenceMetadata.builder()
+        ReferenceMetadata reference = ReferenceMetadata.builder()
                 .type(referenceType)
                 .key(referenceKey)
                 .onDeleteAction(deleteAction == null ? ReferenceMetadata.OnDeleteAction.NO_ACTION : deleteAction)
                 .onUpdateAction(updateAction == null ? ReferenceMetadata.OnUpdateAction.NO_ACTION : updateAction)
-                .build());
+                .build();
+        metadata.addReference(reference);
+        SchemaDifference diff = new SchemaDifference();
+        diff.upsertReference(reference);
+
+        return diff;
     }
 }

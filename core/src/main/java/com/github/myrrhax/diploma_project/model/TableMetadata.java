@@ -1,10 +1,12 @@
 package com.github.myrrhax.diploma_project.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,11 +17,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-@Data
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TableMetadata implements Cloneable {
+    @Setter
     @Builder.Default
     private UUID id = UUID.randomUUID();
     private String name;
@@ -35,6 +38,10 @@ public class TableMetadata implements Cloneable {
 
     @Builder.Default
     private Map<UUID, IndexMetadata> indexes = new HashMap<>();
+
+    @Setter
+    @JsonIgnore
+    private SchemaStateMetadata schemaState;
 
     public Optional<ColumnMetadata> getColumn(UUID id) {
         return Optional.ofNullable(columns.get(id));
@@ -60,7 +67,12 @@ public class TableMetadata implements Cloneable {
         indexes.remove(index.getId());
     }
 
-    public void removeColumn(ColumnMetadata column, SchemaStateMetadata schema, SchemaDifference diff) {
+    public boolean containsColumn(String columnName) {
+        return this.getColumn(columnName).isPresent();
+    }
+
+    public SchemaDifference removeColumn(ColumnMetadata column, SchemaStateMetadata schema) {
+        SchemaDifference diff = new SchemaDifference();
         columns.remove(column.getId());
         diff.removeColumn(column);
 
@@ -82,6 +94,8 @@ public class TableMetadata implements Cloneable {
                 .peek(diff::removeReference)
                 .toList();
         cascadeReferences.forEach(schema::removeReference);
+
+        return diff;
     }
 
     public void updateColumn(ColumnMetadata columnMetadata) {
@@ -106,10 +120,58 @@ public class TableMetadata implements Cloneable {
             clone.setPrimaryKeyParts(new ArrayList<>(primaryKeyParts));
             clone.setColumns(new LinkedHashMap<>(columns));
             clone.setIndexes(new LinkedHashMap<>(indexes));
+            clone.setSchemaState(schemaState);
             
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
+        }
+    }
+
+    public void setName(String name) {
+        if (this.name == null) {
+            this.name = name;
+            return;
+        }
+        if (schemaState.getTable(name).isPresent()) {
+            throw new IllegalArgumentException(name + " already exists");
+        }
+        this.name = name;
+    }
+
+    public void setXCoord(Double xCoord) {
+        if (xCoord != null) {
+            this.xCoord = xCoord;
+        }
+    }
+
+    public void setYCoord(Double yCoord) {
+        if (yCoord != null) {
+            this.yCoord = yCoord;
+        }
+    }
+
+    public void setPrimaryKeyParts(List<UUID> primaryKeyParts) {
+        if (primaryKeyParts != null) {
+            this.primaryKeyParts = primaryKeyParts;
+        }
+    }
+
+    public void setColumns(LinkedHashMap<UUID, ColumnMetadata> columns) {
+        if (columns != null) {
+            this.columns = columns;
+        }
+    }
+
+    public void setIndexes(Map<UUID, IndexMetadata> indexes) {
+        if (indexes != null) {
+            this.indexes = indexes;
+        }
+    }
+
+    public void setDescription(String description) {
+        if (description != null && !description.isBlank()) {
+            this.description = description;
         }
     }
 }

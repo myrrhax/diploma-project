@@ -1,6 +1,7 @@
 package com.github.myrrhax.diploma_project.command.index;
 
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
+import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
@@ -27,7 +28,7 @@ public class AddIndexCommand extends MetadataCommand {
     private IndexMetadata.IndexType indexType = IndexMetadata.IndexType.B_TREE;
 
     @Override
-    public void execute(SchemaStateMetadata metadata) {
+    public SchemaDifference execute(SchemaStateMetadata metadata) {
         TableMetadata table = metadata.getTable(tableId).orElse(null);
         Objects.requireNonNull(table);
 
@@ -51,5 +52,9 @@ public class AddIndexCommand extends MetadataCommand {
         }
 
         table.addIndexes(builtIndex);
+        SchemaDifference diff = new SchemaDifference();
+        diff.upsertIndex(builtIndex);
+
+        return diff;
     }
 }
