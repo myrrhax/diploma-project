@@ -12,7 +12,7 @@ interface SelectedPort {
 
 class ERStore {
     readonly TABLE_WIDTH = 220;
-    readonly HEADER_HEIGHT = 42; // Header + Separator
+    readonly HEADER_HEIGHT = 42;
     readonly ROW_HEIGHT = 32;
     readonly FOOTER_HEIGHT = 32;
 

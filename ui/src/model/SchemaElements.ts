@@ -4,10 +4,9 @@ export interface Table {
     description?: string;
     x: number;
     y: number;
-    primaryKeyParts?: Column[];
-    columns?: { id: string, column: Column }[];
-    indexes?: { id: string, index: Index }[];
-    references?: { key: ReferenceKey, ref: Reference }[];
+    primaryKeyParts: Column[];
+    columns: Record<string, Column>;
+    indexes: Record<string, Index>;
 }
 
 export interface Column {
