@@ -16,6 +16,7 @@ import java.util.UUID;
 public class ColumnMetadata implements Cloneable {
     @Builder.Default
     private UUID id = UUID.randomUUID();
+    private UUID tableId;
     private String name;
     private String description;
     private ColumnType type;
@@ -35,6 +36,7 @@ public class ColumnMetadata implements Cloneable {
         try {
             ColumnMetadata clone = (ColumnMetadata) super.clone();
             clone.setId(id);
+            clone.setTableId(tableId);
             clone.setName(name);
             clone.setDescription(description);
             clone.setType(type);

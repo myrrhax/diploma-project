@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.model;
 
+import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -59,21 +60,28 @@ public class TableMetadata implements Cloneable {
         indexes.remove(index.getId());
     }
 
-    public void removeColumn(ColumnMetadata column, SchemaStateMetadata schema) {
+    public void removeColumn(ColumnMetadata column, SchemaStateMetadata schema, SchemaDifference diff) {
         columns.remove(column.getId());
-        getIndexes().entrySet().removeIf(idx ->
-                idx.getValue().getColumnIds().contains(column.getId()));
-        getPrimaryKeyParts().removeIf(pk ->
-                pk.equals(column.getId()));
+        diff.removeColumn(column);
 
-        schema.getReferences().entrySet().removeIf(ref -> {
-            var key = ref.getKey();
-            return (key.getFromTableId().equals(getId())
-                    && Arrays.stream(key.getFromColumns())
-                        .anyMatch(fc -> fc.equals(column.getId())))
-                    || (key.getToTableId().equals(getId())
-                        && Arrays.stream(key.getToColumns()).anyMatch(fc -> fc.equals(column.getId())));
-        });
+        // Удаляем индексы каскадно
+        List<IndexMetadata> cascadeIndexes = getIndexes().values().stream()
+            .filter(idx -> idx.getColumnIds().contains(column.getId()))
+            .peek(diff::removeIndex)
+            .toList();
+        cascadeIndexes.forEach(this::removeIndex);
+
+        // Каскадно удаляем связи
+        List<ReferenceMetadata.ReferenceKey> cascadeReferences = schema.getReferences().keySet().stream()
+                .filter(key ->
+                           key.getFromTableId().equals(this.id) && Arrays.stream(key.getFromColumns())
+                                    .anyMatch(c -> c.equals(column.getId()))
+                               || key.getToTableId().equals(this.id) && Arrays.stream(key.getToColumns())
+                                    .anyMatch(c -> c.equals(column.getId()))
+                )
+                .peek(diff::removeReference)
+                .toList();
+        cascadeReferences.forEach(schema::removeReference);
     }
 
     public void updateColumn(ColumnMetadata columnMetadata) {

@@ -1,6 +1,7 @@
 package com.github.myrrhax.diploma_project.command.column;
 
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
+import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
@@ -34,15 +35,15 @@ public class AddColumnCommand extends MetadataCommand {
     private List<ColumnMetadata.ConstraintType> constraints;
 
     @Override
-    public void execute(SchemaStateMetadata metadata) {
-        TableMetadata table = metadata.getTable(tableId).orElse(null);
-        Objects.requireNonNull(table);
-
+    public SchemaDifference execute(SchemaStateMetadata metadata) {
+        TableMetadata table = metadata.getTable(tableId).orElseThrow();
         if (table.getColumn(columnName).isPresent()) {
             throw new RuntimeException("Duplicate column name: " + columnName);
         }
 
+        SchemaDifference diff = new SchemaDifference();
         var column = ColumnMetadata.builder()
+                .tableId(tableId)
                 .name(columnName)
                 .type(type)
                 .build();
@@ -82,5 +83,8 @@ public class AddColumnCommand extends MetadataCommand {
         }
 
         table.addColumn(column);
+        diff.upsertColumn(column);
+
+        return diff;
     }
 }

@@ -19,6 +19,8 @@ import java.util.UUID;
 public class IndexMetadata {
     @Builder.Default
     private UUID id = UUID.randomUUID();
+
+    private UUID tableId;
     @Builder.Default
     private List<UUID> columnIds = new ArrayList<>();
     @Builder.Default

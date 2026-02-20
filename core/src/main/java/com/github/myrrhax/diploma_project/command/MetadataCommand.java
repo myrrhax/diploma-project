@@ -34,7 +34,7 @@ import java.util.UUID;
 @Getter
 @Setter
 public abstract class MetadataCommand {
-    private UUID schemeId;
+    protected UUID schemeId;
 
-    public abstract void execute(SchemaStateMetadata metadata);
+    public abstract SchemaDifference execute(SchemaStateMetadata metadata);
 }

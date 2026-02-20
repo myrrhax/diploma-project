@@ -28,7 +28,6 @@ public class SchemaStateMetadata {
     private Lock lock = new ReentrantLock();
     @JsonIgnore
     private Instant lastModificationTime = Instant.now();
-    @JsonIgnore
     private AtomicInteger cacheVersion = new AtomicInteger(0);
 
     public void addTable(TableMetadata tableMetadata) {
