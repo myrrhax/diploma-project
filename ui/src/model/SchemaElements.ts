@@ -4,7 +4,7 @@ export interface Table {
     description?: string;
     x: number;
     y: number;
-    primaryKeyParts: Column[];
+    primaryKeyParts: string[];
     columns: Record<string, Column>;
     indexes: Record<string, Index>;
 }
@@ -62,7 +62,3 @@ export type ConstraintType = 'NOT_NULL' | 'UNIQUE';
 export type AdditionType = 'AUTO_INCREMENT';
 
 export type IndexType = 'B_TREE' | 'HASH';
-
-export const refKeyToString = (key: ReferenceKey) => {
-    return `${key.fromTableId}:(${key.fromColumns.join(',')})->${key.toTableId}:(${key.toColumns.join(',')})`
-}

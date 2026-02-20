@@ -4,6 +4,7 @@ import { type ReferenceKey } from "@/model/SchemaElements";
 import type { Schema, VersionState } from "@/model/SchemaTypes";
 import { authStore } from "./AuthStore";
 import { type Table } from "@/model/SchemaElements";
+import { length, refKeyToString } from "@/utils/UtilFunctions";
 
 interface SelectedPort {
     tableId: string;
@@ -44,8 +45,8 @@ class ERStore {
 				isInitial: true,
 				isWorkingCopy: true,
 				currentState: {
-					tables: [],
-					references: []
+					tables: {},
+					references: {}
 				}
 			}
         }
@@ -64,49 +65,60 @@ class ERStore {
 
         // ToDo поменять на вызов API
 		const id = uuidv4().toString();
-        this.state.tables.push({key: id, table: {
+        this.state.tables[id] = {
             id: id,
-            name: `Table ${this.state.tables.length + 1}`,
+            name: `Table ${id}`,
+            description: '',
             x: worldX,
             y: worldY,
-            columns: [{ id: colId, column: { id: colId, name: 'id', type: 'INT' } }],
-        }});
+            primaryKeyParts: [colId],
+            indexes: {},
+            columns: {
+                [colId]: {
+                    id: colId,
+                    name: 'id',
+                    description: '',
+                    type: 'INT',
+                    additions: ['AUTO_INCREMENT']
+                }
+            }
+        };
         this.closeContextMenu();
     }
 
     updateTableName(id: string, newName: string) {
-        const t = this.state.tables.find(t => t.key === id);
-        if (t) t.table.name = newName;
+        const t = this.state.tables[id];
+        if (t) t.name = newName;
     }
 
     moveTable(id: string, dx: number, dy: number) {
-        const table = this.state.tables.find(t => t.key === id);
+        const table = this.state.tables[id];
         if (table) {
-            table.table.x += dx / this.scale;
-            table.table.y += dy / this.scale;
+            table.x += dx / this.scale;
+            table.y += dy / this.scale;
         }
     }
 
-    addColumn(tableId: string) {
-        const table = this.state.tables.find(t => t.key === tableId);
+    addColumn(id: string) {
+        const table = this.state.tables[id];
         if (table) {
             const id = uuidv4().toString();
-            table.table.columns?.push({id: id, column: {
-                id: uuidv4(),
+            table.columns[id] = {
+                id: id,
                 name: `field_${Math.floor(Math.random() * 1000)}`,
                 type: 'VARCHAR'
-            }});
-        }
+            }
+        };
     }
 
-	getTable(tableId: string): Table {
-		return this.state.tables.find(t => t.key === tableId)!!.table;
+	getTable(id: string): Table {
+		return this.state.tables[id];
 	}
 
-    getTableHeight(tableId: string): number {
-        const table = this.state.tables.find(t => t.key === tableId);
+    getTableHeight(id: string): number {
+        const table = this.state.tables[id];
         if (!table) return 0;
-        return this.HEADER_HEIGHT + ((table.table.columns?.length ?? 0) * this.ROW_HEIGHT) + this.FOOTER_HEIGHT;
+        return this.HEADER_HEIGHT + (length(table.columns) * this.ROW_HEIGHT) + this.FOOTER_HEIGHT;
     }
 
     // --- ЛОГИКА СОЕДИНЕНИЯ ---
@@ -163,14 +175,14 @@ class ERStore {
 			fromColumns: fromColumns,
 			toColumns: toColumns
         };
-
-        const existingRel = this.state.references.find(r => r.key === key);
+        const refKeyStr = refKeyToString(key);
+        const existingRel = this.state.references[refKeyStr];
 
         if (!existingRel) {
-            this.state.references.push({key: key, ref: {
+            this.state.references[refKeyStr] = {
                 key: key,
 				type: 'MANY_TO_ONE'
-            }});
+            };
         }
 
         this.selectedSources = [];
