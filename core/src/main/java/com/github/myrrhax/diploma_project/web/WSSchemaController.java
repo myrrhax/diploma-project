@@ -1,6 +1,7 @@
 package com.github.myrrhax.diploma_project.web;
 
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
+import com.github.myrrhax.diploma_project.event.SchemaChangedEvent;
 import com.github.myrrhax.diploma_project.model.dto.MetadataCommandProcessResult;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.security.TokenUser;
@@ -32,7 +33,7 @@ public class WSSchemaController {
         int version = schemeService.processCommand(command);
 
         messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
-                new MetadataCommandProcessResult(version, command));
+                new SchemaChangedEvent.CommandEvent(new MetadataCommandProcessResult(version, command)));
     }
 
     @SubscribeMapping("/schema/{id}")
