@@ -3,6 +3,7 @@ package com.github.myrrhax.diploma_project.web;
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.event.SchemaChangedEvent;
 import com.github.myrrhax.diploma_project.model.dto.MetadataCommandProcessResult;
+import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.SchemeService;
@@ -37,7 +38,7 @@ public class WSSchemaController {
     }
 
     @SubscribeMapping("/schema/{id}")
-    public VersionDTO onSubscribe(@DestinationVariable("id") UUID schemaId) {
-        return schemeService.getScheme(schemaId).currentVersion();
+    public SchemeDTO onSubscribe(@DestinationVariable("id") UUID schemaId) {
+        return schemeService.getScheme(schemaId);
     }
 }

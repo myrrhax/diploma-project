@@ -2,7 +2,6 @@ import { makeAutoObservable } from "mobx";
 import { v4 as uuidv4 } from "uuid";
 import { type ReferenceKey } from "@/model/SchemaElements";
 import type { Schema, VersionState } from "@/model/SchemaTypes";
-import { authStore } from "./AuthStore";
 import { type Table } from "@/model/SchemaElements";
 import { length, refKeyToString } from "@/utils/UtilFunctions";
 
@@ -17,8 +16,8 @@ class ERStore {
     readonly ROW_HEIGHT = 32;
     readonly FOOTER_HEIGHT = 32;
 
-    schema: Schema;
-    state: VersionState;
+    schema: Schema | null = null;
+    state: VersionState | null = null;
     
     scale = 1;
     offsetX = 0;
@@ -33,24 +32,11 @@ class ERStore {
 
     constructor() {
         makeAutoObservable(this);
+    }
 
-        // ToDo заменить на вызов API
-        this.schema = {
-			id: uuidv4().toString(),
-			name: 'Схема v1',
-			creator: authStore.user!!,
-			currentVersion: {
-				schemeId: uuidv4().toString(),
-				versionId: 1,
-				isInitial: true,
-				isWorkingCopy: true,
-				currentState: {
-					tables: {},
-					references: {}
-				}
-			}
-        }
-		this.state = this.schema.currentVersion.currentState;
+    setSchema(schema: Schema) {
+        this.schema = schema;
+        this.state = schema.currentVersion.currentState;
     }
 
     setPan(dx: number, dy: number) {
@@ -59,6 +45,10 @@ class ERStore {
     }
 
     addTable() {
+        if (!this.state) {
+            return;
+        }
+
         const worldX = (this.contextMenu.screenX - this.offsetX) / this.scale;
         const worldY = (this.contextMenu.screenY - this.offsetY) / this.scale;
         const colId = uuidv4().toString();
@@ -87,12 +77,19 @@ class ERStore {
     }
 
     updateTableName(id: string, newName: string) {
-        const t = this.state.tables[id];
-        if (t) t.name = newName;
+        const table = this.getTable(id);
+        if (!table) {
+            return;
+        }
+        if (table) table.name = newName;
     }
 
     moveTable(id: string, dx: number, dy: number) {
-        const table = this.state.tables[id];
+        const table = this.getTable(id);
+        if (!table) {
+            return;
+        }
+        
         if (table) {
             table.x += dx / this.scale;
             table.y += dy / this.scale;
@@ -100,7 +97,10 @@ class ERStore {
     }
 
     addColumn(id: string) {
-        const table = this.state.tables[id];
+        const table = this.getTable(id);
+        if (!table) {
+            return;
+        }
         if (table) {
             const id = uuidv4().toString();
             table.columns[id] = {
@@ -111,12 +111,15 @@ class ERStore {
         };
     }
 
-	getTable(id: string): Table {
+	getTable(id: string): Table | null {
+        if (!this.state) {
+            return null;
+        }
 		return this.state.tables[id];
 	}
 
     getTableHeight(id: string): number {
-        const table = this.state.tables[id];
+        const table = this.getTable(id);
         if (!table) return 0;
         return this.HEADER_HEIGHT + (length(table.columns) * this.ROW_HEIGHT) + this.FOOTER_HEIGHT;
     }
@@ -164,6 +167,9 @@ class ERStore {
     }
 
     createMultiRelation() {
+        if (!this.state) {
+            return;
+        }
         const sourceTableId = this.selectedSources[0].tableId;
         const targetTableId = this.selectedTargets[0].tableId;
 

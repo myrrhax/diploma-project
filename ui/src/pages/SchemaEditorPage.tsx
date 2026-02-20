@@ -30,7 +30,7 @@ export const SchemaEditorPage = observer(() => {
                 </div>
                 <div className="schema_controls">
                     <button className="btn_secondary">История</button>
-                    <button className="btn_primary" onClick={() => console.log('Saving...', erStore.tables)}>Сохранить версию</button>
+                    <button className="btn_primary" onClick={() => console.log('Saving...', erStore.state?.tables)}>Сохранить версию</button>
                 </div>
             </header>
 
