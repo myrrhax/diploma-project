@@ -64,7 +64,6 @@ public class SchemaCacheStorage {
                             }, () -> {
                                 throw new SchemaNotFoundException(id);
                             });
-                    schemeRepository.flush();
 
                     // Удаляем при не принудительном флаше
                     if (!calledFromUser) {

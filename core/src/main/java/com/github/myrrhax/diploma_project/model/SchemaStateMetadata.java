@@ -3,14 +3,12 @@ package com.github.myrrhax.diploma_project.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
-import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
 import com.github.myrrhax.diploma_project.util.ReferenceKeyFromStringDeserializer;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -36,9 +34,11 @@ public class SchemaStateMetadata {
 
     public void addTable(TableMetadata tableMetadata) {
         this.tables.putIfAbsent(tableMetadata.getId(), tableMetadata);
+        tableMetadata.setSchemaState(this);
     }
 
     public void addReference(ReferenceMetadata referenceMetadata) {
+        referenceMetadata.setSchemaState(this);
         this.references.putIfAbsent(referenceMetadata.getKey(), referenceMetadata);
     }
 
@@ -117,5 +117,22 @@ public class SchemaStateMetadata {
 
     public void updateTable(TableMetadata clone) {
         this.tables.put(clone.getId(), clone);
+    }
+
+    public void linkChildren() {
+        for (TableMetadata table : tables.values()) {
+            table.setSchemaState(this);
+            table.linkChildren();
+        }
+
+        for (ReferenceMetadata reference : references.values()) {
+            reference.setSchemaState(this);
+        }
+    }
+
+    public boolean containsTable(String tableName) {
+        return tables.values().stream()
+                .map(TableMetadata::getName)
+                .anyMatch(name -> name.equals(tableName));
     }
 }

@@ -33,7 +33,12 @@ public class UpdateTableCommand extends MetadataCommand {
 
         clone.setXCoord(xCoord);
         clone.setYCoord(yCoord);
-        clone.setName(newTableName);
+        if (newTableName != null) {
+            if (metadata.containsTable(newTableName)) {
+                throw new RuntimeException("Table already exists");
+            }
+            clone.setName(newTableName);
+        }
         clone.setDescription(newDescription);
 
         List<UUID> oldPk = table.getPrimaryKeyParts()

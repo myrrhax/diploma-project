@@ -7,7 +7,6 @@ import com.github.myrrhax.diploma_project.model.TableMetadata;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Getter

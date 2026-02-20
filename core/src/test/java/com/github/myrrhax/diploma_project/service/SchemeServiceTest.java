@@ -1,6 +1,5 @@
 package com.github.myrrhax.diploma_project.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.myrrhax.diploma_project.AbstractIntegrationTest;
 import com.github.myrrhax.diploma_project.command.column.AddColumnCommand;
 import com.github.myrrhax.diploma_project.command.column.DeleteColumnCommand;
@@ -23,6 +22,7 @@ import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.TokenFactory;
 import com.github.myrrhax.diploma_project.security.TokenUser;
+import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
 import com.github.myrrhax.shared.model.AuthorityType;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
@@ -49,7 +49,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     private static final String USERS_TABLE = "users";
     private static final String USER_PROFILE_TABLE = "user_profile";
     private static final String COURSE_TABLE = "courses";
-    private static final String LESSONS_TABLE = "lessons";
 
     @Autowired
     private SchemeService schemeService;
@@ -64,7 +63,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @Autowired
     private SchemaCacheStorage cache;
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonSchemaStateMapper objectMapper;
 
     private TokenUser tokenUser;
     private UUID uuid;
@@ -864,6 +863,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         assertThat(entity).isNotNull();
         String currentVer =  entity.getCurrentVersion().getSchema();
 
-        return objectMapper.readValue(currentVer, SchemaStateMetadata.class);
+        return objectMapper.toMetadata(currentVer);
     }
 }

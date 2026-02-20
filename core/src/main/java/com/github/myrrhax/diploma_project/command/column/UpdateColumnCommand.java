@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -40,7 +39,9 @@ public class UpdateColumnCommand extends MetadataCommand {
         ColumnMetadata column = table.getColumn(columnId).orElseThrow();
         ColumnMetadata clone = column.clone();
 
-        clone.setName(newColumnName);
+        if (newColumnName != null) {
+            clone.setName(newColumnName);
+        }
         clone.setDescription(newDescription);
         if (newDefaultValue != null
                 && MetadataTypeUtils.isCompatibleDefaultValue(newDefaultValue, clone, newLength)) {

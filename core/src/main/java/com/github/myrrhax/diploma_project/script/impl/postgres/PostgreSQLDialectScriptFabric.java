@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Component("postgresDialectFabric")
 public class PostgreSQLDialectScriptFabric extends AbstractScriptFabric {
@@ -85,7 +86,7 @@ public class PostgreSQLDialectScriptFabric extends AbstractScriptFabric {
 
     private String getSuitableType(ColumnMetadata metadata) {
         ColumnMetadata.ColumnType type = metadata.getType();
-        if (metadata.getAutoIncrement()
+        if (!Objects.requireNonNullElse(metadata.getAutoIncrement(), false)
             && !lengthLimitedTypes.contains(type)) {
             return postgresMapping.get(type);
         }

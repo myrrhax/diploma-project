@@ -1,18 +1,15 @@
 package com.github.myrrhax.diploma_project.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.github.myrrhax.diploma_project.script.AbstractScriptFabric;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -46,14 +43,14 @@ public class ColumnMetadata implements Cloneable {
     @Setter
     @Builder.Default
     private List<ConstraintType> constraints = new ArrayList<>();
-
-    @Builder.Default
-    private Boolean autoIncrement = false;
+    private Boolean autoIncrement;
 
     @Override
     public ColumnMetadata clone() {
         try {
             ColumnMetadata clone = (ColumnMetadata) super.clone();
+            clone.setSchema(schema);
+            clone.setTable(table);
             clone.setId(id);
             clone.setTableId(tableId);
             clone.setName(name);
@@ -65,8 +62,6 @@ public class ColumnMetadata implements Cloneable {
             clone.setLength(length);
             clone.setConstraints(new ArrayList<>(constraints));
             clone.setAutoIncrement(autoIncrement);
-            clone.setSchema(schema);
-            clone.setTable(table);
 
             return clone;
         } catch (CloneNotSupportedException e) {
@@ -78,9 +73,6 @@ public class ColumnMetadata implements Cloneable {
         if (name != null) {
             if (name.isBlank()) {
                 throw new RuntimeException("Column name must not be blank");
-            }
-            if (table.containsColumn(name)) {
-                throw new RuntimeException("Column already exists");
             }
             this.name = name;
         }

@@ -25,6 +25,7 @@ public class TableMetadata implements Cloneable {
     @Setter
     @Builder.Default
     private UUID id = UUID.randomUUID();
+    @Setter
     private String name;
     private String description;
     private double xCoord;
@@ -54,6 +55,8 @@ public class TableMetadata implements Cloneable {
     }
 
     public void addColumn(ColumnMetadata columnMetadata) {
+        columnMetadata.setSchema(schemaState);
+        columnMetadata.setTable(this);
         columns.put(columnMetadata.getId(), columnMetadata);
     }
 
@@ -112,6 +115,7 @@ public class TableMetadata implements Cloneable {
     public TableMetadata clone() {
         try {
             TableMetadata clone = (TableMetadata) super.clone();
+            clone.setSchemaState(schemaState);
             clone.setId(id);
             clone.setName(name);
             clone.setDescription(description);
@@ -120,23 +124,11 @@ public class TableMetadata implements Cloneable {
             clone.setPrimaryKeyParts(new ArrayList<>(primaryKeyParts));
             clone.setColumns(new LinkedHashMap<>(columns));
             clone.setIndexes(new LinkedHashMap<>(indexes));
-            clone.setSchemaState(schemaState);
             
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }
-    }
-
-    public void setName(String name) {
-        if (this.name == null) {
-            this.name = name;
-            return;
-        }
-        if (schemaState.getTable(name).isPresent()) {
-            throw new IllegalArgumentException(name + " already exists");
-        }
-        this.name = name;
     }
 
     public void setXCoord(Double xCoord) {
@@ -172,6 +164,13 @@ public class TableMetadata implements Cloneable {
     public void setDescription(String description) {
         if (description != null && !description.isBlank()) {
             this.description = description;
+        }
+    }
+
+    public void linkChildren() {
+        for (ColumnMetadata column : columns.values()) {
+            column.setSchema(schemaState);
+            column.setTable(this);
         }
     }
 }

@@ -31,7 +31,10 @@ public class JsonSchemaStateMapper {
         if (json == null) return null;
 
         try {
-            return objectMapper.readValue(json, SchemaStateMetadata.class);
+            var state = objectMapper.readValue(json, SchemaStateMetadata.class);
+            state.linkChildren();
+
+            return state;
         } catch (Exception e) {
             log.error("Unable to parse schema state json", e);
             throw e;

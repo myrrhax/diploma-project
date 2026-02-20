@@ -13,7 +13,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -37,7 +36,7 @@ public class AddColumnCommand extends MetadataCommand {
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
         TableMetadata table = metadata.getTable(tableId).orElseThrow();
-        if (table.getColumn(columnName).isPresent()) {
+        if (table.containsColumn(columnName)) {
             throw new RuntimeException("Duplicate column name: " + columnName);
         }
 
