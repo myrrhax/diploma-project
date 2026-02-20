@@ -52,7 +52,6 @@ public class UpdateTableCommand extends MetadataCommand {
 
         List<UUID> oldPk = table.getPrimaryKeyParts()
                 .stream()
-                .map(ColumnMetadata::getId)
                 .toList();
 
         if (newPrimaryKeyParts != null
@@ -70,10 +69,7 @@ public class UpdateTableCommand extends MetadataCommand {
                     }
                 }
             }
-            clone.setPrimaryKeyParts(newPrimaryKeyParts.stream()
-                    .map(clone::getColumn)
-                    .map(Optional::orElseThrow)
-                    .toList());
+            clone.setPrimaryKeyParts(newPrimaryKeyParts.stream().toList());
         }
 
         metadata.updateTable(clone);

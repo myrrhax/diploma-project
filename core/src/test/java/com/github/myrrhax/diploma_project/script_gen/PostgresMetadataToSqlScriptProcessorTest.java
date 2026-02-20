@@ -5,6 +5,7 @@ import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
+import com.github.myrrhax.diploma_project.script.AbstractScriptFabric;
 import com.github.myrrhax.diploma_project.script.MetadataToSqlScriptProcessor;
 import com.github.myrrhax.diploma_project.script.impl.postgres.PostgreSQLDialectScriptFabric;
 import com.github.myrrhax.diploma_project.script.impl.postgres.PostgreSQLMetadataToSqlScriptProcessor;
@@ -32,7 +33,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @Testcontainers
 public class PostgresMetadataToSqlScriptProcessorTest {
-    static MetadataToSqlScriptProcessor processor;
     static Set<ColumnMetadata.ColumnType> autoIncrementTypes = Set.of(ColumnMetadata.ColumnType.SMALLINT,
             ColumnMetadata.ColumnType.INT,
             ColumnMetadata.ColumnType.BIGINT);
@@ -46,7 +46,6 @@ public class PostgresMetadataToSqlScriptProcessorTest {
 
     @BeforeAll
     static void setup() {
-        processor = new PostgreSQLMetadataToSqlScriptProcessor(new PostgreSQLDialectScriptFabric());
         postgres.start();
     }
 
@@ -134,7 +133,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .name("users")
                 .columns(columns)
                 .indexes(Map.of(idx.getId(), idx))
-                .primaryKeyParts(List.of(cmId))
+                .primaryKeyParts(List.of(cmId.getId()))
                 .build();
         schemaStateMetadata.getTables().put(table.getId(), table);
     }
@@ -183,7 +182,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .name("flights")
                 .columns(columns)
                 .indexes(Map.of(idx.getId(), idx))
-                .primaryKeyParts(List.of(cmId))
+                .primaryKeyParts(List.of(cmId.getId()))
                 .build();
         schemaStateMetadata.getTables().put(table.getId(), table);
     }
@@ -225,7 +224,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .id(UUID.randomUUID())
                 .name("bookings")
                 .columns(columns)
-                .primaryKeyParts(List.of(userId, flightId))
+                .primaryKeyParts(List.of(userId.getId(), flightId.getId()))
                 .build();
         schemaStateMetadata.getTables().put(table.getId(), table);
 
@@ -309,7 +308,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         var table = TableMetadata.builder()
                 .name("employees")
                 .description("Сотрудники")
-                .primaryKeyParts(List.of(idCol))
+                .primaryKeyParts(List.of(idCol.getId()))
                 .build();
 
         table.addColumns(idCol, fioCol, positionCol, phoneCol, emailCol, admissionDateCol);
@@ -338,7 +337,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         TableMetadata table = TableMetadata.builder()
                 .name("suppliers")
                 .description("Поставщики")
-                .primaryKeyParts(List.of(idCol))
+                .primaryKeyParts(List.of(idCol.getId()))
                 .build();
 
         table.addColumns(idCol, companyName, memberFio, phoneCol, emailCol, lastSupplyDate);
@@ -387,7 +386,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         var table = TableMetadata.builder()
                 .name("orders")
                 .description("Заказы")
-                .primaryKeyParts(List.of(idCol))
+                .primaryKeyParts(List.of(idCol.getId()))
                 .build();
         table.addColumns(idCol, ordertime, status, sum, employeeId, itemId, clientId, updateTime);
         schema.addTable(table);
@@ -433,7 +432,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         var table = TableMetadata.builder()
-                .primaryKeyParts(List.of(idCol))
+                .primaryKeyParts(List.of(idCol.getId()))
                 .name("clients")
                 .description("Клиенты")
                 .build();
@@ -494,7 +493,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .build();
 
         var table = TableMetadata.builder()
-                .primaryKeyParts(List.of(idCol))
+                .primaryKeyParts(List.of(idCol.getId()))
                 .name("items")
                 .description("Товары")
                 .build();
@@ -532,11 +531,20 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                                         .build())));
     }
 
+    private MetadataToSqlScriptProcessor setupProcessor(SchemaStateMetadata state) {
+        AbstractScriptFabric fabric = new PostgreSQLDialectScriptFabric();
+        var processor = new PostgreSQLMetadataToSqlScriptProcessor(state);
+        processor.setScriptFabric(fabric);
+
+        return processor;
+    }
+
     @Test
     public void givenUsersTableMetadata_whenGenerateScript_ThenScriptIsValid() {
         SchemaStateMetadata stateMetadata = new SchemaStateMetadata();
         addUsersTable(stateMetadata);
-        String script = processor.convertMetadataToSql(stateMetadata);
+        MetadataToSqlScriptProcessor processor = setupProcessor(stateMetadata);
+        String script = processor.convertMetadataToSql();
         System.out.println(script);
         jdbcTemplate.execute(script);
 
@@ -551,7 +559,8 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         SchemaStateMetadata stateMetadata = new SchemaStateMetadata();
         addFlightsTable(stateMetadata);
 
-        String script = processor.convertMetadataToSql(stateMetadata);
+        MetadataToSqlScriptProcessor processor = setupProcessor(stateMetadata);
+        String script = processor.convertMetadataToSql();
         System.out.println(script);
         jdbcTemplate.execute(script);
 
@@ -568,7 +577,8 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         addFlightsTable(stateMetadata);
         addBookingsTable(stateMetadata);
 
-        String script = processor.convertMetadataToSql(stateMetadata);
+        MetadataToSqlScriptProcessor processor = setupProcessor(stateMetadata);
+        String script = processor.convertMetadataToSql();
         System.out.println(script);
 
         jdbcTemplate.execute(script);
@@ -588,7 +598,8 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         addClientsTable(stateMetadata);
         addItemsTable(stateMetadata);
 
-        String script = processor.convertMetadataToSql(stateMetadata);
+        MetadataToSqlScriptProcessor processor = setupProcessor(stateMetadata);
+        String script = processor.convertMetadataToSql();
         System.out.println(script);
 
         jdbcTemplate.execute(script);

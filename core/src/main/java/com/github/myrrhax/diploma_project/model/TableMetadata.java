@@ -27,7 +27,7 @@ public class TableMetadata implements Cloneable {
     private double yCoord;
 
     @Builder.Default
-    private List<ColumnMetadata> primaryKeyParts = new ArrayList<>();
+    private List<UUID> primaryKeyParts = new ArrayList<>();
 
     @Builder.Default
     private LinkedHashMap<UUID, ColumnMetadata> columns = new LinkedHashMap<>();
@@ -64,7 +64,7 @@ public class TableMetadata implements Cloneable {
         getIndexes().entrySet().removeIf(idx ->
                 idx.getValue().getColumnIds().contains(column.getId()));
         getPrimaryKeyParts().removeIf(pk ->
-                pk.getId().equals(column.getId()));
+                pk.equals(column.getId()));
 
         schema.getReferences().entrySet().removeIf(ref -> {
             var key = ref.getKey();

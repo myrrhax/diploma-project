@@ -170,7 +170,7 @@ public class MetadataTypeUtils {
             var column = columns.getFirst();
             // Либо уникальная колонка, либо первичный ключ, либо есть уникальный индекс по колонке
             return column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)
-                    || (table.getPrimaryKeyParts().size() == 1 && table.getPrimaryKeyParts().contains(column))
+                    || (table.getPrimaryKeyParts().size() == 1 && table.getPrimaryKeyParts().contains(column.getId()))
                     || table.getIndexes().values().stream()
                     .anyMatch(idx -> idx.isUnique()
                             && idx.getColumnIds().size() == 1
@@ -178,10 +178,10 @@ public class MetadataTypeUtils {
         }
 
         // Проверка по первичному ключу или уникальному индексу
-        return isFullEquals(table.getPrimaryKeyParts(), columns)
+        return isFullEquals(table.getPrimaryKeyParts(), Arrays.asList(toColumns))
                 || table.getIndexes().values().stream()
-                .anyMatch(idx -> idx.isUnique()
-                        && isFullEquals(idx.getColumnIds(), Arrays.stream(toColumns).toList()));
+                    .anyMatch(idx -> idx.isUnique()
+                            && isFullEquals(idx.getColumnIds(), Arrays.asList(toColumns)));
 
     }
 

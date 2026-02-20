@@ -19,10 +19,15 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public abstract class MetadataToSqlScriptProcessor {
+    private final SchemaStateMetadata metadata;
+    private final StringBuilder sqlBuilder = new StringBuilder();
+    private final StringBuilder indexesBuilder = new StringBuilder();
 
-    public final String convertMetadataToSql(SchemaStateMetadata metadata) {
-        StringBuilder sqlBuilder = new StringBuilder();
-        StringBuilder indexesBuilder = new StringBuilder();
+    public MetadataToSqlScriptProcessor(SchemaStateMetadata metadata) {
+        this.metadata = metadata;
+    }
+
+    public final String convertMetadataToSql() {
         List<ReferenceMetadata> refsToProcess = new ArrayList<>();
         List<TableMetadata> tablesToProcess = new ArrayList<>(metadata.getTables().values());
 
@@ -55,12 +60,12 @@ public abstract class MetadataToSqlScriptProcessor {
             List<ColumnMetadata> columns = tableMetadata.getColumns().values()
                     .stream().toList();
 
-            List<ColumnMetadata> primaryKeyParts = tableMetadata.getPrimaryKeyParts();
+            List<UUID> primaryKeyParts = tableMetadata.getPrimaryKeyParts();
             if (primaryKeyParts.isEmpty()) {
                 throw new ApplicationException("Table must contain primary key", HttpStatus.BAD_REQUEST);
             }
             buildColumnsPart(columns, sqlBuilder);
-            buildPrimaryKeyConstraint(primaryKeyParts, sqlBuilder);
+            buildPrimaryKeyConstraint(tableMetadata, primaryKeyParts);
 
             sqlBuilder.append(");\n");
 
@@ -115,7 +120,9 @@ public abstract class MetadataToSqlScriptProcessor {
                 .id(UUID.randomUUID())
                 .name(computeMtmTableName(fromTable, toTable))
                 .columns(concatColumnsMap)
-                .primaryKeyParts(concatMtmCols)
+                .primaryKeyParts(concatMtmCols.stream()
+                        .map(ColumnMetadata::getId)
+                        .toList())
                 .build();
 
         ReferenceMetadata ftmRef = buildRef(mtmTable, fromTable, mtmFrom, fromCols);
@@ -173,10 +180,10 @@ public abstract class MetadataToSqlScriptProcessor {
                 .build();
     }
 
-    private void buildPrimaryKeyConstraint(List<ColumnMetadata> primaryKeyParts, StringBuilder sqlBuilder) {
+    private void buildPrimaryKeyConstraint(TableMetadata table, List<UUID> primaryKeyParts) {
         sqlBuilder.append("\tPRIMARY KEY (");
         for (int i = 0; i < primaryKeyParts.size(); i++) {
-            ColumnMetadata column = primaryKeyParts.get(i);
+            ColumnMetadata column = table.getColumn(primaryKeyParts.get(i)).orElseThrow();
             sqlBuilder.append(column.getName());
             if (i < primaryKeyParts.size() - 1) {
                 sqlBuilder.append(", ");

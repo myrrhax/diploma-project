@@ -368,7 +368,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         TableMetadata assertedTable = state.getTable(TABLE_NAME).orElse(null);
         assertThat(assertedTable).isNotNull();
         assertThat(assertedTable.getPrimaryKeyParts().size()).isEqualTo(1);
-        assertThat(assertedTable.getPrimaryKeyParts().contains(column)).isTrue();
+        assertThat(assertedTable.getPrimaryKeyParts().contains(column.getId())).isTrue();
     }
 
     @Test
