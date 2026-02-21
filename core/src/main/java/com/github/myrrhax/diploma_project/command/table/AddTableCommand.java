@@ -2,6 +2,7 @@ package com.github.myrrhax.diploma_project.command.table;
 
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
+import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import jakarta.validation.constraints.NotBlank;
@@ -12,6 +13,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AddTableCommand extends MetadataCommand {
+    private static final String DEFAULT_ID_COL = "id";
+
     @NotBlank
     private String tableName;
     @NotNull
@@ -30,10 +33,20 @@ public class AddTableCommand extends MetadataCommand {
                 .xCoord(xCoord)
                 .yCoord(yCoord)
                 .build();
-
         metadata.addTable(table);
+        var defaultColumn = ColumnMetadata.builder()
+                .tableId(table.getId())
+                .type(ColumnMetadata.ColumnType.INT)
+                .name(DEFAULT_ID_COL)
+                .autoIncrement(true)
+                .build();
+
+        table.addColumn(defaultColumn);
+        table.getPrimaryKeyParts().add(defaultColumn.getId());
+
         SchemaDifference diff = new SchemaDifference();
         diff.upsertTable(table);
+        diff.upsertColumn(defaultColumn);
 
         return diff;
     }
