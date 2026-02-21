@@ -3,6 +3,7 @@ package com.github.myrrhax.diploma_project.service;
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.mapper.SchemaMapper;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
+import com.github.myrrhax.diploma_project.model.dto.MetadataCommandProcessResult;
 import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
 import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
 import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
@@ -114,16 +115,18 @@ public class SchemeService {
         schemeRepository.deleteById(schemeId);
     }
 
-    public int processCommand(@Valid MetadataCommand command) {
+    public MetadataCommandProcessResult processCommand(@Valid MetadataCommand command) {
         SchemeDTO currentSchema = schemaCacheStorage.getSchema(command.getSchemeId());
         var version = currentSchema.currentVersion();
         if (version.currentState() != null) {
             SchemaStateMetadata state = version.currentState();
             try {
                 state.getLock().lock();
-                command.execute(state);
+                var difference = command.execute(state);
+                int newVersion = state.getCacheVersion().incrementAndGet();
                 state.setLastModificationTime(Instant.now());
-                return state.getCacheVersion().incrementAndGet();
+
+                return new MetadataCommandProcessResult(newVersion, difference);
             } finally {
                 state.getLock().unlock();
             }

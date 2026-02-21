@@ -31,14 +31,9 @@ public class WSSchemaController {
     public void processCommand(@DestinationVariable("id") UUID schemaId,
                                           MetadataCommand command,
                                           @AuthenticationPrincipal TokenUser user) {
-        int version = schemeService.processCommand(command);
+        var processingResult = schemeService.processCommand(command);
 
         messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
-                new SchemaChangedEvent.CommandEvent(new MetadataCommandProcessResult(version, command)));
-    }
-
-    @SubscribeMapping("/schema/{id}")
-    public SchemeDTO onSubscribe(@DestinationVariable("id") UUID schemaId) {
-        return schemeService.getScheme(schemaId);
+                new SchemaChangedEvent.CommandEvent(processingResult));
     }
 }

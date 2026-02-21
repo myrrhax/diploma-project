@@ -1,4 +1,3 @@
-import type { MetadataCommand } from "./SchemaCommands";
 import type { Reference, Table } from "./SchemaElements";
 import type { User } from "./User";
 
@@ -18,12 +17,9 @@ export interface Version {
     isWorkingCopy: boolean 
 };
 
-export interface MetadataCommandProcessResult {
-    version: number;
-    command: MetadataCommand;
-}
 
 export interface VersionState {
     tables: Record<string, Table>;
     references: Record<string, Reference>;
+    cacheVersion: number;
 }

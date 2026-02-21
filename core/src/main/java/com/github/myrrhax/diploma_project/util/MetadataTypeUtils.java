@@ -57,10 +57,15 @@ public class MetadataTypeUtils {
         return new ArrayList<>(set);
     }
 
-    public static <K, V> Map<K,V> joinUnique(Map<K,V> map1, Map<? extends K, ? extends V> map2) {
-        Map<K,V> result = new HashMap<>(map1);
-        result.putAll(map2);
-
+    public static <K,V> Map<K, List<V>> joinUniqueFlat(Map<K, List<V>> map1, Map<K, List<V>> map2) {
+        Map<K, List<V>> result = new HashMap<>(map1);
+        for (Map.Entry<K, List<V>> entry : map2.entrySet()) {
+            if (result.containsKey(entry.getKey())) {
+                result.put(entry.getKey(), joinUnique(result.get(entry.getKey()), entry.getValue()));
+            } else {
+                result.put(entry.getKey(), entry.getValue());
+            }
+        }
         return result;
     }
 
