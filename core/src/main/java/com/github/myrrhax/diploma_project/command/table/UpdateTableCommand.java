@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.command.table;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
@@ -22,8 +23,8 @@ public class UpdateTableCommand extends MetadataCommand {
     private String newTableName;
     private String newDescription;
     private List<UUID> newPrimaryKeyParts;
-    private Double xCoord;
-    private Double yCoord;
+    private Double x;
+    private Double y;
 
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
@@ -31,8 +32,8 @@ public class UpdateTableCommand extends MetadataCommand {
         Objects.requireNonNull(table);
         TableMetadata clone = table.clone();
 
-        clone.setXCoord(xCoord);
-        clone.setYCoord(yCoord);
+        clone.setX(x);
+        clone.setY(y);
         if (newTableName != null) {
             if (metadata.containsTable(newTableName)) {
                 throw new RuntimeException("Table already exists");

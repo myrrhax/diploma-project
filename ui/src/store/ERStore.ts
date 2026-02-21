@@ -1,10 +1,12 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, runInAction } from "mobx";
 import { v4 as uuidv4 } from "uuid";
 import { type Reference, type ReferenceKey } from "@/model/SchemaElements";
 import type { Schema, VersionState } from "@/model/SchemaTypes";
 import { type Table } from "@/model/SchemaElements";
 import { length, refKeyToString } from "@/utils/UtilFunctions";
 import { type MetadataCommandProcessResult } from "@/model/SchemaEvents";
+import { schemaApi } from "@/api/SchemaApiService";
+import { schemaSocketService } from "@/api/SchemaSocketService";
 
 interface SelectedPort {
     tableId: string;
@@ -17,11 +19,13 @@ class ERStore {
     readonly ROW_HEIGHT = 32;
     readonly FOOTER_HEIGHT = 32;
 
+    schemaId: string | null = null;
     schema: Schema | null = null;
     state: VersionState | null = null;
     currentVersion: number | null = null;
 
     isAccessDenied: boolean | null = null;
+    isLoading: boolean = false;
     
     scale = 1;
     offsetX = 0;
@@ -38,9 +42,9 @@ class ERStore {
         makeAutoObservable(this);
     }
 
-    setSchema(schema: Schema) {
+    setSchema(schema: Schema | null) {
         this.schema = schema;
-        this.state = schema.currentVersion.currentState;
+        this.state = schema?.currentVersion.currentState ?? null;
     }
 
     setPan(dx: number, dy: number) {
@@ -48,19 +52,18 @@ class ERStore {
         this.offsetY += dy;
     }
 
-    // --- ОБРАБОТКА СИНХРОНИЗАЦИИ (ВЕБСОКЕТ) ---
-    process(cmd: MetadataCommandProcessResult) {
+    async process(cmd: MetadataCommandProcessResult) {
         if (!this.state) return;
 
-        // Игнорируем дублирующиеся или старые пакеты
         if (cmd.version <= this.state.cacheVersion) {
             return; 
         }
+        console.log('Обрабатывается новая команда');
+        console.log(cmd);
 
-        // Если пакеты потерялись по пути, запрашиваем схему целиком
         if (cmd.version - this.state.cacheVersion > 1) {
             console.warn(`[SYNC] Рассинхрон! Локальная: ${this.state.cacheVersion}, Серверная: ${cmd.version}`);
-            // this.refetchFullSchema();
+            await this.loadSchema(this.schema!!.id);
             return;
         }
 
@@ -126,54 +129,52 @@ class ERStore {
             const keyStr = refKeyToString(ref.key);
             this.state.references[keyStr] = ref;
         });
+        console.log(this.state.tables);
+    }
+    
+    setLoading(loading: boolean) {
+        this.isLoading = loading;
     }
 
-    // async refetchFullSchema() {
-    //     if (!this.schema) return;
+    async loadSchema(schemaId: string) {
+        this.schemaId = schemaId;
+        this.setLoading(true);
+        this.allow();
         
-    //     try {
-    //         const response = await fetch(`/api/schema/${this.schema.id}`);
-    //         if (response.ok) {
-    //             const freshSchema = await response.json() as Schema;
-    //             runInAction(() => {
-    //                 this.setSchema(freshSchema);
-    //                 console.log("[SYNC] Схема успешно восстановлена");
-    //             });
-    //         }
-    //     } catch (error) {
-    //         console.error("[SYNC] Ошибка полного восстановления схемы:", error);
-    //     }
-    // }
-    
-    addTable() {
-        if (!this.state) return;
+        try {
+            const freshSchema = await schemaApi.fetchSchemaById(schemaId);
+            runInAction(() => {
+                this.setSchema(freshSchema);
+                this.setLoading(false);
+                console.log(this.state?.tables);
+            });
+            
+        } catch (error: any) {
+            runInAction(() => {
+                this.deny();
+                this.setLoading(false);
+            });
+            console.error("Ошибка загрузки схемы:", this.state);
+        }
+    }
 
+    addTable() {
+        if (!this.schema) return;
         const worldX = (this.contextMenu.screenX - this.offsetX) / this.scale;
         const worldY = (this.contextMenu.screenY - this.offsetY) / this.scale;
-        const colId = uuidv4().toString();
-        const tableId = uuidv4().toString();
 
-        this.state.tables[tableId] = {
-            id: tableId,
-            name: `Table ${tableId.substring(0, 4)}`, // Сделал имя покороче для удобства
-            description: '',
-            x: worldX,
-            y: worldY,
-            primaryKeyParts: [colId],
-            indexes: {},
-            columns: {
-                [colId]: {
-                    id: colId,
-                    name: 'id',
-                    description: '',
-                    type: 'INT',
-                    additions: ['AUTO_INCREMENT']
-                }
-            }
-        };
+        console.log("X: " + worldX);
+        console.log("Y: " + worldY);
 
-        // ToDo: Отправить команду 'add-table' на бэкенд через WebSocket
-        // schemaSocketService.sendCommand({ type: 'add-table', tableId: tableId, ... });
+        const tableName = 'Table ' + Date.now();
+
+        schemaSocketService.sendCommand({ 
+            schemeId: this.schema.id,
+            type: 'add-table', 
+            tableName: tableName, 
+            x: worldX, 
+            y: worldY 
+        });
 
         this.closeContextMenu();
     }
@@ -292,8 +293,7 @@ class ERStore {
 
     deny() {
         this.isAccessDenied = true;
-        this.schema = null;
-        this.state = null;
+        this.setSchema(null);
     }
 
     allow() {

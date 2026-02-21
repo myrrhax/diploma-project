@@ -1,32 +1,36 @@
 import React, { useRef, useEffect } from 'react';
-import { observer } from 'mobx-react-lite';
 import { erStore } from '@/store/ERStore';
 import { TableNode } from './TableNode';
-import { refKeyToString, type Table } from '@/model/SchemaElements';
-import './css/ERDiagram.css';
+import { type Table } from '@/model/SchemaElements';
+import { refKeyToString } from '@/utils/UtilFunctions';
+import './css/ERDiagram.css';   
+import { observer } from 'mobx-react-lite';
 
 const getPortPosition = (table: Table, colId: string, side: 'left' | 'right') => {
-    const colIndex = table.columns!!.findIndex(c => c.id === colId);
-    if (colIndex === -1) return { x: 0, y: 0 };
+    const column = table.columns[colId];
+    if (!column) return { x: 0, y: 0 };
+    const columnsArray = Object.keys(table.columns);    
+    const colIndex = columnsArray.indexOf(colId); 
     
     const y = table.y + erStore.HEADER_HEIGHT + (colIndex * erStore.ROW_HEIGHT) + (erStore.ROW_HEIGHT / 2);
     const x = side === 'left' ? table.x : table.x + erStore.TABLE_WIDTH;
+    
     return { x, y };
 };
 
 const getTrunkPath = (
+    tables: Record<string, Table>,
     sX: number, sY: number,
     tX: number, tY: number,
     sTableId: string, 
     tTableId: string,
     offsetIndex: number = 0
 ) => {
-    const { tables } = erStore.state;
     const sHeight = erStore.getTableHeight(sTableId);
     const tHeight = erStore.getTableHeight(tTableId);
     
-    const sTableY = tables.find(t => t.key === sTableId)?.table.y || 0;
-    const tTableY = tables.find(t => t.key === tTableId)?.table.y || 0;
+    const sTableY = tables[sTableId].y || 0;
+    const tTableY = tables[tTableId].y || 0;
     
     const sBottom = sTableY + sHeight;
     const tBottom = tTableY + tHeight;
@@ -49,15 +53,17 @@ const getTrunkPath = (
                 L ${tX} ${tY}`;
     }
 };
+    
 
 export const ERDiagram = observer(() => {
+    if (!erStore.state) {
+        return (<div>Загрузка</div>);
+    }
     const containerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const handleUp = () => { erStore.draggingTableId = null; };
-        window.addEventListener('mouseup', handleUp);
-        return () => window.removeEventListener('mouseup', handleUp);
-    }, []);
+    const handleUp = () => { 
+        erStore.draggingTableId = null; 
+    };
 
     const handleMouseMove = (e: React.MouseEvent) => {
         if (erStore.draggingTableId) {
@@ -67,6 +73,17 @@ export const ERDiagram = observer(() => {
             erStore.setPan(e.movementX, e.movementY);
         }
     };
+
+    const handleCloseMenu = () => erStore.closeContextMenu();
+
+    const handleOpenMenu = (screenX: number, screenY: number, relativeX: number, relativeY: number) => {
+        erStore.openContextMenu(screenX, screenY, relativeX, relativeY);
+    };
+
+    useEffect(() => {
+        window.addEventListener('mouseup', handleUp);
+        return () => window.removeEventListener('mouseup', handleUp);
+    }, []);
 
     const { tables, references } = erStore.state;
 
@@ -79,9 +96,11 @@ export const ERDiagram = observer(() => {
             onContextMenu={(e) => {
                 e.preventDefault();
                 const rect = containerRef.current?.getBoundingClientRect();
-                if (rect) erStore.openContextMenu(e.clientX, e.clientY, e.clientX - rect.left, e.clientY - rect.top);
+                if (rect) {
+                    handleOpenMenu(e.clientX, e.clientY, e.clientX - rect.left, e.clientY - rect.top);
+                }
             }}
-            onClick={() => erStore.closeContextMenu()}
+            onClick={handleCloseMenu}
         >
             <div className="er_viewport" style={{ transform: `translate(${erStore.offsetX}px, ${erStore.offsetY}px) scale(${erStore.scale})` }}>
                 <svg className="er_svg_layer">
@@ -95,21 +114,20 @@ export const ERDiagram = observer(() => {
                         </marker>
                     </defs>
                     
-                    {references.map((ref, index) => {
-                        const sTable = tables.find(t => t.key === ref.key.fromTableId)?.table;
-                        const tTable = tables.find(t => t.key === ref.key.toTableId)?.table;
-                        if (!sTable || !tTable) return null;
-
-                        // 1. SINGLE CONNECTION (Простая линия)
+                    {Object.values(references).map((ref, index) => {
                         const key = ref.key;
+
+                        const sTable = tables[key.fromTableId];
+                        const tTable = tables[key.toTableId];
+                        if (!sTable || !tTable) return null;
                         
                         if (key.toColumns.length === 1) {
-                            const start = getPortPosition(erStore.getTable(key.fromTableId), key.fromColumns[0], 'right');
-                            const end = getPortPosition(erStore.getTable(key.toTableId), key.toColumns[0], 'left');
+                            const start = getPortPosition(tables[key.fromTableId], key.fromColumns[0], 'right');
+                            const end = getPortPosition(tables[key.toTableId], key.toColumns[0], 'left');
                             
-                            const d = getTrunkPath(start.x, start.y, end.x, end.y, sTable.id, tTable.id, index);
+                            const d = getTrunkPath(tables, start.x, start.y, end.x, end.y, sTable.id, tTable.id, index);
                             
-                            return (
+                            return ( 
                                 <path 
                                     key={refKeyToString(key)} 
                                     d={d} 
@@ -148,7 +166,7 @@ export const ERDiagram = observer(() => {
 
                             pathData += `M ${tBusX} ${tMinY} L ${tBusX} ${tMaxY} `;
 
-                            const trunkPath = getTrunkPath(sBusX, sCenterY, tBusX, tCenterY, sTable.id, tTable.id, index);
+                            const trunkPath = getTrunkPath(tables, sBusX, sCenterY, tBusX, tCenterY, sTable.id, tTable.id, index);
                             
                             pathData += trunkPath;
 
@@ -168,7 +186,7 @@ export const ERDiagram = observer(() => {
                     })}
                 </svg>
 
-                {tables.map(table => <TableNode key={table.key} table={table.table} />)}
+                {Object.values(tables).map(table => <TableNode key={table.id} table={table} />)}
             </div>
 
             {erStore.contextMenu.visible && (

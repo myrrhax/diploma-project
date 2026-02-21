@@ -9,7 +9,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Getter
 @Setter
 public class AddTableCommand extends MetadataCommand {
@@ -18,9 +20,9 @@ public class AddTableCommand extends MetadataCommand {
     @NotBlank
     private String tableName;
     @NotNull
-    private Double xCoord;
+    private Double x;
     @NotNull
-    private Double yCoord;
+    private Double y;
 
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
@@ -30,8 +32,8 @@ public class AddTableCommand extends MetadataCommand {
 
         TableMetadata table = TableMetadata.builder()
                 .name(tableName)
-                .xCoord(xCoord)
-                .yCoord(yCoord)
+                .x(x)
+                .y(y)
                 .build();
         metadata.addTable(table);
         var defaultColumn = ColumnMetadata.builder()

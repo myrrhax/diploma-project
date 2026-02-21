@@ -3,16 +3,17 @@ import { erStore } from '@/store/ERStore';
 import './css/TableNode.css';
 import { type Table } from '@/model/SchemaElements';
 
-
 interface TableNodeProps {
     table: Table;
 }
 
 export const TableNode = observer(({ table }: TableNodeProps) => {
+    console.log(`Таблица ${table.name}:`, table);
     return (
         <div 
             className="er_table_card" 
             style={{ 
+                position: 'absolute',
                 left: table.x, 
                 top: table.y,
                 width: erStore.TABLE_WIDTH // Используем константу из стора
@@ -38,7 +39,7 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
 
             {/* Columns */}
             <div className="er_column_list">
-                {table.columns?.map((col, index) => {
+                {Object.values(table.columns).map((col, _) => {
                     const srcIdx = erStore.selectedSources.findIndex(s => s.colId === col.id);
                     const tgtIdx = erStore.selectedTargets.findIndex(t => t.colId === col.id);
                     const isSource = srcIdx !== -1;
@@ -55,7 +56,7 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
                                 {isTarget && <span className="port_badge badge_left">{tgtIdx + 1}</span>}
                             </div>
 
-                            <span className="col_name">{col.column.name}</span>
+                            <span className="col_name">{col.name}</span>
                             
                             {/* Output Port (Right) */}
                             <div 

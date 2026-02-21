@@ -126,8 +126,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         AddTableCommand cmd = new AddTableCommand();
         cmd.setSchemeId(UUID.randomUUID());
         cmd.setTableName(TABLE_NAME);
-        cmd.setXCoord(0d);
-        cmd.setYCoord(0d);
+        cmd.setX(0d);
+        cmd.setY(0d);
         // when & then
         assertThrows(SchemaNotFoundException.class, () -> schemeService.processCommand(cmd));
     }
@@ -139,8 +139,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         AddTableCommand cmd = new AddTableCommand();
         cmd.setTableName(TABLE_NAME);
         cmd.setSchemeId(uuid);
-        cmd.setXCoord(0d);
-        cmd.setYCoord(0d);
+        cmd.setX(0d);
+        cmd.setY(0d);
 
         // when
         schemeService.processCommand(cmd);
@@ -176,8 +176,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         AddTableCommand cmd = new AddTableCommand();
         cmd.setTableName(TABLE_NAME);
         cmd.setSchemeId(uuid);
-        cmd.setXCoord(0d);
-        cmd.setYCoord(0d);
+        cmd.setX(0d);
+        cmd.setY(0d);
         schemeService.processCommand(cmd);
         // when & then
         assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
@@ -823,8 +823,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         AddTableCommand cmd = new AddTableCommand();
         cmd.setSchemeId(uuid);
         cmd.setTableName(tableName);
-        cmd.setXCoord(0d);
-        cmd.setYCoord(0d);
+        cmd.setX(0d);
+        cmd.setY(0d);
         schemeService.processCommand(cmd);
     }
 

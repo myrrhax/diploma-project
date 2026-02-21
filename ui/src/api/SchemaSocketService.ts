@@ -5,6 +5,7 @@ import { authStore } from "@/store/AuthStore";
 import { erStore } from "@/store/ERStore";
 import type { SchemaChangedEvent } from "@/model/SchemaEvents"; 
 import type { MetadataCommandProcessResult } from "@/model/SchemaEvents";
+import type { MetadataCommand } from "@/model/SchemaCommands";
 
 const WS_ENDPOINT = 'http://localhost:8000/ws';
 
@@ -63,6 +64,20 @@ class SchemaSocketService {
         }
     }
 
+    sendCommand(cmd: MetadataCommand) {
+        if (!this.client || !this.subscription) {
+            console.warn("[WS] Нет подключения, команда пропущена");
+            return;
+        }
+        
+        const destination = '/app/schema/' + cmd.schemeId;
+
+        this.client.publish({
+            destination: destination,
+            body: JSON.stringify(cmd)
+        });
+    }
+
     leaveSchema() {
         if (this.subscription) {
             this.subscription.unsubscribe();
@@ -80,6 +95,7 @@ class SchemaSocketService {
         this.subscription = this.client.subscribe(topic, (msg) => {
             if (msg.body) {
                 const event = JSON.parse(msg.body) as SchemaChangedEvent<MetadataCommandProcessResult>;
+                console.log(`Received: ${event}`);
                 this.handleDifference(event);
             }
         });
@@ -98,7 +114,6 @@ class SchemaSocketService {
         });
     }
 
-    // Полное отключение при выходе из приложения/разлогине
     disconnect() {
         this.leaveSchema();
         if (this.client) {

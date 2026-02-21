@@ -28,6 +28,16 @@ class SchemaApiService extends AbstractApiService {
             schemaStore.setLoading(false);
         }
     }
+
+    async fetchSchemaById(id: string): Promise<Schema> {
+        try {
+            const response = await $api.get<Schema>('/schema/' + id);
+            return response.data;
+        } catch (e: any) {
+            this.processApiError(e);
+            throw e;
+        }
+    }
 }
 
 export const schemaApi = new SchemaApiService();

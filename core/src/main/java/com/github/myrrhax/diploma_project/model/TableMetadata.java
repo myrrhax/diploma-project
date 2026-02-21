@@ -1,6 +1,7 @@
 package com.github.myrrhax.diploma_project.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,8 +29,8 @@ public class TableMetadata implements Cloneable {
     @Setter
     private String name;
     private String description;
-    private double xCoord;
-    private double yCoord;
+    private double x;
+    private double y;
 
     @Builder.Default
     private List<UUID> primaryKeyParts = new ArrayList<>();
@@ -119,8 +120,8 @@ public class TableMetadata implements Cloneable {
             clone.setId(id);
             clone.setName(name);
             clone.setDescription(description);
-            clone.setXCoord(xCoord);
-            clone.setYCoord(yCoord);
+            clone.setX(x);
+            clone.setY(y);
             clone.setPrimaryKeyParts(new ArrayList<>(primaryKeyParts));
             clone.setColumns(new LinkedHashMap<>(columns));
             clone.setIndexes(new LinkedHashMap<>(indexes));
@@ -131,15 +132,15 @@ public class TableMetadata implements Cloneable {
         }
     }
 
-    public void setXCoord(Double xCoord) {
+    public void setX(Double xCoord) {
         if (xCoord != null) {
-            this.xCoord = xCoord;
+            this.x = xCoord;
         }
     }
 
-    public void setYCoord(Double yCoord) {
+    public void setY(Double yCoord) {
         if (yCoord != null) {
-            this.yCoord = yCoord;
+            this.y = yCoord;
         }
     }
 

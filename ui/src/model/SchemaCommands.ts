@@ -7,8 +7,8 @@ export interface BaseMetadataCommand {
 export interface AddTableCommand extends BaseMetadataCommand {
     type: 'add-table';
     tableName: string;
-    xCoord: number;
-    yCoord: number;
+    x: number;
+    y: number;
 }
 
 export interface AddColumnCommand extends BaseMetadataCommand {

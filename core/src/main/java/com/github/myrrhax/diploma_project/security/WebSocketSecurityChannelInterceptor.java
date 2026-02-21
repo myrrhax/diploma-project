@@ -51,9 +51,8 @@ public class WebSocketSecurityChannelInterceptor implements ChannelInterceptor {
         if (header != null) {
             if (header.startsWith("Bearer ")) {
                 String stringifyToken = header.substring(7);
-                Token token = tokenProvider.decodeToken(stringifyToken);
 
-                var authToken = new PreAuthenticatedAuthenticationToken(token, "bearer");
+                var authToken = new PreAuthenticatedAuthenticationToken(stringifyToken, "bearer");
                 UserDetails user = tokenDetailsService.loadUserDetails(authToken);
                 accessor.setUser(new PreAuthenticatedAuthenticationToken(user, "bearer", user.getAuthorities()));
             }
@@ -71,9 +70,14 @@ public class WebSocketSecurityChannelInterceptor implements ChannelInterceptor {
             String schemaId = variables.get("id");
             try {
                 UUID parsedId = UUID.fromString(schemaId);
-                TokenUser tokenUser = (TokenUser) accessor.getUser();
+                PreAuthenticatedAuthenticationToken token = (PreAuthenticatedAuthenticationToken) accessor.getUser();
+                if (token == null) {
+                    log.error("Unable to parse user auth data");
+                    throw new MessageDeliveryException("Invalid token");
+                }
 
-                if (Objects.isNull(tokenUser)) {
+                TokenUser tokenUser = (TokenUser) token.getPrincipal();
+                if (tokenUser == null) {
                     throw new MessageDeliveryException("Invalid token");
                 }
 

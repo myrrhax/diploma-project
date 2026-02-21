@@ -61,7 +61,7 @@ public class SecurityConfiguration {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/api/auth/login",
-                                "/api/auth/register", "/api/auth/refresh").permitAll()
+                                "/api/auth/register", "/api/auth/refresh", "/ws/**").permitAll()
                         .requestMatchers(
                                 "/api/auth/confirm",
                                 "/api/auth/resend-code").hasAuthority(JwtAuthority.ROLE_PRE_VERIFIED.name())
