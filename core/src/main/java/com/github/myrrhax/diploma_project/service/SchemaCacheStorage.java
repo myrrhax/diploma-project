@@ -11,6 +11,8 @@ import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -137,9 +139,10 @@ public class SchemaCacheStorage {
         }
     }
 
-    @PreDestroy
+    @EventListener(ContextClosedEvent.class)
     @Transactional
     public void preDestroy() {
+        log.info("Gracefully flushing schemas...");
         for (UUID key : schemaCache.keySet()) {
             VersionDTO version = schemaCache.get(key).currentVersion();
             SchemaStateMetadata state = version.currentState();
@@ -147,6 +150,7 @@ public class SchemaCacheStorage {
                 Lock lock = null;
                 try {
                     lock = state.getLock();
+                    lock.lock();
                     flush(key, false);
                 } finally {
                     if (lock != null) {
