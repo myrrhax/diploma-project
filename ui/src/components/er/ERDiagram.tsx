@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { erStore } from '@/store/ERStore';
 import { TableNode } from './TableNode';
 import { type Table } from '@/model/SchemaElements';
@@ -60,16 +60,18 @@ export const ERDiagram = observer(() => {
         return (<div>Загрузка</div>);
     }
     const containerRef = useRef<HTMLDivElement>(null);
+    const [isPanning, setPanning] = useState(false);
 
     const handleUp = () => { 
-        erStore.draggingTableId = null; 
+        erStore.draggingTableId = null;
+        setPanning(false); 
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
         if (erStore.draggingTableId) {
             erStore.moveTable(erStore.draggingTableId, e.movementX, e.movementY);
         }
-        if (e.buttons === 4) {
+        else if (isPanning || e.buttons === 4) {
             erStore.setPan(e.movementX, e.movementY);
         }
     };
@@ -79,6 +81,16 @@ export const ERDiagram = observer(() => {
     const handleOpenMenu = (screenX: number, screenY: number, relativeX: number, relativeY: number) => {
         erStore.openContextMenu(screenX, screenY, relativeX, relativeY);
     };
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        if (e.button === 0) {
+            setPanning(true);
+        }
+    };
+
+    const handleMouseUp = (_: React.MouseEvent) => {
+        setPanning(false);
+    }
 
     useEffect(() => {
         window.addEventListener('mouseup', handleUp);
@@ -93,6 +105,8 @@ export const ERDiagram = observer(() => {
             ref={containerRef}
             onWheel={(e) => erStore.scale = Math.max(0.3, Math.min(2, erStore.scale + e.deltaY * -0.001))}
             onMouseMove={handleMouseMove}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
             onContextMenu={(e) => {
                 e.preventDefault();
                 const rect = containerRef.current?.getBoundingClientRect();
@@ -100,6 +114,7 @@ export const ERDiagram = observer(() => {
                     handleOpenMenu(e.clientX, e.clientY, e.clientX - rect.left, e.clientY - rect.top);
                 }
             }}
+            style={{ cursor: isPanning ? 'grabbing' : 'default' }}
             onClick={handleCloseMenu}
         >
             <div className="er_viewport" style={{ transform: `translate(${erStore.offsetX}px, ${erStore.offsetY}px) scale(${erStore.scale})` }}>

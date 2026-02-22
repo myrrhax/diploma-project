@@ -1,5 +1,4 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import { v4 as uuidv4 } from "uuid";
 import { type Column, type Reference, type ReferenceKey } from "@/model/SchemaElements";
 import type { Schema, VersionState } from "@/model/SchemaTypes";
 import { type Table } from "@/model/SchemaElements";

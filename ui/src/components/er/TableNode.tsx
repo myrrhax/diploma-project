@@ -22,6 +22,7 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
                 top: table.y,
                 width: erStore.TABLE_WIDTH
             }}
+            onMouseDown={(e) => e.stopPropagation()}
         >
             <div 
                 className="er_table_header"
