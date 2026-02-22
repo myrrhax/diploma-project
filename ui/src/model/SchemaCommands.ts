@@ -16,16 +16,25 @@ export interface AddColumnCommand extends BaseMetadataCommand {
     tableId: string;
     name: string;
     columnType: ColumnType;
+    description: string | null;
     precision: number | null;
     scale: number | null;
     length: number | null;
     defaultValue: string | null;
     constraints: ConstraintType[] | null;
 }
+export interface UpdateTableCommand extends BaseMetadataCommand { 
+    type: 'update-table';
+    tableId: string;
+    newTableName?: string | null;
+    newDescription?: string | null;
+    newPrimaryKeyParts?: string[] | null;
+    x?: number | null;
+    y?: number | null;
+ }
 
 export interface AddReferenceCommand extends BaseMetadataCommand { type: 'add-ref'; }
 export interface UpdateColumnCommand extends BaseMetadataCommand { type: 'update-column'; /* поля */ }
-export interface UpdateTableCommand extends BaseMetadataCommand { type: 'update-table'; /* поля */ }
 export interface DeleteColumnCommand extends BaseMetadataCommand { type: 'delete-column'; /* поля */ }
 export interface DeleteTableCommand extends BaseMetadataCommand { type: 'delete-table'; /* поля */ }
 export interface DeleteReferenceCommand extends BaseMetadataCommand { type: 'delete-ref'; /* поля */ }

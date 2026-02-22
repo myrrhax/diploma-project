@@ -180,8 +180,13 @@ class ERStore {
 
     updateTableName(id: string, newName: string) {
         const table = this.getTable(id);
-        if (table) {
-            table.name = newName;
+        if (this.schema && table) {
+            schemaSocketService.sendCommand({
+                type: 'update-table',
+                schemeId: this.schema.id,
+                tableId: id,
+                newTableName: newName
+            })
         }
     }
 
