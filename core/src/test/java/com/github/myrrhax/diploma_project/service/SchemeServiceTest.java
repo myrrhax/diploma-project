@@ -196,14 +196,14 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         AddColumnCommand cmd = new AddColumnCommand();
         cmd.setSchemeId(uuid);
         cmd.setTableId(tableId);
-        cmd.setColumnName(ID_COLUMN);
-        cmd.setType(ColumnMetadata.ColumnType.BIGINT);
+        cmd.setName(ID_COLUMN);
+        cmd.setColumnType(ColumnMetadata.ColumnType.BIGINT);
 
         AddColumnCommand cmd2 = new AddColumnCommand();
         cmd2.setSchemeId(uuid);
         cmd2.setTableId(tableId);
-        cmd2.setColumnName(USERNAME_COLUMN);
-        cmd2.setType(ColumnMetadata.ColumnType.VARCHAR);
+        cmd2.setName(USERNAME_COLUMN);
+        cmd2.setColumnType(ColumnMetadata.ColumnType.VARCHAR);
 
         // when
         schemeService.processCommand(cmd);
@@ -835,8 +835,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         AddColumnCommand cmd = new AddColumnCommand();
         cmd.setSchemeId(uuid);
         cmd.setTableId(tableId);
-        cmd.setColumnName(name);
-        cmd.setType(type);
+        cmd.setName(name);
+        cmd.setColumnType(type);
         cmd.setConstraints(constraints);
 
         schemeService.processCommand(cmd);
@@ -847,8 +847,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                                                                ColumnMetadata.ColumnType type) {
         AddColumnCommand colCmd = new AddColumnCommand();
         colCmd.setSchemeId(uuid);
-        colCmd.setColumnName(name);
-        colCmd.setType(type);
+        colCmd.setName(name);
+        colCmd.setColumnType(type);
         var state = schemeService.getScheme(uuid).currentVersion().currentState();
         TableMetadata table = state.getTable(tableName).orElseThrow();
         colCmd.setTableId(table.getId());

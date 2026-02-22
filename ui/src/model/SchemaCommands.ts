@@ -1,4 +1,4 @@
-import type { Column } from "./SchemaElements";
+import type { Column, ColumnType, ConstraintType } from "./SchemaElements";
 
 export interface BaseMetadataCommand {
     schemeId: string;
@@ -14,7 +14,13 @@ export interface AddTableCommand extends BaseMetadataCommand {
 export interface AddColumnCommand extends BaseMetadataCommand {
     type: 'add-column';
     tableId: string;
-    payload?: Column; // Пример поля
+    name: string;
+    columnType: ColumnType;
+    precision: number | null;
+    scale: number | null;
+    length: number | null;
+    defaultValue: string | null;
+    constraints: ConstraintType[] | null;
 }
 
 export interface AddReferenceCommand extends BaseMetadataCommand { type: 'add-ref'; }

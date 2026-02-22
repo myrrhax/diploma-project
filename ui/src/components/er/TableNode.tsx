@@ -1,14 +1,18 @@
 import { observer } from 'mobx-react-lite';
 import { erStore } from '@/store/ERStore';
-import './css/TableNode.css';
 import { type Table } from '@/model/SchemaElements';
+import { useState } from 'react';
+import { AddColumnMenu } from './AddColumnMenu';
+import { TableColumn } from './TableColumn';
+import './css/TableNode.css';
 
 interface TableNodeProps {
     table: Table;
 }
 
 export const TableNode = observer(({ table }: TableNodeProps) => {
-    console.log(`Таблица ${table.name}:`, table);
+    const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
+
     return (
         <div 
             className="er_table_card" 
@@ -16,10 +20,9 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
                 position: 'absolute',
                 left: table.x, 
                 top: table.y,
-                width: erStore.TABLE_WIDTH // Используем константу из стора
+                width: erStore.TABLE_WIDTH
             }}
         >
-            {/* Header */}
             <div 
                 className="er_table_header"
                 onMouseDown={(e) => {
@@ -37,44 +40,22 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
 
             <div className="er_table_separator" />
 
-            {/* Columns */}
             <div className="er_column_list">
-                {Object.values(table.columns).map((col, _) => {
-                    const srcIdx = erStore.selectedSources.findIndex(s => s.colId === col.id);
-                    const tgtIdx = erStore.selectedTargets.findIndex(t => t.colId === col.id);
-                    const isSource = srcIdx !== -1;
-                    const isTarget = tgtIdx !== -1;
-
-                    return (
-                        <div key={col.id} className="er_column_row">
-                            {/* Input Port (Left) */}
-                            <div 
-                                className={`er_port port_left ${isTarget ? 'port_target_active' : ''}`}
-                                onClick={() => erStore.handlePortClick('left', table.id, col.id)}
-                                title="Input (Target)"
-                            >
-                                {isTarget && <span className="port_badge badge_left">{tgtIdx + 1}</span>}
-                            </div>
-
-                            <span className="col_name">{col.name}</span>
-                            
-                            {/* Output Port (Right) */}
-                            <div 
-                                className={`er_port port_right ${isSource ? 'port_source_active' : ''}`}
-                                onClick={() => erStore.handlePortClick('right', table.id, col.id)}
-                                title="Output (Source)"
-                            >
-                                {isSource && <span className="port_badge badge_right">{srcIdx + 1}</span>}
-                            </div>
-                        </div>
-                    );
-                })}
+                {Object.values(table.columns).map((col, _) => (
+                    <TableColumn table={table} col={col} />
+                ))}
             </div>
 
-            {/* Footer */}
-            <button className="er_add_col_btn" onClick={() => erStore.addColumn(table.id)}>
+            <button className="er_add_col_btn" onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}>
                 + Add
             </button>
+
+            {isAddMenuOpen && (
+                <AddColumnMenu 
+                    tableId={table.id} 
+                    onClose={() => setIsAddMenuOpen(false)} 
+                />
+            )}
         </div>
     );
 });

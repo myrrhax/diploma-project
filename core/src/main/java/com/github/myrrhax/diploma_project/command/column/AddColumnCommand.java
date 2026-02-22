@@ -21,9 +21,9 @@ public class AddColumnCommand extends MetadataCommand {
     @NotNull
     private UUID tableId;
     @NotBlank
-    private String columnName;
+    private String name;
     @NotNull
-    private ColumnMetadata.ColumnType type;
+    private ColumnMetadata.ColumnType columnType;
     @Positive
     private Integer precision;
     @Positive
@@ -36,24 +36,29 @@ public class AddColumnCommand extends MetadataCommand {
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
         TableMetadata table = metadata.getTable(tableId).orElseThrow();
-        if (table.containsColumn(columnName)) {
-            throw new RuntimeException("Duplicate column name: " + columnName);
+        if (table.containsColumn(name)) {
+            throw new RuntimeException("Duplicate column name: " + name);
         }
 
         SchemaDifference diff = new SchemaDifference();
         var column = ColumnMetadata.builder()
                 .tableId(tableId)
-                .name(columnName)
-                .type(type)
+                .name(name)
+                .type(columnType)
                 .build();
 
-        if (length == null && (type == ColumnMetadata.ColumnType.CHAR || type == ColumnMetadata.ColumnType.NUMERIC)) {
+        if (length == null && (columnType == ColumnMetadata.ColumnType.CHAR || columnType == ColumnMetadata.ColumnType.NUMERIC)) {
             throw new RuntimeException("Char or numeric columns must have max length");
         }
         column.setLength(length);
-        column.setDefaultValue(defaultValue);
+        if (defaultValue != null) {
+            if (!MetadataTypeUtils.isCompatibleDefaultValue(defaultValue, column, length)) {
+                throw new RuntimeException("Incompatible default value: " + defaultValue);
+            }
+            column.setDefaultValue(defaultValue);
+        }
 
-        if (type == ColumnMetadata.ColumnType.DECIMAL) {
+        if (columnType == ColumnMetadata.ColumnType.DECIMAL) {
             if (precision == null || scale == null) {
                 throw new RuntimeException("Decimal columns must have precision and scale values");
             }

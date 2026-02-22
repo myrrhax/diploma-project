@@ -1,6 +1,6 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { v4 as uuidv4 } from "uuid";
-import { type Reference, type ReferenceKey } from "@/model/SchemaElements";
+import { type Column, type Reference, type ReferenceKey } from "@/model/SchemaElements";
 import type { Schema, VersionState } from "@/model/SchemaTypes";
 import { type Table } from "@/model/SchemaElements";
 import { length, refKeyToString } from "@/utils/UtilFunctions";
@@ -194,18 +194,15 @@ class ERStore {
         }
     }
 
-    addColumn(tableId: string) {
+    addColumn(tableId: string, column: Column) {
         const table = this.getTable(tableId);
-        if (table) {
-            const newColId = uuidv4().toString();
-            table.columns[newColId] = {
-                id: newColId,
-                name: `field_${Math.floor(Math.random() * 1000)}`,
-                description: '',
-                type: 'VARCHAR',
-                additions: []
-            };
-            // ToDo: Отправить 'add-column' на бэкенд
+        if (this.schema && table) {
+           schemaSocketService.sendCommand({
+                type: 'add-column',
+                tableId: table.id,
+                schemeId: this.schema.id,
+                ...column
+           }) 
         }
     }
 

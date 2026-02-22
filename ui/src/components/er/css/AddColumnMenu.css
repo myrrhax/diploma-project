@@ -1,0 +1,84 @@
+.er_add_column_menu__container {
+    position: absolute;
+    top: 50%;
+    margin-top: 8px;
+    width: 250px;
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 12px;
+    z-index: 1000;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.add_column_title {
+    margin: 0 0 12px 0;
+    color: white;
+}
+
+.er_add_column_menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.col_input,
+.col_type_select,
+.col_length_input {
+    padding: 6px;
+    border-radius: 4px;
+}
+
+.col_decimal_input {
+    display: flex;
+    gap: 8px;
+}
+
+.col_precision_input,
+.col_scale_input {
+    padding: 6px;
+    border-radius: 4px;
+    width: 50%;
+}
+
+.col_default_container {
+    display: flex;
+    gap: 8px;
+}
+
+.col_default_input {
+    padding: 6px;
+    border-radius: 4px;
+    flex: 1;
+}
+
+.add_col_constraint_container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    color: white;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+.add_col_constraint_label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.add_col_btn_container {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.add_col_btn {
+    flex: 1;
+    padding: 6px;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}

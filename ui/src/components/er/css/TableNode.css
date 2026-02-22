@@ -19,7 +19,8 @@
 .er_table_header:active { cursor: grabbing; }
 
 .er_table_name_input {
-  width: 100%;
+  width: 80%;
+  padding: 5px;
   background: transparent;
   border: none;
   color: white;
@@ -40,69 +41,6 @@
   padding: 4px 0;
   min-height: 20px;
 }
-
-.er_column_row {
-  position: relative;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.col_name { font-size: 13px; color: #374151; }
-
-/* --- PORTS --- */
-/* Базовый стиль (серый) */
-.er_port {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  background: #d1d5db; 
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 0 2px rgba(0,0,0,0.2);
-  transition: all 0.2s;
-  z-index: 20;
-}
-.er_port:hover { transform: scale(1.2); }
-.port_left { left: -6px; }
-.port_right { right: -6px; }
-
-/* Активные состояния (переопределяют базовый фон) */
-.port_source_active {
-  background: #2563eb; /* Синий для выхода */
-  transform: scale(1.4); 
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-  z-index: 25;
-}
-
-.port_target_active {
-  background: #f59e0b; /* Оранжевый для входа */
-  transform: scale(1.4); 
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
-  z-index: 25;
-}
-
-/* Бейджики с номерами */
-.port_badge {
-  position: absolute;
-  top: -14px;
-  color: white;
-  font-size: 9px;
-  font-weight: bold;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 30;
-}
-.badge_right { right: -8px; background: #2563eb; }
-.badge_left { left: -8px; background: #f59e0b; }
 
 .er_add_col_btn {
   width: 100%;

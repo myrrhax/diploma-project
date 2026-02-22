@@ -12,14 +12,14 @@ export interface Table {
 export interface Column {
     id: string;
     name: string;
-    description?: string;
-    type: ColumnType;
-    defaultValue?: string;
-    precision?: number;
-    scale?: number;
-    length?: number;
-    constraints?: ConstraintType[];
-    additions?: AdditionType[];
+    description: string | null;
+    columnType: ColumnType;
+    defaultValue: string | null;
+    precision: number | null;
+    scale: number | null;
+    length: number | null;
+    constraints: ConstraintType[] | null;
+    autoIncrement: boolean | null;
 }
 
 export interface Index {
