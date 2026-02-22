@@ -28,7 +28,7 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
                 className="er_table_header"
                 onMouseDown={(e) => {
                     e.stopPropagation();
-                    erStore.draggingTableId = table.id;
+                    erStore.setDraggingTable(table.id);
                 }}
             >
                 <input 
@@ -48,7 +48,7 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
             </div>
 
             <button className="er_add_col_btn" onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}>
-                + Add
+                Добавить
             </button>
 
             {isAddMenuOpen && (

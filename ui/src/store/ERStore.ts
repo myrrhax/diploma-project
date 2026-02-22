@@ -17,6 +17,7 @@ class ERStore {
     readonly HEADER_HEIGHT = 42;
     readonly ROW_HEIGHT = 32;
     readonly FOOTER_HEIGHT = 32;
+    readonly MOVE_TICK_MS = 1000;
 
     schemaId: string | null = null;
     schema: Schema | null = null;
@@ -29,7 +30,8 @@ class ERStore {
     scale = 1;
     offsetX = 0;
     offsetY = 0;
-    
+
+    lastTick: number = Date.now();
     draggingTableId: string | null = null;
     
     selectedSources: SelectedPort[] = [];
@@ -195,7 +197,21 @@ class ERStore {
         if (table) {
             table.x += dx / this.scale;
             table.y += dy / this.scale;
+            // Отправка по тику
+            if (this.draggingTableId) {
+                const now = Date.now();
+                if (now - this.lastTick > this.MOVE_TICK_MS) {
+                    this.sendCoords();
+                }
+            }
         }
+    }
+
+    setDraggingTable(tableId: string | null) {
+        if (this.schema && this.draggingTableId && !tableId) { // Отпустил таблицу
+            this.sendCoords();
+        }
+        this.draggingTableId = tableId;
     }
 
     addColumn(tableId: string, column: Column) {
@@ -299,6 +315,19 @@ class ERStore {
 
     allow() {
         this.isAccessDenied = false;
+    }
+
+    private sendCoords() {
+        if (this.draggingTableId && this.schema) {
+            const table = this.state?.tables[this.draggingTableId];
+            schemaSocketService.sendCommand({
+                type: 'update-table',
+                schemeId: this.schema.id,
+                tableId: this.draggingTableId,
+                x: table?.x,
+                y: table?.y
+            });
+        }
     }
 }
 

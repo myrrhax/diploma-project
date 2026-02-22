@@ -63,7 +63,7 @@ export const ERDiagram = observer(() => {
     const [isPanning, setPanning] = useState(false);
 
     const handleUp = () => { 
-        erStore.draggingTableId = null;
+        erStore.setDraggingTable(null);
         setPanning(false); 
     };
 
