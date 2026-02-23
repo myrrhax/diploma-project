@@ -47,7 +47,7 @@ public class AddColumnCommand extends MetadataCommand {
 
         if (table.containsColumn(name)) {
             log.info("Column {} is already present in table {}", name, table.getId());
-            throw new ApplicationException(ErrorMessageKey.COLUMN_DUPLICATE.getKey());
+            throw new ApplicationException(ErrorMessageKey.COLUMN_DUPLICATE.getKey(), name);
         }
 
         SchemaDifference diff = new SchemaDifference();
@@ -59,14 +59,14 @@ public class AddColumnCommand extends MetadataCommand {
 
         if (length == null && (columnType == ColumnMetadata.ColumnType.CHAR || columnType == ColumnMetadata.ColumnType.NUMERIC)) {
             log.info("Processing column of type {} must have length", columnType);
-            throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_LENGTH.getKey());
+            throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_LENGTH.getKey(), name);
         }
         column.setLength(length);
 
         if (defaultValue != null) {
             if (!MetadataTypeUtils.isCompatibleDefaultValue(defaultValue, column, length)) {
                 log.info("Invalid default value for column while processing command");
-                throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_DEFAULT.getKey());
+                throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_DEFAULT.getKey(), name);
             }
             column.setDefaultValue(defaultValue);
         }
@@ -75,7 +75,7 @@ public class AddColumnCommand extends MetadataCommand {
             if (precision == null
                     || scale == null
                     || !MetadataTypeUtils.isCompactibleDecimal(precision, scale, column)) {
-                throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_DECIMAL.getKey());
+                throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_DECIMAL.getKey(), name);
             }
 
             column.setPrecision(precision);

@@ -56,18 +56,28 @@ public class UpdateColumnCommand extends MetadataCommand {
             clone.setType(newColumnType);
         }
         if (newColumnName != null) {
+            if (table.containsColumn(newColumnName)) {
+                throw new ApplicationException(ErrorMessageKey.COLUMN_DUPLICATE.getKey(), newColumnName);
+            }
             clone.setName(newColumnName);
         }
         clone.setDescription(newDescription);
 
-        if (newDefaultValue != null
-                && MetadataTypeUtils.isCompatibleDefaultValue(newDefaultValue, clone, newLength)) {
+        if (newDefaultValue != null) {
+            if (!MetadataTypeUtils.isCompatibleDefaultValue(newDefaultValue, clone, newLength)) {
+                throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_DEFAULT.getKey(), clone.getName());
+            }
             clone.setDefaultValue(newDefaultValue);
+        }
+
+        if (newLength != null) {
             clone.setLength(newLength);
         }
 
-        if (clone.getType() == ColumnMetadata.ColumnType.DECIMAL
-                && MetadataTypeUtils.isCompactibleDecimal(newPrecision, newScale, column)) {
+        if (clone.getType() == ColumnMetadata.ColumnType.DECIMAL) {
+            if (!MetadataTypeUtils.isCompactibleDecimal(newPrecision, newScale, column)) {
+                throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_DECIMAL.getKey(), column.getName());
+            }
             clone.setPrecision(newPrecision);
             clone.setScale(newScale);
         }

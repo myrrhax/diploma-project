@@ -40,7 +40,7 @@ public class UpdateTableCommand extends MetadataCommand {
         clone.setY(y);
         if (newTableName != null) {
             if (metadata.containsTable(newTableName)) {
-                throw new ApplicationException(ErrorMessageKey.TABLE_DUPLICATE.getKey());
+                throw new ApplicationException(ErrorMessageKey.TABLE_DUPLICATE.getKey(), newTableName);
             }
             clone.setName(newTableName);
         }

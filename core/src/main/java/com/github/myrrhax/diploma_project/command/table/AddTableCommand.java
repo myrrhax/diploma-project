@@ -30,7 +30,7 @@ public class AddTableCommand extends MetadataCommand {
     public SchemaDifference execute(SchemaStateMetadata metadata) {
         log.info("Processing AddTableCommand for schema {}", schemeId);
         if (metadata.getTable(tableName).isPresent()) {
-            throw new ApplicationException(ErrorMessageKey.TABLE_DUPLICATE.getKey());
+            throw new ApplicationException(ErrorMessageKey.TABLE_DUPLICATE.getKey(), tableName);
         }
 
         TableMetadata table = TableMetadata.builder()

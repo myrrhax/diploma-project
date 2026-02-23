@@ -137,9 +137,13 @@ public class ColumnMetadata implements Cloneable {
     public void setLength(Integer length) {
         if (this.length == null) {
             this.length = length;
+            return;
         }
 
-        if (length != null && MetadataTypeUtils.isCompactibleLengthLimitedType(this, length, defaultValue)) {
+        if (length != null) {
+            if (!MetadataTypeUtils.isCompactibleLengthLimitedType(this, length, defaultValue)) {
+                throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_LENGTH.getKey(), name);
+            }
             this.length = length;
         }
     }
