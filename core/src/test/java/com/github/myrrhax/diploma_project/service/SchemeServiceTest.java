@@ -193,12 +193,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         var state = scheme.currentVersion().currentState();
         UUID tableId = state.getTable(TABLE_NAME).orElseThrow().getId();
 
-        AddColumnCommand cmd = new AddColumnCommand();
-        cmd.setSchemeId(uuid);
-        cmd.setTableId(tableId);
-        cmd.setName(ID_COLUMN);
-        cmd.setColumnType(ColumnMetadata.ColumnType.BIGINT);
-
         AddColumnCommand cmd2 = new AddColumnCommand();
         cmd2.setSchemeId(uuid);
         cmd2.setTableId(tableId);
@@ -206,7 +200,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd2.setColumnType(ColumnMetadata.ColumnType.VARCHAR);
 
         // when
-        schemeService.processCommand(cmd);
         schemeService.processCommand(cmd2);
 
         // then
@@ -220,7 +213,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         assertThat(table.getColumn(ID_COLUMN)).isPresent();
 
         var idColumn = table.getColumn(ID_COLUMN).orElseThrow();
-        assertThat(idColumn.getType()).isEqualTo(ColumnMetadata.ColumnType.BIGINT);
+        assertThat(idColumn.getType()).isEqualTo(ColumnMetadata.ColumnType.INT);
 
         var usernameColumn = table.getColumn(USERNAME_COLUMN);
         assertThat(usernameColumn).isPresent();
@@ -247,10 +240,9 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     public void givenSchemaWithTableAndColumns_whenColumnWithDuplicateName_thenThrowsException() {
         // given
         performAddTable(TABLE_NAME);
-        performAddColumnAndGetTable(TABLE_NAME, ID_COLUMN, ColumnMetadata.ColumnType.BIGINT);
 
         // when & then
-        assertThrows(Exception.class, () -> performAddColumnAndGetTable(TABLE_NAME, ID_COLUMN, ColumnMetadata.ColumnType.BIGINT));
+        assertThrows(Exception.class, () -> performAddColumnAndGetTable(TABLE_NAME, ID_COLUMN, ColumnMetadata.ColumnType.INT));
     }
 
     @Test
@@ -285,9 +277,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Delete column (Success)")
     public void givenSchemaWithColumn_whenPerformDeleteWithValidUUID_thenSuccess() {
         // given
-        performAddTable(TABLE_NAME);
-        TableMetadata table = performAddColumnAndGetTable(TABLE_NAME, ID_COLUMN, ColumnMetadata.ColumnType.BIGINT);
-
+        TableMetadata table = performAddTable(TABLE_NAME);
         DeleteColumnCommand colDeleteCmd = new DeleteColumnCommand();
         colDeleteCmd.setSchemeId(uuid);
         colDeleteCmd.setTableId(table.getId());
@@ -318,8 +308,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Update table (Success)")
     public void givenTable_whenRename_thenSuccess() {
         // given
-        performAddTable(TABLE_NAME);
-        var table = performAddColumnAndGetTable(TABLE_NAME, ID_COLUMN, ColumnMetadata.ColumnType.BIGINT);
+        var table = performAddTable(TABLE_NAME);
         var cmd = new UpdateTableCommand();
         cmd.setSchemeId(uuid);
         cmd.setTableId(table.getId());
@@ -350,8 +339,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Update table (Set pk part)")
     public void givenUpdateTableCommand_whenSetPrimaryKeyPartWithValidColumn_thenSuccess() throws Exception {
         // given
-        performAddTable(TABLE_NAME);
-        TableMetadata table = performAddColumnAndGetTable(TABLE_NAME, ID_COLUMN, ColumnMetadata.ColumnType.BIGINT);
+        TableMetadata table = performAddTable(TABLE_NAME);
         var column = table.getColumn(ID_COLUMN).orElseThrow();
 
         UpdateTableCommand cmd = new UpdateTableCommand();
@@ -374,15 +362,13 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Update table (Throws when pk part is not found)")
     public void givenUpdateTableCommandAndInvalidColumnId_whenExecuteCommand_thenThrows() {
         // given
-        performAddTable(TABLE_NAME);
-        TableMetadata table = performAddColumnAndGetTable(TABLE_NAME, ID_COLUMN, ColumnMetadata.ColumnType.BIGINT);
+        TableMetadata table = performAddTable(TABLE_NAME);
         UpdateTableCommand cmd = new UpdateTableCommand();
         cmd.setSchemeId(uuid);
         cmd.setTableId(table.getId());
         cmd.setNewPrimaryKeyParts(List.of(UUID.randomUUID()));
         // when & then
         assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
-        assertThat(table.getPrimaryKeyParts().size()).isEqualTo(0);
     }
 
     @Test
@@ -392,22 +378,11 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddTable(USERS_TABLE);
         var state = schemeService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
-        performAddColumn(usersTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList());
-        UpdateTableCommand cmd = new UpdateTableCommand();
-        cmd.setSchemeId(uuid);
-        cmd.setTableId(usersTable.getId());
-        ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
-        cmd.setNewPrimaryKeyParts(List.of(idColumn.getId()));
-        schemeService.processCommand(cmd);
-
         performAddTable(USER_PROFILE_TABLE);
         TableMetadata profileTable = state.getTable(USER_PROFILE_TABLE).orElseThrow();
         performAddColumn(profileTable.getId(),
                 "user_id",
-                ColumnMetadata.ColumnType.BIGINT,
+                ColumnMetadata.ColumnType.INT,
                 List.of(ColumnMetadata.ConstraintType.NOT_NULL));
         ColumnMetadata userIdColumn = profileTable.getColumn("user_id").orElseThrow();
 
@@ -417,7 +392,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 .fromTableId(profileTable.getId())
                 .toTableId(usersTable.getId())
                 .fromColumns(new UUID[] { userIdColumn.getId() })
-                .toColumns(new UUID[] { idColumn.getId() })
+                .toColumns(new UUID[] { usersTable.getColumn(ID_COLUMN).orElseThrow().getId() })
                 .build());
         addRefCmd.setReferenceType(ReferenceMetadata.ReferenceType.ONE_TO_ONE);
         // when
@@ -430,15 +405,11 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Command: Add reference (Throws on invalid)")
-    public void givenTwoTablesWithoutPKAndCreateReferenceCommand_whenExecute_thenThrows() {
+    public void givenTwoTablesWithDifferentTypesAndCreateReferenceCommand_whenExecute_thenThrows() {
         // given
         performAddTable(USERS_TABLE);
         var state = schemeService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
-        performAddColumn(usersTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
 
         performAddTable(USER_PROFILE_TABLE);
@@ -468,23 +439,13 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddTable(USERS_TABLE);
         var state = schemeService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
-        performAddColumn(usersTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
-        setPk(uuid, usersTable, List.of(idColumn));
 
         performAddTable(COURSE_TABLE);
         TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
         performAddColumn(courseTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.NOT_NULL));
-        ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
-        performAddColumn(courseTable.getId(),
                 "author_id",
-                ColumnMetadata.ColumnType.BIGINT,
+                ColumnMetadata.ColumnType.INT,
                 List.of(ColumnMetadata.ConstraintType.NOT_NULL));
         ColumnMetadata authorIdCol = courseTable.getColumn("author_id").orElseThrow();
 
@@ -515,23 +476,14 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddTable(USERS_TABLE);
         var state = schemeService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
-        performAddColumn(usersTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
-        setPk(uuid, usersTable, List.of(idColumn));
 
         performAddTable(COURSE_TABLE);
         TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
-        performAddColumn(courseTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.NOT_NULL));
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
         performAddColumn(courseTable.getId(),
                 "author_id",
-                ColumnMetadata.ColumnType.BIGINT,
+                ColumnMetadata.ColumnType.INT,
                 List.of(ColumnMetadata.ConstraintType.NOT_NULL));
         ColumnMetadata authorIdCol = courseTable.getColumn("author_id").orElseThrow();
 
@@ -562,21 +514,11 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddTable(USERS_TABLE);
         var state = schemeService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
-        performAddColumn(usersTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
-        setPk(uuid, usersTable, List.of(idColumn));
 
         performAddTable(COURSE_TABLE);
         TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
-        performAddColumn(courseTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.NOT_NULL));
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
-        setPk(uuid, courseTable, List.of(courseIdCol));
 
         ReferenceMetadata.ReferenceKey key = ReferenceMetadata.ReferenceKey.builder()
                 .fromTableId(usersTable.getId())
@@ -606,18 +548,9 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddTable(USERS_TABLE);
         var state = schemeService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
-        performAddColumn(usersTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.UNIQUE));
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
-
         performAddTable(COURSE_TABLE);
         TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
-        performAddColumn(courseTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList());
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
 
         AddReferenceCommand cmd = new AddReferenceCommand();
@@ -642,12 +575,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         var state = schemeService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
         performAddColumn(usersTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.UNIQUE));
-        performAddColumn(usersTable.getId(),
                 "sec_id",
-                ColumnMetadata.ColumnType.BIGINT,
+                ColumnMetadata.ColumnType.INT,
                 Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata secIdColumn = usersTable.getColumn("sec_id").orElseThrow();
@@ -656,12 +585,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         performAddTable(COURSE_TABLE);
         TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
         performAddColumn(courseTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList());
-        performAddColumn(courseTable.getId(),
                 "sec_id",
-                ColumnMetadata.ColumnType.BIGINT,
+                ColumnMetadata.ColumnType.INT,
                 Collections.emptyList());
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata courseSecIdCol = courseTable.getColumn("sec_id").orElseThrow();
@@ -689,23 +614,14 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         var state = schemeService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
         performAddColumn(usersTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.UNIQUE));
-        performAddColumn(usersTable.getId(),
                 "sec_id",
-                ColumnMetadata.ColumnType.BIGINT,
+                ColumnMetadata.ColumnType.INT,
                 Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata secIdColumn = usersTable.getColumn("sec_id").orElseThrow();
-        setPk(uuid, usersTable, List.of(idColumn, secIdColumn));
 
         performAddTable(COURSE_TABLE);
         TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
-        performAddColumn(courseTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList());
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
 
         AddReferenceCommand cmd = new AddReferenceCommand();
@@ -728,30 +644,20 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         var state = schemeService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
         performAddColumn(usersTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.UNIQUE));
-        performAddColumn(usersTable.getId(),
                 "sec_id",
-                ColumnMetadata.ColumnType.BIGINT,
+                ColumnMetadata.ColumnType.INT,
                 Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata secIdColumn = usersTable.getColumn("sec_id").orElseThrow();
-        setPk(uuid, usersTable, List.of(idColumn, secIdColumn));
 
         performAddTable(COURSE_TABLE);
         TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
         performAddColumn(courseTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList());
-        performAddColumn(courseTable.getId(),
                 "sec_id",
-                ColumnMetadata.ColumnType.BIGINT,
+                ColumnMetadata.ColumnType.INT,
                 Collections.emptyList());
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata courseSecIdCol = courseTable.getColumn("sec_id").orElseThrow();
-        setPk(uuid, courseTable, List.of(courseIdCol, courseSecIdCol));
 
         AddReferenceCommand cmd = new AddReferenceCommand();
         cmd.setSchemeId(uuid);
@@ -773,26 +679,17 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         var state = schemeService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
         performAddColumn(usersTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                List.of(ColumnMetadata.ConstraintType.UNIQUE));
-        performAddColumn(usersTable.getId(),
                 "sec_id",
-                ColumnMetadata.ColumnType.BIGINT,
+                ColumnMetadata.ColumnType.INT,
                 Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata secIdColumn = usersTable.getColumn("sec_id").orElseThrow();
-        setPk(uuid, usersTable, List.of(idColumn));
 
         performAddTable(COURSE_TABLE);
         TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
         performAddColumn(courseTable.getId(),
-                ID_COLUMN,
-                ColumnMetadata.ColumnType.BIGINT,
-                Collections.emptyList());
-        performAddColumn(courseTable.getId(),
                 "sec_id",
-                ColumnMetadata.ColumnType.BIGINT,
+                ColumnMetadata.ColumnType.INT,
                 Collections.emptyList());
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata courseSecIdCol = courseTable.getColumn("sec_id").orElseThrow();
@@ -808,7 +705,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 .toColumns(new UUID[] { idColumn.getId(), secIdColumn.getId() })
                 .build());
         // when & then
-        assertThrows(Exception.class, () ->schemeService.processCommand(cmd));
+        assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
     }
 
     private void setPk(UUID schemeId, TableMetadata table, List<ColumnMetadata> columns) {
@@ -819,13 +716,15 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         schemeService.processCommand(cmd);
     }
 
-    private void performAddTable(String tableName) {
+    private TableMetadata performAddTable(String tableName) {
         AddTableCommand cmd = new AddTableCommand();
         cmd.setSchemeId(uuid);
         cmd.setTableName(tableName);
         cmd.setX(0d);
         cmd.setY(0d);
         schemeService.processCommand(cmd);
+        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        return state.getTable(tableName).orElseThrow();
     }
 
     private void performAddColumn(UUID tableId,
