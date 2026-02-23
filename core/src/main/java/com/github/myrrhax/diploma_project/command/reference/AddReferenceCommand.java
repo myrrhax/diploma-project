@@ -4,13 +4,17 @@ import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
+import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
 
+@Slf4j
 @Getter
 @Setter
 public class AddReferenceCommand extends MetadataCommand {
@@ -24,15 +28,21 @@ public class AddReferenceCommand extends MetadataCommand {
 
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
-        Objects.requireNonNull(referenceKey.getFromTableId());
-        Objects.requireNonNull(referenceKey.getToTableId());
-        Objects.requireNonNull(referenceKey.getFromColumns());
-        Objects.requireNonNull(referenceKey.getToColumns());
+        log.info("Processing add reference command for schema: {}", schemeId);
+        try {
+            Objects.requireNonNull(referenceKey.getFromTableId());
+            Objects.requireNonNull(referenceKey.getToTableId());
+            Objects.requireNonNull(referenceKey.getFromColumns());
+            Objects.requireNonNull(referenceKey.getToColumns());
+        } catch (Exception e) {
+            throw new ApplicationException(ErrorMessageKey.REFERENCE_INVALID_KEY.getKey());
+        }
+
 
         if (referenceKey.getFromColumns().length != referenceKey.getToColumns().length
             || !MetadataTypeUtils.isRefValid(metadata, referenceKey, referenceType)
         ) {
-            throw new RuntimeException("Invalid reference");
+            throw new ApplicationException(ErrorMessageKey.REFERENCE_INVALID_REF.getKey());
         }
 
         ReferenceMetadata reference = ReferenceMetadata.builder()
@@ -42,6 +52,7 @@ public class AddReferenceCommand extends MetadataCommand {
                 .onUpdateAction(updateAction == null ? ReferenceMetadata.OnUpdateAction.NO_ACTION : updateAction)
                 .build();
         metadata.addReference(reference);
+        log.info("New reference was added to schema {}", schemeId);
         SchemaDifference diff = new SchemaDifference();
         diff.upsertReference(reference);
 

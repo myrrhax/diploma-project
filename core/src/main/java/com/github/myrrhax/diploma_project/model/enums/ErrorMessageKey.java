@@ -13,7 +13,9 @@ public enum ErrorMessageKey {
     COLUMN_BLANK_NAME("error.column.blank-name"),
     COLUMN_INVALID_AUTOINCREMENT_TYPE("error.column.invalid-autoincrement-type"),
     COLUMN_DUPLICATE_AUTOINCREMENT("error.column.duplicate-autoincrement"),
-    COLUMN_INVALID_AUTOINCREMENT("error.column.invalid-autoincrement");
+    COLUMN_INVALID_AUTOINCREMENT("error.column.invalid-autoincrement"),
+    REFERENCE_INVALID_KEY("error.reference.invalid-key"),
+    REFERENCE_INVALID_REF("error.reference.invalid-ref"),;
 
     private final String key;
 
