@@ -24,12 +24,10 @@ export const AddColumnMenu = observer(({ tableId, onClose }: AddColumnMenuProps)
     const [defaultValue, setDefaultValue] = useState<string | null>(null);
     const [isNotNull, setIsNotNull] = useState(false);
     const [isUnique, setIsUnique] = useState(false);
-    const [autoIncrement, setAutoIncrement] = useState(false);
 
     const hasLength = ['CHAR', 'VARCHAR', 'NUMERIC'].includes(type);
     const hasPrecisionScale = type === 'DECIMAL';
     const isDateType = ['DATE', 'TIME', 'TIMESTAMP', 'DATETIME'].includes(type);
-    const isAutoIncrementable = ['SMALLINT', 'INT', 'BIGINT'].includes(type);
 
     const handleSave = () => {
         if (!name.trim()) {
@@ -46,8 +44,8 @@ export const AddColumnMenu = observer(({ tableId, onClose }: AddColumnMenuProps)
             name: name.trim(),
             columnType: type,
             constraints: constraints,
-            autoIncrement: autoIncrement,
             defaultValue: defaultValue,
+            autoIncrement: null,
             length: hasLength && length !== '' ? Number(length) : null,
             precision: hasPrecisionScale && precision !== '' ? Number(precision) : null,
             scale: hasPrecisionScale && scale !== '' ? Number(scale) : null,
