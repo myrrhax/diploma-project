@@ -15,7 +15,8 @@ public enum ErrorMessageKey {
     COLUMN_DUPLICATE_AUTOINCREMENT("error.column.duplicate-autoincrement"),
     COLUMN_INVALID_AUTOINCREMENT("error.column.invalid-autoincrement"),
     REFERENCE_INVALID_KEY("error.reference.invalid-key"),
-    REFERENCE_INVALID_REF("error.reference.invalid-ref"),;
+    REFERENCE_INVALID_REF("error.reference.invalid-ref"),
+    REFERENCE_NOT_FOUND("error.reference.notfound"),;
 
     private final String key;
 
