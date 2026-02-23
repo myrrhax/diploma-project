@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Collections;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -61,7 +62,7 @@ public class GlobalExceptionHandler {
     @SendToUser("/queue/errors")
     public ErrorResponseDTO handleApplicationException(ApplicationException ex) {
         log.error("An application error occurred while processing websocket command: {}", ex.getMessage());
-        String message = messageSource.getMessage(ex.getMessage(), ex.getArgs(), null);
+        String message = messageSource.getMessage(ex.getMessage(), ex.getArgs(), Locale.getDefault());
 
         return new ErrorResponseDTO(message, Collections.emptyMap());
     }
