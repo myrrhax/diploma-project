@@ -5,6 +5,7 @@ import lombok.Getter;
 @Getter
 public enum ErrorMessageKey {
     TABLE_NOT_FOUND("error.table.notfound"),
+    TABLE_DUPLICATE("error.table.duplicate"),
     COLUMN_DUPLICATE("error.column.duplicate"),
     COLUMN_NOT_FOUND("error.column.notfound"),
     COLUMN_INVALID_LENGTH("error.column.invalid-length"),

@@ -5,6 +5,8 @@ import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
+import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -26,8 +28,9 @@ public class AddTableCommand extends MetadataCommand {
 
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
+        log.info("Processing AddTableCommand for schema {}", schemeId);
         if (metadata.getTable(tableName).isPresent()) {
-            throw new RuntimeException("Table already exists");
+            throw new ApplicationException(ErrorMessageKey.TABLE_DUPLICATE.getKey());
         }
 
         TableMetadata table = TableMetadata.builder()
@@ -36,15 +39,17 @@ public class AddTableCommand extends MetadataCommand {
                 .y(y)
                 .build();
         metadata.addTable(table);
+        log.info("Table {} was added to schema {}", tableName, schemeId);
+
         var defaultColumn = ColumnMetadata.builder()
                 .tableId(table.getId())
                 .type(ColumnMetadata.ColumnType.INT)
                 .name(DEFAULT_ID_COL)
                 .autoIncrement(true)
                 .build();
-
         table.addColumn(defaultColumn);
         table.getPrimaryKeyParts().add(defaultColumn.getId());
+        log.info("Default PK {} was added to table {} of schema {}", DEFAULT_ID_COL, tableName, schemeId);
 
         SchemaDifference diff = new SchemaDifference();
         diff.upsertTable(table);
