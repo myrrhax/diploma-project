@@ -39,9 +39,9 @@ public class AddColumnCommand extends MetadataCommand {
 
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
-        log.info("Processing AddColumnCommand for schema {}", metadata.getSchemaId());
+        log.info("Processing AddColumnCommand for schema {}", schemeId);
         TableMetadata table = metadata.getTable(tableId).orElseThrow(() -> {
-            log.info("Table {} for schema {} not found", tableId, metadata.getSchemaId());
+            log.info("Table {} for schema {} not found", tableId, schemeId);
             return new ApplicationException(ErrorMessageKey.TABLE_NOT_FOUND.getKey());
         });
 
