@@ -274,7 +274,7 @@ class ERStore {
     }
 
     createMultiRelation() {
-        if (!this.state) return;
+        if (!this.state || !this.schema) return;
 
         const sourceTableId = this.selectedSources[0].tableId;
         const targetTableId = this.selectedTargets[0].tableId;
@@ -292,11 +292,12 @@ class ERStore {
         const existingRel = this.state.references[refKeyStr];
 
         if (!existingRel) {
-            this.state.references[refKeyStr] = {
-                key: key,
-                type: 'MANY_TO_ONE'
-            };
-            // ToDo: Отправить 'add-reference' на бэкенд
+            schemaSocketService.sendCommand({
+                schemeId: this.schema?.id,
+                type: 'add-ref',
+                referenceKey: key,
+                referenceType: 'MANY_TO_ONE'
+            })
         }
 
         this.selectedSources = [];

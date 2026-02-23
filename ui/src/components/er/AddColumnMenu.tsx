@@ -21,7 +21,7 @@ export const AddColumnMenu = observer(({ tableId, onClose }: AddColumnMenuProps)
     const [length, setLength] = useState<number | ''>('');
     const [precision, setPrecision] = useState<number | ''>('');
     const [scale, setScale] = useState<number | ''>('');
-    const [defaultValue, setDefaultValue] = useState('');
+    const [defaultValue, setDefaultValue] = useState<string | null>(null);
     const [isNotNull, setIsNotNull] = useState(false);
     const [isUnique, setIsUnique] = useState(false);
     const [autoIncrement, setAutoIncrement] = useState(false);
@@ -114,7 +114,7 @@ export const AddColumnMenu = observer(({ tableId, onClose }: AddColumnMenuProps)
                     <div className='col_default_container'>
                         <input 
                             placeholder="По умолчанию" 
-                            value={defaultValue} 
+                            value={defaultValue ?? ''} 
                             onChange={e => setDefaultValue(e.target.value)}
                             className='col_default_input'
                         />
@@ -138,17 +138,6 @@ export const AddColumnMenu = observer(({ tableId, onClose }: AddColumnMenuProps)
                     <label className='add_col_constraint_label'>
                         <input type="checkbox" checked={isUnique} onChange={e => setIsUnique(e.target.checked)} />
                         UNIQUE
-                    </label>
-                    <label className='add_col_constraint_label'>
-                        <input 
-                            type='checkbox' 
-                            checked={autoIncrement} 
-                            onChange={e => setAutoIncrement(e.target.checked)} 
-                            disabled={!isAutoIncrementable} 
-                        />
-                        <span style={{ opacity: isAutoIncrementable ? 1 : 0.5 }}>
-                            Автоинкремент
-                        </span>
                     </label>
                 </div>
 

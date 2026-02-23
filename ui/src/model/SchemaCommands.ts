@@ -1,4 +1,4 @@
-import type { ColumnType, ConstraintType } from "./SchemaElements";
+import type { ColumnType, ConstraintType, OnDeleteAction, OnUpdateAction, ReferenceKey, ReferenceType } from "./SchemaElements";
 
 export interface BaseMetadataCommand {
     schemeId: string;
@@ -33,7 +33,11 @@ export interface UpdateTableCommand extends BaseMetadataCommand {
     y?: number | null;
  }
 
-export interface AddReferenceCommand extends BaseMetadataCommand { type: 'add-ref'; }
+export interface AddReferenceCommand extends BaseMetadataCommand {
+    type: 'add-ref';
+    referenceKey: ReferenceKey;
+    referenceType: ReferenceType;
+}
 export interface UpdateColumnCommand extends BaseMetadataCommand { type: 'update-column'; /* поля */ }
 export interface DeleteColumnCommand extends BaseMetadataCommand { type: 'delete-column'; /* поля */ }
 export interface DeleteTableCommand extends BaseMetadataCommand { type: 'delete-table'; /* поля */ }
