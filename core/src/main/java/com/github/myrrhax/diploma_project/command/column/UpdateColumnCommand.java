@@ -5,15 +5,19 @@ import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
+import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Getter
 @Setter
 public class UpdateColumnCommand extends MetadataCommand {
@@ -24,6 +28,7 @@ public class UpdateColumnCommand extends MetadataCommand {
     private String newColumnName;
     private String newDefaultValue;
     private String newDescription;
+    private ColumnMetadata.ColumnType newColumnType;
     @Positive
     private Integer newPrecision;
     @Positive
@@ -35,14 +40,26 @@ public class UpdateColumnCommand extends MetadataCommand {
 
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
-        TableMetadata table = metadata.getTable(tableId).orElseThrow();
-        ColumnMetadata column = table.getColumn(columnId).orElseThrow();
-        ColumnMetadata clone = column.clone();
+        log.info("Processing UpdateColumnCommand for schema {}", schemeId);
+        TableMetadata table = metadata.getTable(tableId).orElseThrow(() -> {
+            log.info("Table {} not found in schema {}", tableId, schemeId);
+            return new ApplicationException(ErrorMessageKey.TABLE_NOT_FOUND.getKey());
+        });
+        ColumnMetadata column = table.getColumn(columnId).orElseThrow(() -> {
+            log.info("Column {} not found in table {}", columnId, tableId);
+            return new ApplicationException(ErrorMessageKey.COLUMN_NOT_FOUND.getKey());
+        });
+        ColumnMetadata.ColumnType oldType = column.getType();
 
+        ColumnMetadata clone = column.clone();
+        if (newColumnType != null && newColumnType != oldType) {
+            clone.setType(newColumnType);
+        }
         if (newColumnName != null) {
             clone.setName(newColumnName);
         }
         clone.setDescription(newDescription);
+
         if (newDefaultValue != null
                 && MetadataTypeUtils.isCompatibleDefaultValue(newDefaultValue, clone, newLength)) {
             clone.setDefaultValue(newDefaultValue);
@@ -54,22 +71,26 @@ public class UpdateColumnCommand extends MetadataCommand {
             clone.setPrecision(newPrecision);
             clone.setScale(newScale);
         }
+
         if (constraints != null) {
             clone.setConstraints(constraints);
         }
+
         clone.setAutoIncrement(autoIncrement);
         table.updateColumn(clone);
 
+        log.info("Column {} was updated for table {}", columnId, tableId);
         SchemaDifference diff = new SchemaDifference();
         diff.upsertColumn(clone);
 
-        // Ограничение уникальности было убрано
-        if (!clone.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)
-                && column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)) {
+        if (newColumnType != null && newColumnType != oldType) { // Тип изменен
+            metadata.deleteHangingReferences(column, true);
+        } else if (!clone.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)
+                && column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)) { // Ограничение уникальности было убрано
             SchemaDifference refDiff = metadata.deleteHangingReferences(clone, false);
             diff.applyDifference(refDiff);
         }
-
+        log.info("Hanging references was deleted from column {}", columnId);
         return diff;
     }
 }

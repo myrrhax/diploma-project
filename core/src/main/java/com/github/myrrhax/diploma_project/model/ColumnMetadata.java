@@ -1,6 +1,8 @@
 package com.github.myrrhax.diploma_project.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -72,7 +74,7 @@ public class ColumnMetadata implements Cloneable {
     public void setName(String name) {
         if (name != null) {
             if (name.isBlank()) {
-                throw new RuntimeException("Column name must not be blank");
+                throw new ApplicationException(ErrorMessageKey.COLUMN_BLANK_NAME.getKey());
             }
             this.name = name;
         }
@@ -115,17 +117,17 @@ public class ColumnMetadata implements Cloneable {
         }
         if (autoIncrement != null) {
             if (autoIncrement && !MetadataTypeUtils.isValidAutoincrement(this)) {
-                throw new RuntimeException("Column auto increment is invalid");
+                throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_AUTOINCREMENT_TYPE.getKey());
             }
             if (table.getColumns().values().stream()
                     .anyMatch(ColumnMetadata::getAutoIncrement)) {
-                throw new RuntimeException("Table already has autoincrement column");
+                throw new ApplicationException(ErrorMessageKey.COLUMN_DUPLICATE_AUTOINCREMENT.getKey());
             }
 
             if (!constraints.contains(ConstraintType.UNIQUE)
                     && (table.getPrimaryKeyParts().size() != 1
                             || !table.getPrimaryKeyParts().contains(this.getId()))) {
-                throw new RuntimeException("Column must be unique or be full primary key");
+                throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_AUTOINCREMENT.getKey());
             }
 
             this.autoIncrement = autoIncrement;
