@@ -5,16 +5,20 @@ import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
+import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Getter
 @Setter
 public class AddColumnCommand extends MetadataCommand {
@@ -35,9 +39,15 @@ public class AddColumnCommand extends MetadataCommand {
 
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
-        TableMetadata table = metadata.getTable(tableId).orElseThrow();
+        log.info("Processing AddColumnCommand for schema {}", metadata.getSchemaId());
+        TableMetadata table = metadata.getTable(tableId).orElseThrow(() -> {
+            log.info("Table {} for schema {} not found", tableId, metadata.getSchemaId());
+            return new ApplicationException(ErrorMessageKey.TABLE_NOT_FOUND.getKey());
+        });
+
         if (table.containsColumn(name)) {
-            throw new RuntimeException("Duplicate column name: " + name);
+            log.info("Column {} is already present in table {}", name, table.getId());
+            throw new ApplicationException(ErrorMessageKey.COLUMN_DUPLICATE.getKey());
         }
 
         SchemaDifference diff = new SchemaDifference();
@@ -48,22 +58,24 @@ public class AddColumnCommand extends MetadataCommand {
                 .build();
 
         if (length == null && (columnType == ColumnMetadata.ColumnType.CHAR || columnType == ColumnMetadata.ColumnType.NUMERIC)) {
-            throw new RuntimeException("Char or numeric columns must have max length");
+            log.info("Processing column of type {} must have length", columnType);
+            throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_LENGTH.getKey());
         }
         column.setLength(length);
+
         if (defaultValue != null) {
             if (!MetadataTypeUtils.isCompatibleDefaultValue(defaultValue, column, length)) {
-                throw new RuntimeException("Incompatible default value: " + defaultValue);
+                log.info("Invalid default value for column while processing command");
+                throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_DEFAULT.getKey());
             }
             column.setDefaultValue(defaultValue);
         }
 
         if (columnType == ColumnMetadata.ColumnType.DECIMAL) {
-            if (precision == null || scale == null) {
-                throw new RuntimeException("Decimal columns must have precision and scale values");
-            }
-            if (!MetadataTypeUtils.isCompactibleDecimal(precision, scale, column)) {
-                throw new RuntimeException("Decimal columns must have precision and scale values");
+            if (precision == null
+                    || scale == null
+                    || !MetadataTypeUtils.isCompactibleDecimal(precision, scale, column)) {
+                throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_DECIMAL.getKey());
             }
 
             column.setPrecision(precision);
@@ -73,8 +85,8 @@ public class AddColumnCommand extends MetadataCommand {
         if (constraints != null && !constraints.isEmpty()) {
             column.setConstraints(constraints);
         }
-
         table.addColumn(column);
+        log.info("Column {} added to table {}", name, tableId);
         diff.upsertColumn(column);
 
         return diff;

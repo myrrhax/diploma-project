@@ -23,6 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Setter
 @NoArgsConstructor
 public class SchemaStateMetadata {
+    private UUID schemaId;
     private Map<UUID, TableMetadata> tables = new HashMap<>();
     private Map<ReferenceMetadata.ReferenceKey, ReferenceMetadata> references = new HashMap<>();
 
