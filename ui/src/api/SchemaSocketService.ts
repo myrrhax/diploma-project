@@ -6,6 +6,8 @@ import { erStore } from "@/store/ERStore";
 import type { SchemaChangedEvent } from "@/model/SchemaEvents"; 
 import type { MetadataCommandProcessResult } from "@/model/SchemaEvents";
 import type { MetadataCommand } from "@/model/SchemaCommands";
+import type ErrorResponse from "@/model/ErrorResponse";
+import { errorsStore } from "@/store/ErrorsStore";
 
 const WS_ENDPOINT = 'http://localhost:8000/ws';
 
@@ -16,6 +18,7 @@ class SchemaSocketService {
     private client: Client | null = null;
     private subscription: StompSubscription | null = null;
     private activeSchemaId: string | null = null;
+    private errorSubscription: StompSubscription | null = null;
 
     connect() {
         if (this.client) return;
@@ -28,8 +31,12 @@ class SchemaSocketService {
             },
             onConnect: () => {
                 console.log('[WS] Успешно подключено к серверу');
-                if (this.activeSchemaId) {
+                const oldSchemaId = this.activeSchemaId;
+                this.leaveSchema();
+                if (oldSchemaId) {
+                    this.activeSchemaId = oldSchemaId;
                     this.executeSubscription(this.activeSchemaId);
+                    this.executeErrorsQueueSubscription();
                 }
             },
             onStompError: (frame) => {
@@ -56,11 +63,14 @@ class SchemaSocketService {
         if (this.subscription && this.activeSchemaId !== schemaId) {
             this.leaveSchema();
         }
-
         this.activeSchemaId = schemaId;
 
         if (this.client && this.client.connected) {
             this.executeSubscription(schemaId);
+        }
+        
+        if (this.client && this.client.connected && !this.errorSubscription) {
+            this.executeErrorsQueueSubscription();   
         }
     }
 
@@ -85,6 +95,18 @@ class SchemaSocketService {
             console.log(`[WS] Отписались от схемы: ${this.activeSchemaId}`);
         }
         this.activeSchemaId = null;
+        if (this.errorSubscription) {
+            this.errorSubscription.unsubscribe();
+            this.errorSubscription = null;
+        }
+    }
+
+    disconnect() {
+        this.leaveSchema();
+        if (this.client) {
+            this.client.deactivate();
+            this.client = null;
+        }
     }
 
     private executeSubscription(schemaId: string) {
@@ -103,6 +125,25 @@ class SchemaSocketService {
         console.log(`[WS] Подписаны на топик: ${topic}`);
     }
 
+    private executeErrorsQueueSubscription() {
+        if (!this.client || this.errorSubscription) {
+            return;
+        }
+        const queue = '/user/queue/errors';
+        this.errorSubscription = this.client.subscribe(queue, (msg) => {
+            const body = JSON.parse(msg.body) as ErrorResponse;
+            if (body) {
+                this.handleError(body); 
+            }
+        });
+        console.log('[WS] Подписка на Error Queue')
+    }
+
+    private handleError(error: ErrorResponse) {
+        console.log('Ошибка: ' + error.message);
+        errorsStore.addError(error.message);
+    }
+
     private handleDifference(event: SchemaChangedEvent<MetadataCommandProcessResult>) {
         runInAction(() => {
             if (event.eventType === 'SCHEMA_UPDATE') {
@@ -112,14 +153,6 @@ class SchemaSocketService {
                 erStore.process(event.type);
             }
         });
-    }
-
-    disconnect() {
-        this.leaveSchema();
-        if (this.client) {
-            this.client.deactivate();
-            this.client = null;
-        }
     }
 }
 

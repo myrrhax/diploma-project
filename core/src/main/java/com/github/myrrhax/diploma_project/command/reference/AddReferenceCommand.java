@@ -40,8 +40,7 @@ public class AddReferenceCommand extends MetadataCommand {
 
 
         if (referenceKey.getFromColumns().length != referenceKey.getToColumns().length
-            || !MetadataTypeUtils.isRefValid(metadata, referenceKey, referenceType)
-        ) {
+            || !MetadataTypeUtils.isRefValid(metadata, referenceKey, referenceType)) {
             throw new ApplicationException(ErrorMessageKey.REFERENCE_INVALID_REF.getKey());
         }
 

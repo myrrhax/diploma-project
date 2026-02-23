@@ -7,6 +7,8 @@ import { UsersOverlay } from '@/components/UsersOverlay/UsersOverlay';
 import { ERDiagram } from '@/components/er/ERDiagram';
 import './css/SchemaEditorPage.css';
 import { schemaSocketService } from '@/api/SchemaSocketService';
+import { errorsStore } from '@/store/ErrorsStore';
+import { ErrorToasts } from '@/components/ErrorToast/ErrorToast';
 
 const FAKE_VERSIONS = [
     { id: 1, name: 'v1.0 - Initial', date: '12.02.2026' },
@@ -46,6 +48,7 @@ export const SchemaEditorPage = observer(() => {
     
     return (
         <div className="schema_page__container">
+            <ErrorToasts />
             {isLoading ? (
                 <div>Загрузка...</div>
             ) : state != null ? (

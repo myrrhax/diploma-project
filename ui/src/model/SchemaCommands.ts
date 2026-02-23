@@ -1,4 +1,4 @@
-import type { ColumnType, ConstraintType, OnDeleteAction, OnUpdateAction, ReferenceKey, ReferenceType } from "./SchemaElements";
+import type { ColumnType, ConstraintType, ReferenceKey, ReferenceType } from "./SchemaElements";
 
 export interface BaseMetadataCommand {
     schemeId: string;
