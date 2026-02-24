@@ -17,7 +17,7 @@ class ERStore {
     readonly HEADER_HEIGHT = 42;
     readonly ROW_HEIGHT = 32;
     readonly FOOTER_HEIGHT = 32;
-    readonly MOVE_TICK_MS = 1000;
+    readonly MOVE_TICK_MS = 500;
 
     schemaId: string | null = null;
     schema: Schema | null = null;
@@ -75,7 +75,8 @@ class ERStore {
 
         this.state.cacheVersion = cmd.version;
         const diff = cmd.difference;
-
+        
+        console.log("Difference", diff);
         Object.entries(diff.deletedColumns || {}).forEach(([tableId, colIds]) => {
             const table = this.state?.tables[tableId];
             if (table && table.columns) {
@@ -92,6 +93,7 @@ class ERStore {
 
         (diff.deletedReferences || []).forEach(refKey => {
             const keyStr = refKeyToString(refKey); 
+            console.log('Delete ' + keyStr);
             delete this.state?.references[keyStr];
         });
 

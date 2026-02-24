@@ -22,12 +22,13 @@ interface AddColumnMenuProps {
     oldIsUnique?: boolean;
     oldIsNotNull?: boolean;
     isEditing?: boolean;
+    oldAutoIncrement?: boolean | null;
 }
 
 export const AddColumnMenu = observer(({ onClose, 
     oldName, oldType, oldLength,
     oldPrecision, oldScale, oldDefaultValue,
-    oldIsNotNull, oldIsUnique, onCancel,
+    oldIsNotNull, oldIsUnique, onCancel, oldAutoIncrement,
     isEditing = false 
 }: AddColumnMenuProps) => {
     const [name, setName] = useState(oldName ?? '');
@@ -38,7 +39,7 @@ export const AddColumnMenu = observer(({ onClose,
     const [defaultValue, setDefaultValue] = useState<string | null>(oldDefaultValue ?? null);
     const [isNotNull, setIsNotNull] = useState(oldIsNotNull ?? false);
     const [isUnique, setIsUnique] = useState(oldIsUnique ?? false);
-    const [isAutoIncrement, setIsAutoIncrement] = useState(false);
+    const [isAutoIncrement, setIsAutoIncrement] = useState(oldAutoIncrement ?? false);
 
     const hasLength = ['CHAR', 'VARCHAR', 'NUMERIC'].includes(type);
     const hasPrecisionScale = type === 'DECIMAL';

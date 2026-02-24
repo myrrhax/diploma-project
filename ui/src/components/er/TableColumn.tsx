@@ -71,6 +71,7 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
                     oldIsNotNull={col.constraints?.some(c => c === 'NOT_NULL')}
                     oldIsUnique={col.constraints?.some(c => c === 'UNIQUE')}
                     onCancel={() => erStore.setActiveMenuId(null)}
+                    oldAutoIncrement={col.autoIncrement}
                     onClose={(updatedColumn) => {
                         if (col !== updatedColumn) {
                             erStore.updateColumn(table.id, col, updatedColumn);
