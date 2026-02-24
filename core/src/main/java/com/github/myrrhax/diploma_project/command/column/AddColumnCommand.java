@@ -36,6 +36,7 @@ public class AddColumnCommand extends MetadataCommand {
     private Integer length;
     private String defaultValue;
     private List<ColumnMetadata.ConstraintType> constraints;
+    private Boolean isPkPart;
 
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
@@ -86,6 +87,10 @@ public class AddColumnCommand extends MetadataCommand {
             column.setConstraints(constraints);
         }
         table.addColumn(column);
+        if (isPkPart != null && isPkPart) {
+            table.addPkPart(column.getId());
+            metadata.deleteInvalidReferences(table);
+        }
         log.info("Column {} added to table {}", name, tableId);
         diff.upsertColumn(column);
 

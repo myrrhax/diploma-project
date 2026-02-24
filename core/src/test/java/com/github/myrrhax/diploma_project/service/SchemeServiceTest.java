@@ -278,16 +278,17 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     public void givenSchemaWithColumn_whenPerformDeleteWithValidUUID_thenSuccess() {
         // given
         TableMetadata table = performAddTable(TABLE_NAME);
+        performAddColumn(table.getId(), "username", ColumnMetadata.ColumnType.VARCHAR, Collections.emptyList());
         DeleteColumnCommand colDeleteCmd = new DeleteColumnCommand();
         colDeleteCmd.setSchemeId(uuid);
         colDeleteCmd.setTableId(table.getId());
-        colDeleteCmd.setColumnId(table.getColumn(ID_COLUMN).orElseThrow().getId());
+        colDeleteCmd.setColumnId(table.getColumn("username").orElseThrow().getId());
 
         // when
         schemeService.processCommand(colDeleteCmd);
 
         // then
-        assertThat(table.getColumn(ID_COLUMN)).isNotPresent();
+        assertThat(table.getColumn("username")).isNotPresent();
     }
 
     @Test

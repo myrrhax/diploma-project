@@ -1,7 +1,6 @@
 package com.github.myrrhax.diploma_project.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -130,6 +129,10 @@ public class TableMetadata implements Cloneable {
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }
+    }
+
+    public void addPkPart(UUID columnId) {
+        primaryKeyParts.add(columnId);
     }
 
     public void setX(Double xCoord) {

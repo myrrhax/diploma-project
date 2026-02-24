@@ -93,16 +93,13 @@ public class UpdateColumnCommand extends MetadataCommand {
         SchemaDifference diff = new SchemaDifference();
         diff.upsertColumn(clone);
 
-        SchemaDifference refDiff = null;
-        if (newColumnType != null && newColumnType != oldType) { // Тип изменен
-            refDiff = metadata.deleteHangingReferences(column, true);
-        } else if (!clone.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)
-                && column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)) { // Ограничение уникальности было убрано
-            refDiff = metadata.deleteHangingReferences(clone, false);
-        }
-        if (refDiff != null) {
+        if (newColumnType != null && newColumnType != oldType ||
+                (!clone.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)
+                    && column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE))) { // Тип изменен
+            SchemaDifference refDiff = metadata.deleteInvalidReferences(clone);
             diff.applyDifference(refDiff);
         }
+
         log.info("Hanging references was deleted from column {}", columnId);
         return diff;
     }

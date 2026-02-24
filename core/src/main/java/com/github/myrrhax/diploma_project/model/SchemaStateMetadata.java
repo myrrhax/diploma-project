@@ -3,6 +3,7 @@ package com.github.myrrhax.diploma_project.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
+import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import com.github.myrrhax.diploma_project.util.ReferenceKeyFromStringDeserializer;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -61,51 +62,97 @@ public class SchemaStateMetadata {
                     .findFirst();
     }
 
-    public SchemaDifference deleteHangingReferences(ColumnMetadata changedColumn, boolean isDeleted) {
-        List<ReferenceMetadata.ReferenceKey> hangingFromRefs = references.keySet().stream()
-                .filter(ref -> changedColumn.getTableId().equals(ref.getFromTableId()))
-                .filter(ref -> Arrays.asList(ref.getFromColumns()).contains(changedColumn.getId()))
+    public SchemaDifference deleteInvalidReferences(TableMetadata changedTable) {
+        List<ReferenceMetadata.ReferenceKey> cascadeReferences = references.values().stream()
+                .filter(ref -> ref.getKey().getToTableId().equals(changedTable.getId())
+                    || ref.getKey().getFromTableId().equals(changedTable.getId()))
+                .filter(ref -> !MetadataTypeUtils.isRefValid(this, ref.getKey(), ref.getType()))
+                .map(ReferenceMetadata::getKey)
                 .toList();
-        List<ReferenceMetadata.ReferenceKey> hangingToRefs = references.keySet().stream()
-                .filter(ref -> changedColumn.getTableId().equals(ref.getToTableId()))
-                .filter(ref -> Arrays.asList(ref.getToColumns()).contains(changedColumn.getId()))
-                .toList();
+
         SchemaDifference difference = new SchemaDifference();
-        hangingToRefs.stream()
-                .peek(difference::removeReference)
-                .forEach(this::removeReference);
-        // Колонка удалена
-        if (isDeleted) {
-            hangingFromRefs.stream()
-                    .peek(difference::removeReference)
-                    .forEach(this::removeReference);
-        }
+        cascadeReferences.forEach(ref -> {
+            difference.removeReference(ref);
+            removeReference(ref);
+        });
 
         return difference;
     }
 
-    public SchemaDifference deleteHangingReferences(TableMetadata changedTable, boolean isDeleted) {
-        List<ReferenceMetadata.ReferenceKey> affectedFromReferences = references.keySet().stream()
-                .filter(key -> key.getFromTableId().equals(changedTable.getId()))
-                .toList();
-        List<ReferenceMetadata.ReferenceKey> affectedToReferences = references.keySet().stream()
-                .filter(key -> key.getToTableId().equals(changedTable.getId()))
+    /**
+     * Удаление невалидных связей каскадно по измененной колонке
+     * @param changedColumn Измененная колонка
+     * @return Разница между схемами
+     */
+    public SchemaDifference deleteInvalidReferences(ColumnMetadata changedColumn) {
+        UUID tableId = changedColumn.getTableId();
+        List<ReferenceMetadata.ReferenceKey> cascadeReferences = references.values().stream()
+                .filter(ref -> (ref.getKey().getToTableId().equals(tableId)
+                        && Arrays.asList(ref.getKey().getToColumns()).contains(changedColumn.getId()))
+                    || (ref.getKey().getFromTableId().equals(tableId)
+                        && Arrays.asList(ref.getKey().getFromColumns()).contains(changedColumn.getId())))
+                .filter(ref -> !MetadataTypeUtils.isRefValid(this, ref.getKey(), ref.getType()))
+                .map(ReferenceMetadata::getKey)
                 .toList();
 
         SchemaDifference difference = new SchemaDifference();
-        // Изменился ключ или индекс, или таблица удалена
-        affectedToReferences.stream()
-                .peek(difference::removeReference)
-                .forEach(this::removeReference);
-        // Таблица удалена
-        if (isDeleted) {
-            affectedFromReferences.stream()
-                    .peek(difference::removeReference)
-                    .forEach(this::removeReference);
-        }
+        cascadeReferences.forEach(ref -> {
+            difference.removeReference(ref);
+            removeReference(ref);
+        });
 
         return difference;
     }
+
+//    public SchemaDifference deleteHangingReferences(ColumnMetadata changedColumn, boolean isDeleted) {
+//        List<ReferenceMetadata.ReferenceKey> hangingFromRefs = references.values().stream()
+//                .filter(ref -> changedColumn.getTableId().equals(ref.getKey().getFromTableId()))
+//                .filter(ref -> Arrays.asList(ref.getKey().getFromColumns()).contains(changedColumn.getId()))
+//                .filter(ref -> !MetadataTypeUtils.isRefValid(this, ref.getKey(), ref.getType()))
+//                .map(ReferenceMetadata::getKey)
+//                .toList();
+//        List<ReferenceMetadata.ReferenceKey> hangingToRefs = references.values().stream()
+//                .filter(ref -> changedColumn.getTableId().equals(ref.getKey().getToTableId()))
+//                .filter(ref -> Arrays.asList(ref.getKey().getToColumns()).contains(changedColumn.getId()))
+//                .filter(ref -> !MetadataTypeUtils.isRefValid(this, ref.getKey(), ref.getType()))
+//                .map(ReferenceMetadata::getKey)
+//                .toList();
+//        SchemaDifference difference = new SchemaDifference();
+//        hangingToRefs.stream()
+//                .peek(difference::removeReference)
+//                .forEach(this::removeReference);
+//        // Колонка удалена
+//        if (isDeleted) {
+//            hangingFromRefs.stream()
+//                    .peek(difference::removeReference)
+//                    .forEach(this::removeReference);
+//        }
+//
+//        return difference;
+//    }
+//
+//    public SchemaDifference deleteHangingReferences(TableMetadata changedTable, boolean isDeleted) {
+//        List<ReferenceMetadata.ReferenceKey> affectedFromReferences = references.keySet().stream()
+//                .filter(key -> key.getFromTableId().equals(changedTable.getId()))
+//                .toList();
+//        List<ReferenceMetadata.ReferenceKey> affectedToReferences = references.keySet().stream()
+//                .filter(key -> key.getToTableId().equals(changedTable.getId()))
+//                .toList();
+//
+//        SchemaDifference difference = new SchemaDifference();
+//        // Изменился ключ или индекс, или таблица удалена
+//        affectedToReferences.stream()
+//                .peek(difference::removeReference)
+//                .forEach(this::removeReference);
+//        // Таблица удалена
+//        if (isDeleted) {
+//            affectedFromReferences.stream()
+//                    .peek(difference::removeReference)
+//                    .forEach(this::removeReference);
+//        }
+//
+//        return difference;
+//    }
 
     public boolean containsReference(ReferenceMetadata.ReferenceKey key) {
         return references.containsKey(key);

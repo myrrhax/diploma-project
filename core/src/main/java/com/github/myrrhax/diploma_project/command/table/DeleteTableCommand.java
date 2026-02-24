@@ -30,7 +30,7 @@ public class DeleteTableCommand extends MetadataCommand {
         SchemaDifference diff = new SchemaDifference();
         diff.removeTable(tableId);
 
-        SchemaDifference refDiff = metadata.deleteHangingReferences(table, true);
+        SchemaDifference refDiff = metadata.deleteInvalidReferences(table);
         diff.applyDifference(refDiff);
         log.info("References was cascade deleted from after deleting table {}", tableId);
 

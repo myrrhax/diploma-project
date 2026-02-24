@@ -45,7 +45,7 @@ public class DeleteColumnCommand extends MetadataCommand {
         diff.applyDifference(table.removeColumn(column, metadata));
         log.info("Column {} was deleted from table {}", columnId, tableId);
         // Каскадное удаление связей
-        var refDiff = metadata.deleteHangingReferences(column, true);
+        var refDiff = metadata.deleteInvalidReferences(column);
         if (!refDiff.getDeletedReferences().isEmpty()) {
             log.info("References was deleted by cascade from table {}", tableId);
         }

@@ -2,7 +2,6 @@ package com.github.myrrhax.diploma_project.command.table;
 
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
-import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
@@ -60,13 +59,7 @@ public class UpdateTableCommand extends MetadataCommand {
             // Если ключ до этого был установлен, пересчитываем связи
             if (!oldPk.isEmpty()) {
                 log.info("Recalculating primary keys for table {}", tableId);
-                for (ReferenceMetadata.ReferenceKey ref : metadata.getReferences().keySet()) {
-                    ReferenceMetadata.ReferenceType type = metadata.getReferences().get(ref).getType();
-                    if (!MetadataTypeUtils.isRefValid(metadata, ref, type)) {
-                        diff.removeReference(ref);
-                        metadata.removeReference(ref);
-                    }
-                }
+                diff.applyDifference(metadata.deleteInvalidReferences(table));
             }
             clone.setPrimaryKeyParts(newPrimaryKeyParts.stream().toList());
         }
