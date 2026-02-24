@@ -43,7 +43,7 @@ public class AddTableCommand extends MetadataCommand {
 
         var defaultColumn = ColumnMetadata.builder()
                 .tableId(table.getId())
-                .type(ColumnMetadata.ColumnType.INT)
+                .columnType(ColumnMetadata.ColumnType.INT)
                 .name(DEFAULT_ID_COL)
                 .autoIncrement(true)
                 .build();

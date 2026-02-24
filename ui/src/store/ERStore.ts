@@ -2,7 +2,7 @@ import { makeAutoObservable, runInAction } from "mobx";
 import { type Column, type Reference, type ReferenceKey } from "@/model/SchemaElements";
 import type { Schema, VersionState } from "@/model/SchemaTypes";
 import { type Table } from "@/model/SchemaElements";
-import { length, refKeyToString } from "@/utils/UtilFunctions";
+import { compareAndReturnNew, length, refKeyToString } from "@/utils/UtilFunctions";
 import { type MetadataCommandProcessResult } from "@/model/SchemaEvents";
 import { schemaApi } from "@/api/SchemaApiService";
 import { schemaSocketService } from "@/api/SchemaSocketService";
@@ -38,6 +38,7 @@ class ERStore {
     selectedTargets: SelectedPort[] = [];
 
     contextMenu = { visible: false, x: 0, y: 0, screenX: 0, screenY: 0 };
+    activeMenuId: string | null = null;
 
     constructor() {
         makeAutoObservable(this);
@@ -46,6 +47,10 @@ class ERStore {
     setSchema(schema: Schema | null) {
         this.schema = schema;
         this.state = schema?.currentVersion.currentState ?? null;
+    }
+
+    setActiveMenuId(id: string | null) {
+        this.activeMenuId = id;
     }
 
     setPan(dx: number, dy: number) {
@@ -192,6 +197,27 @@ class ERStore {
         }
     }
 
+    updateColumn(tableId: string, oldColumn: Column, newColumn: Column) {
+        const table = this.getTable(tableId);
+        if (this.schema && table) {
+            schemaSocketService.sendCommand({
+                schemeId: this.schema.id,
+                type: 'update-column',
+                tableId: tableId,
+                columnId: oldColumn.id,
+                newColumnName: compareAndReturnNew(oldColumn.name, newColumn.name),
+                newDefaultValue: compareAndReturnNew(oldColumn.defaultValue, newColumn.defaultValue),
+                newDescription: compareAndReturnNew(oldColumn.description, newColumn.description),
+                newColumnType: compareAndReturnNew(oldColumn.columnType, newColumn.columnType),
+                newPrecision: compareAndReturnNew(oldColumn.precision, newColumn.precision),
+                newScale: compareAndReturnNew(oldColumn.scale, newColumn.scale),
+                newLength: compareAndReturnNew(oldColumn.length, newColumn.length),
+                constraints: compareAndReturnNew(oldColumn.constraints, newColumn.constraints),
+                autoIncrement: compareAndReturnNew(oldColumn.autoIncrement, newColumn.autoIncrement)
+            })
+        }
+    }
+
     moveTable(id: string, dx: number, dy: number) {
         const table = this.getTable(id);
         if (table) {
@@ -203,6 +229,7 @@ class ERStore {
                 if (now - this.lastTick > this.MOVE_TICK_MS) {
                     this.sendCoords();
                 }
+                this.lastTick = now;
             }
         }
     }

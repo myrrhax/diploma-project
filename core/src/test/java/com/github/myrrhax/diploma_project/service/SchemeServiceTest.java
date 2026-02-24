@@ -213,11 +213,11 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         assertThat(table.getColumn(ID_COLUMN)).isPresent();
 
         var idColumn = table.getColumn(ID_COLUMN).orElseThrow();
-        assertThat(idColumn.getType()).isEqualTo(ColumnMetadata.ColumnType.INT);
+        assertThat(idColumn.getColumnType()).isEqualTo(ColumnMetadata.ColumnType.INT);
 
         var usernameColumn = table.getColumn(USERNAME_COLUMN);
         assertThat(usernameColumn).isPresent();
-        assertThat(usernameColumn.orElseThrow().getType()).isEqualTo(ColumnMetadata.ColumnType.VARCHAR);
+        assertThat(usernameColumn.orElseThrow().getColumnType()).isEqualTo(ColumnMetadata.ColumnType.VARCHAR);
 
         // in cache only
         var parsedSchema = assertAndGetParsedScheme(uuid);

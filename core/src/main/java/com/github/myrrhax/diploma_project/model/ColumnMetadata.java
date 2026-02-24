@@ -27,7 +27,7 @@ public class ColumnMetadata implements Cloneable {
     private String name;
     private String description;
     @Setter
-    private ColumnType type;
+    private ColumnType columnType;
     @Setter
     private String defaultValue;
     private Integer precision;
@@ -57,7 +57,7 @@ public class ColumnMetadata implements Cloneable {
             clone.setTableId(tableId);
             clone.setName(name);
             clone.setDescription(description);
-            clone.setType(type);
+            clone.setColumnType(columnType);
             clone.setDefaultValue(defaultValue);
             clone.setPrecision(precision);
             clone.setScale(scale);
@@ -95,7 +95,7 @@ public class ColumnMetadata implements Cloneable {
             this.precision = precision;
             return;
         }
-        if (precision != null && type.equals(ColumnType.DECIMAL)) {
+        if (precision != null && columnType.equals(ColumnType.DECIMAL)) {
             this.precision = precision;
         }
     }
@@ -105,7 +105,7 @@ public class ColumnMetadata implements Cloneable {
             this.scale = scale;
             return;
         }
-        if (scale != null && type.equals(ColumnType.DECIMAL)) {
+        if (scale != null && columnType.equals(ColumnType.DECIMAL)) {
             this.scale = precision;
         }
     }

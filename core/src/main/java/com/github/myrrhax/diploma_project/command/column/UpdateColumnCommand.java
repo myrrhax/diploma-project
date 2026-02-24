@@ -49,11 +49,11 @@ public class UpdateColumnCommand extends MetadataCommand {
             log.info("Column {} not found in table {}", columnId, tableId);
             return new ApplicationException(ErrorMessageKey.COLUMN_NOT_FOUND.getKey());
         });
-        ColumnMetadata.ColumnType oldType = column.getType();
+        ColumnMetadata.ColumnType oldType = column.getColumnType();
 
         ColumnMetadata clone = column.clone();
         if (newColumnType != null && newColumnType != oldType) {
-            clone.setType(newColumnType);
+            clone.setColumnType(newColumnType);
         }
         if (newColumnName != null) {
             if (table.containsColumn(newColumnName)) {
@@ -74,7 +74,7 @@ public class UpdateColumnCommand extends MetadataCommand {
             clone.setLength(newLength);
         }
 
-        if (clone.getType() == ColumnMetadata.ColumnType.DECIMAL) {
+        if (clone.getColumnType() == ColumnMetadata.ColumnType.DECIMAL) {
             if (!MetadataTypeUtils.isCompactibleDecimal(newPrecision, newScale, column)) {
                 throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_DECIMAL.getKey(), column.getName());
             }

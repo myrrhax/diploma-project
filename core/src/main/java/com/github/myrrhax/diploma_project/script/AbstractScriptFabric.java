@@ -83,7 +83,7 @@ public abstract class AbstractScriptFabric {
 
     protected String generateLengthLimitedDefinition(ColumnMetadata metadata) {
         int length = metadata.getLength();
-        String type = getDefinitions().get(metadata.getType());
+        String type = getDefinitions().get(metadata.getColumnType());
         return type + "(" + length + ")";
     }
 

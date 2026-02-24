@@ -38,7 +38,22 @@ export interface AddReferenceCommand extends BaseMetadataCommand {
     referenceKey: ReferenceKey;
     referenceType: ReferenceType;
 }
-export interface UpdateColumnCommand extends BaseMetadataCommand { type: 'update-column'; /* поля */ }
+
+export interface UpdateColumnCommand extends BaseMetadataCommand {
+    type: 'update-column';
+    tableId: string;
+    columnId: string;
+    newColumnName: string | null;
+    newDefaultValue: string | null;
+    newDescription: string | null;
+    newColumnType: ColumnType | null;
+    newPrecision: number | null;
+    newScale: number | null;
+    newLength: number | null;
+    constraints: ConstraintType[] | null;
+    autoIncrement: boolean | null;
+}
+
 export interface DeleteColumnCommand extends BaseMetadataCommand { type: 'delete-column'; /* поля */ }
 export interface DeleteTableCommand extends BaseMetadataCommand { type: 'delete-table'; /* поля */ }
 export interface DeleteReferenceCommand extends BaseMetadataCommand { type: 'delete-ref'; /* поля */ }

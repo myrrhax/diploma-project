@@ -2,6 +2,7 @@ import type { Column, Table } from "@/model/SchemaElements";
 import { observer } from "mobx-react-lite";
 import { erStore } from "@/store/ERStore";
 import './css/TableColumn.css';
+import { AddColumnMenu } from "./AddColumnMenu";
 
 interface TableColumnProps {
     col: Column;
@@ -17,6 +18,7 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
     const isNotNull = col.constraints?.includes('NOT_NULL');
     const isUnique = col.constraints?.includes('UNIQUE');
     const tooltipText = col.description ? col.description : col.name;
+    const isEditMenuOpen = erStore.activeMenuId === col.id;
 
     return (
         <div 
@@ -32,7 +34,7 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
                 {isTarget && <span className="port_badge badge_left">{tgtIdx + 1}</span>}
             </div>
 
-            <div className="col_info_wrapper">
+            <div className="col_info_wrapper" onClick={() => erStore.setActiveMenuId(col.id)}>
                 {isPK && <span title="Primary Key" style={{ fontSize: '12px' }}>🔑</span>}
                 
                 <span className="col_name">
@@ -56,6 +58,28 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
             >
                 {isSource && <span className="port_badge badge_right">{srcIdx + 1}</span>}
             </div>
+
+            {isEditMenuOpen && (
+                <AddColumnMenu
+                    isEditing={true}
+                    oldName={col.name}
+                    oldType={col.columnType}
+                    oldLength={col.length}
+                    oldPrecision={col.precision}
+                    oldScale={col.scale}
+                    oldDefaultValue={col.defaultValue}
+                    oldIsNotNull={col.constraints?.some(c => c === 'NOT_NULL')}
+                    oldIsUnique={col.constraints?.some(c => c === 'UNIQUE')}
+                    onCancel={() => erStore.setActiveMenuId(null)}
+                    onClose={(updatedColumn) => {
+                        if (col !== updatedColumn) {
+                            erStore.updateColumn(table.id, col, updatedColumn);
+                        }
+                        
+                        erStore.setActiveMenuId(null);
+                    }}
+                />
+            )}
         </div>
     )
 })

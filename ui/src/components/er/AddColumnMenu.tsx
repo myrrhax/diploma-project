@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { erStore } from '@/store/ERStore';
 import { v4 as uuidv4 } from 'uuid';
-import { type ColumnType, type ConstraintType } from '@/model/SchemaElements';
+import { type Column, type ColumnType, type ConstraintType } from '@/model/SchemaElements';
 import './css/AddColumnMenu.css';
 
 const ALL_TYPES: ColumnType[] = [
@@ -11,23 +11,39 @@ const ALL_TYPES: ColumnType[] = [
 ];
 
 interface AddColumnMenuProps {
-    tableId: string;
-    onClose: () => void;
+    onClose: (column: Column) => void;
+    onCancel: () => void;
+    oldName?: string;
+    oldType?: ColumnType;
+    oldLength?: number | null;
+    oldPrecision?: number | null;
+    oldScale?: number | null;
+    oldDefaultValue?: string | null;
+    oldIsUnique?: boolean;
+    oldIsNotNull?: boolean;
+    isEditing?: boolean;
 }
 
-export const AddColumnMenu = observer(({ tableId, onClose }: AddColumnMenuProps) => {
-    const [name, setName] = useState('');
-    const [type, setType] = useState<ColumnType>('VARCHAR');
-    const [length, setLength] = useState<number | ''>('');
-    const [precision, setPrecision] = useState<number | ''>('');
-    const [scale, setScale] = useState<number | ''>('');
-    const [defaultValue, setDefaultValue] = useState<string | null>(null);
-    const [isNotNull, setIsNotNull] = useState(false);
-    const [isUnique, setIsUnique] = useState(false);
+export const AddColumnMenu = observer(({ onClose, 
+    oldName, oldType, oldLength,
+    oldPrecision, oldScale, oldDefaultValue,
+    oldIsNotNull, oldIsUnique, onCancel,
+    isEditing = false 
+}: AddColumnMenuProps) => {
+    const [name, setName] = useState(oldName ?? '');
+    const [type, setType] = useState<ColumnType>(oldType ?? 'VARCHAR');
+    const [length, setLength] = useState<number | ''>(oldLength ?? '');
+    const [precision, setPrecision] = useState<number | ''>(oldPrecision ?? '');
+    const [scale, setScale] = useState<number | ''>(oldScale ?? '');
+    const [defaultValue, setDefaultValue] = useState<string | null>(oldDefaultValue ?? null);
+    const [isNotNull, setIsNotNull] = useState(oldIsNotNull ?? false);
+    const [isUnique, setIsUnique] = useState(oldIsUnique ?? false);
+    const [isAutoIncrement, setIsAutoIncrement] = useState(false);
 
     const hasLength = ['CHAR', 'VARCHAR', 'NUMERIC'].includes(type);
     const hasPrecisionScale = type === 'DECIMAL';
     const isDateType = ['DATE', 'TIME', 'TIMESTAMP', 'DATETIME'].includes(type);
+    const isAutoIncrementableType = ['INT', 'SMALLINT', 'BIGINT'].includes(type);
 
     const handleSave = () => {
         if (!name.trim()) {
@@ -38,8 +54,7 @@ export const AddColumnMenu = observer(({ tableId, onClose }: AddColumnMenuProps)
         const constraints: ConstraintType[] = [];
         if (isNotNull) constraints.push('NOT_NULL');
         if (isUnique) constraints.push('UNIQUE');
-
-        erStore.addColumn(tableId, {
+        const column = {
             id: uuidv4().toString(),
             name: name.trim(),
             columnType: type,
@@ -50,9 +65,9 @@ export const AddColumnMenu = observer(({ tableId, onClose }: AddColumnMenuProps)
             precision: hasPrecisionScale && precision !== '' ? Number(precision) : null,
             scale: hasPrecisionScale && scale !== '' ? Number(scale) : null,
             description: ''
-        });
+        };
 
-        onClose();
+        onClose(column);
     };
 
     return (
@@ -60,6 +75,7 @@ export const AddColumnMenu = observer(({ tableId, onClose }: AddColumnMenuProps)
             className="er_add_column_menu__container"
             style={{left: `${erStore.TABLE_WIDTH + 15}px`}}
             onMouseDown={(e) => e.stopPropagation()} 
+            onClick={(e) => e.stopPropagation() }
         >
             <h4 className='add_column_title'>Новая колонка</h4>
 
@@ -137,13 +153,19 @@ export const AddColumnMenu = observer(({ tableId, onClose }: AddColumnMenuProps)
                         <input type="checkbox" checked={isUnique} onChange={e => setIsUnique(e.target.checked)} />
                         UNIQUE
                     </label>
+                    {isEditing && isAutoIncrementableType && (
+                        <label className='add_col_constraint_label'>
+                            <input type='checkbox' checked={isAutoIncrement} onChange={e => setIsAutoIncrement(e.target.checked)} />
+                            Автоинкремент
+                        </label>
+                    )}
                 </div>
 
                 <div className='add_col_btn_container'>
                     <button onClick={handleSave} className='add_col_btn' style={{ backgroundColor: '#3b82f6' }}>
                         Сохранить
                     </button>
-                    <button onClick={onClose} className='add_col_btn' style={{ backgroundColor: '#64748b' }}>
+                    <button onClick={onCancel} className='add_col_btn' style={{ backgroundColor: '#64748b' }}>
                         Отмена
                     </button>
                 </div>

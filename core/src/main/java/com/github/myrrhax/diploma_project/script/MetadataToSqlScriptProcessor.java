@@ -173,7 +173,7 @@ public abstract class MetadataToSqlScriptProcessor {
         return ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name(table.getName() + "_" + origin.getName())
-                .type(origin.getType())
+                .columnType(origin.getColumnType())
                 .scale(origin.getScale())
                 .precision(origin.getPrecision())
                 .defaultValue(origin.getDefaultValue())

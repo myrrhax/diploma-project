@@ -7,7 +7,6 @@ import { UsersOverlay } from '@/components/UsersOverlay/UsersOverlay';
 import { ERDiagram } from '@/components/er/ERDiagram';
 import './css/SchemaEditorPage.css';
 import { schemaSocketService } from '@/api/SchemaSocketService';
-import { errorsStore } from '@/store/ErrorsStore';
 import { ErrorToasts } from '@/components/ErrorToast/ErrorToast';
 
 const FAKE_VERSIONS = [

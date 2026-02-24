@@ -1,7 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { erStore } from '@/store/ERStore';
 import { type Table } from '@/model/SchemaElements';
-import { useState } from 'react';
 import { AddColumnMenu } from './AddColumnMenu';
 import { TableColumn } from './TableColumn';
 import './css/TableNode.css';
@@ -11,8 +10,6 @@ interface TableNodeProps {
 }
 
 export const TableNode = observer(({ table }: TableNodeProps) => {
-    const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
-
     return (
         <div 
             className="er_table_card" 
@@ -47,14 +44,17 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
                 ))}
             </div>
 
-            <button className="er_add_col_btn" onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}>
+            <button className="er_add_col_btn" onClick={() => erStore.setActiveMenuId(table.id)}>
                 Добавить
             </button>
 
-            {isAddMenuOpen && (
+            {erStore.activeMenuId === table.id && (
                 <AddColumnMenu 
-                    tableId={table.id} 
-                    onClose={() => setIsAddMenuOpen(false)} 
+                    onClose={(col) => {
+                        erStore.addColumn(table.id, col);
+                        erStore.setActiveMenuId(null);
+                    }} 
+                    onCancel={() => erStore.setActiveMenuId(null)} 
                 />
             )}
         </div>

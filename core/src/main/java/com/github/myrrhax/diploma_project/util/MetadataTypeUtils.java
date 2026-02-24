@@ -24,16 +24,16 @@ import java.util.UUID;
 
 public class MetadataTypeUtils {
     public static boolean isValidAutoincrement(ColumnMetadata column) {
-        return AbstractScriptFabric.validAutoIncrementTypes.contains(column.getType());
+        return AbstractScriptFabric.validAutoIncrementTypes.contains(column.getColumnType());
     }
 
     public static boolean isCompactibleLengthLimitedType(ColumnMetadata column, int newLength, String newDefaultValue) {
-        if (!AbstractScriptFabric.lengthLimitedTypes.contains(column.getType())) {
+        if (!AbstractScriptFabric.lengthLimitedTypes.contains(column.getColumnType())) {
             return false;
         }
         String defaultValue = newDefaultValue != null ? newDefaultValue : column.getDefaultValue();
         if (defaultValue != null) {
-            if (column.getType() == ColumnMetadata.ColumnType.CHAR
+            if (column.getColumnType() == ColumnMetadata.ColumnType.CHAR
                     && newLength != defaultValue.length()) {
                 throw new RuntimeException("Incompatible default value length");
             }
@@ -74,7 +74,7 @@ public class MetadataTypeUtils {
                                                    Integer newLength) {
         if (defaultValue == null) return true;
         try {
-            switch (column.getType()) {
+            switch (column.getColumnType()) {
                 case SMALLINT -> {
                     Short.parseShort(defaultValue);
                     return true;
@@ -174,7 +174,7 @@ public class MetadataTypeUtils {
         for (int i = 0; i < ref.getFromColumns().length; i++) {
             ColumnMetadata fromColumn = fromTable.getColumn(ref.getFromColumns()[i]).orElseThrow();
             ColumnMetadata toColumn = toTable.getColumn(ref.getToColumns()[i]).orElseThrow();
-            if (fromColumn.getType() != toColumn.getType()) {
+            if (fromColumn.getColumnType() != toColumn.getColumnType()) {
                 return false;
             }
         }

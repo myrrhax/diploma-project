@@ -9,3 +9,7 @@ export const length = (record: Record<PropertyKey, unknown>): number => {
 export const refKeyToString = (key: ReferenceKey) => {
     return `${key.fromTableId}:(${key.fromColumns.join(',')})->${key.toTableId}:(${key.toColumns.join(',')})`
 }
+
+export const compareAndReturnNew = <T> (oldVal: T, newVal: T): T | null => {
+    return oldVal === newVal ? null : newVal;
+}

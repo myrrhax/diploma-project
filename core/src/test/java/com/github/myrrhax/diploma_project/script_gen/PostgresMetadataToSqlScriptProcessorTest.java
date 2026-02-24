@@ -52,7 +52,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
     private static ColumnMetadata buildPhone() {
         return ColumnMetadata.builder()
                 .name("phone")
-                .type(ColumnMetadata.ColumnType.CHAR)
+                .columnType(ColumnMetadata.ColumnType.CHAR)
                 .length(11)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL, ColumnMetadata.ConstraintType.UNIQUE))
                 .build();
@@ -61,7 +61,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
     private static ColumnMetadata buildFioCol() {
         return ColumnMetadata.builder()
                 .name("fio")
-                .type(ColumnMetadata.ColumnType.VARCHAR)
+                .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(55)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
@@ -70,7 +70,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
     private static ColumnMetadata buildEmail() {
         return ColumnMetadata.builder()
                 .name("email")
-                .type(ColumnMetadata.ColumnType.VARCHAR)
+                .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(55)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL, ColumnMetadata.ConstraintType.UNIQUE))
                 .build();
@@ -101,21 +101,21 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         ColumnMetadata cmId = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("id")
-                .type(ColumnMetadata.ColumnType.BIGINT)
+                .columnType(ColumnMetadata.ColumnType.BIGINT)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .autoIncrement(true)
                 .build();
         ColumnMetadata cmUsername = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("username")
-                .type(ColumnMetadata.ColumnType.VARCHAR)
+                .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(55)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL, ColumnMetadata.ConstraintType.UNIQUE))
                 .build();
         ColumnMetadata cmPassword = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("password")
-                .type(ColumnMetadata.ColumnType.VARCHAR)
+                .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(255)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
@@ -142,28 +142,28 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         ColumnMetadata cmId = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("id")
-                .type(ColumnMetadata.ColumnType.BIGINT)
+                .columnType(ColumnMetadata.ColumnType.BIGINT)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .autoIncrement(true)
                 .build();
         ColumnMetadata cmAirplaneCode = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("airplane_code")
-                .type(ColumnMetadata.ColumnType.CHAR)
+                .columnType(ColumnMetadata.ColumnType.CHAR)
                 .length(8)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         ColumnMetadata maxBooksCount = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("max_books_count")
-                .type(ColumnMetadata.ColumnType.INT)
+                .columnType(ColumnMetadata.ColumnType.INT)
                 .defaultValue("15")
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         ColumnMetadata cmDeparture = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("departure_date")
-                .type(ColumnMetadata.ColumnType.DATETIME)
+                .columnType(ColumnMetadata.ColumnType.DATETIME)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
 
@@ -191,24 +191,24 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         ColumnMetadata userId = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("user_id")
-                .type(ColumnMetadata.ColumnType.BIGINT)
+                .columnType(ColumnMetadata.ColumnType.BIGINT)
                 .build();
         ColumnMetadata flightId = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("flight_id")
-                .type(ColumnMetadata.ColumnType.BIGINT)
+                .columnType(ColumnMetadata.ColumnType.BIGINT)
                 .build();
         ColumnMetadata bookedAt = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("booked_at")
-                .type(ColumnMetadata.ColumnType.TIMESTAMP)
+                .columnType(ColumnMetadata.ColumnType.TIMESTAMP)
                 .defaultValue("now()")
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         ColumnMetadata totalCost = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("total_cost")
-                .type(ColumnMetadata.ColumnType.DECIMAL)
+                .columnType(ColumnMetadata.ColumnType.DECIMAL)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .precision(10)
                 .scale(2)
@@ -282,7 +282,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
 
         var builder = ColumnMetadata.builder()
                 .name("id")
-                .type(type);
+                .columnType(type);
         if (autoIncrementTypes.contains(type)) {
             builder.autoIncrement(true);
         }
@@ -294,7 +294,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         var fioCol = buildFioCol();
         var positionCol = ColumnMetadata.builder()
                 .name("position")
-                .type(ColumnMetadata.ColumnType.VARCHAR)
+                .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(55)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
@@ -302,7 +302,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         var emailCol = buildEmail();
         var admissionDateCol = ColumnMetadata.builder()
                 .name("admission_date")
-                .type(ColumnMetadata.ColumnType.DATE)
+                .columnType(ColumnMetadata.ColumnType.DATE)
                 .build();
 
         var table = TableMetadata.builder()
@@ -319,19 +319,19 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         var idCol = buildIdCol(ColumnMetadata.ColumnType.UUID);
         var companyName = ColumnMetadata.builder()
                 .name("company_name")
-                .type(ColumnMetadata.ColumnType.VARCHAR)
+                .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(55)
                 .build();
         var memberFio = ColumnMetadata.builder()
                 .name("member_fio")
-                .type(ColumnMetadata.ColumnType.VARCHAR)
+                .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(55)
                 .build();
         var phoneCol = buildPhone();
         var emailCol = buildEmail();
         var lastSupplyDate = ColumnMetadata.builder()
                 .name("last_supply_date")
-                .type(ColumnMetadata.ColumnType.DATE)
+                .columnType(ColumnMetadata.ColumnType.DATE)
                 .build();
 
         TableMetadata table = TableMetadata.builder()
@@ -348,39 +348,39 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         var idCol = buildIdCol(ColumnMetadata.ColumnType.BIGINT);
         var ordertime = ColumnMetadata.builder()
                 .name("order_date")
-                .type(ColumnMetadata.ColumnType.TIMESTAMP)
+                .columnType(ColumnMetadata.ColumnType.TIMESTAMP)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         var status = ColumnMetadata.builder()
                 .name("status")
-                .type(ColumnMetadata.ColumnType.VARCHAR)
+                .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(20)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         var sum = ColumnMetadata.builder()
                 .name("sum")
-                .type(ColumnMetadata.ColumnType.DECIMAL)
+                .columnType(ColumnMetadata.ColumnType.DECIMAL)
                 .precision(8)
                 .scale(2)
                 .build();
         var employeeId = ColumnMetadata.builder()
                 .name("employee_id")
-                .type(ColumnMetadata.ColumnType.UUID)
+                .columnType(ColumnMetadata.ColumnType.UUID)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         var itemId = ColumnMetadata.builder()
                 .name("item_id")
-                .type(ColumnMetadata.ColumnType.BIGINT)
+                .columnType(ColumnMetadata.ColumnType.BIGINT)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         var clientId = ColumnMetadata.builder()
                 .name("client_id")
-                .type(ColumnMetadata.ColumnType.UUID)
+                .columnType(ColumnMetadata.ColumnType.UUID)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         var updateTime = ColumnMetadata.builder()
                 .name("update_time")
-                .type(ColumnMetadata.ColumnType.TIMESTAMP)
+                .columnType(ColumnMetadata.ColumnType.TIMESTAMP)
                 .build();
 
         var table = TableMetadata.builder()
@@ -413,7 +413,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         var addressCol = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("address")
-                .type(ColumnMetadata.ColumnType.VARCHAR)
+                .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(55)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
@@ -422,13 +422,13 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         var registrationTime = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("registration_time")
-                .type(ColumnMetadata.ColumnType.TIMESTAMP)
+                .columnType(ColumnMetadata.ColumnType.TIMESTAMP)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         var lastBuyTime = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("last_buy_time")
-                .type(ColumnMetadata.ColumnType.TIMESTAMP)
+                .columnType(ColumnMetadata.ColumnType.TIMESTAMP)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         var table = TableMetadata.builder()
@@ -459,37 +459,37 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         var idCol = buildIdCol(ColumnMetadata.ColumnType.BIGINT);
         var nameCol = ColumnMetadata.builder()
                 .name("name")
-                .type(ColumnMetadata.ColumnType.VARCHAR)
+                .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(100)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         var complectationCol = ColumnMetadata.builder()
                 .name("complectation")
                 .description("Комплектация")
-                .type(ColumnMetadata.ColumnType.VARCHAR)
+                .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(256)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         var price = ColumnMetadata.builder()
                 .name("price")
-                .type(ColumnMetadata.ColumnType.DECIMAL)
+                .columnType(ColumnMetadata.ColumnType.DECIMAL)
                 .precision(8)
                 .scale(2)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         var count = ColumnMetadata.builder()
                 .name("count")
-                .type(ColumnMetadata.ColumnType.INT)
+                .columnType(ColumnMetadata.ColumnType.INT)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         var supplierId = ColumnMetadata.builder()
                 .name("supplier_id")
-                .type(ColumnMetadata.ColumnType.UUID)
+                .columnType(ColumnMetadata.ColumnType.UUID)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         var lastSupplyDate = ColumnMetadata.builder()
                 .name("last_supply_date")
-                .type(ColumnMetadata.ColumnType.TIMESTAMP)
+                .columnType(ColumnMetadata.ColumnType.TIMESTAMP)
                 .build();
 
         var table = TableMetadata.builder()

@@ -85,7 +85,7 @@ public class PostgreSQLDialectScriptFabric extends AbstractScriptFabric {
     }
 
     private String getSuitableType(ColumnMetadata metadata) {
-        ColumnMetadata.ColumnType type = metadata.getType();
+        ColumnMetadata.ColumnType type = metadata.getColumnType();
         if (!Objects.requireNonNullElse(metadata.getAutoIncrement(), false)
             && !lengthLimitedTypes.contains(type)) {
             return postgresMapping.get(type);

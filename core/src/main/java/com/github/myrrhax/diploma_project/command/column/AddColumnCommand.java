@@ -54,7 +54,7 @@ public class AddColumnCommand extends MetadataCommand {
         var column = ColumnMetadata.builder()
                 .tableId(tableId)
                 .name(name)
-                .type(columnType)
+                .columnType(columnType)
                 .build();
 
         if (length == null && (columnType == ColumnMetadata.ColumnType.CHAR || columnType == ColumnMetadata.ColumnType.NUMERIC)) {
