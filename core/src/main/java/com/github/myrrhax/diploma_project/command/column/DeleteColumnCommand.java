@@ -37,6 +37,10 @@ public class DeleteColumnCommand extends MetadataCommand {
             return new ApplicationException(ErrorMessageKey.COLUMN_NOT_FOUND.getKey());
         });
 
+        if (table.getPrimaryKeyParts().contains(columnId) && table.getPrimaryKeyParts().size() == 1) {
+            throw new ApplicationException(ErrorMessageKey.COLUMN_IS_PK.getKey());
+        }
+
         SchemaDifference diff = new SchemaDifference();
         diff.applyDifference(table.removeColumn(column, metadata));
         log.info("Column {} was deleted from table {}", columnId, tableId);
