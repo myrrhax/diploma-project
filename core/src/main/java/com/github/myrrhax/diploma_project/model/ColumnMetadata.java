@@ -46,6 +46,8 @@ public class ColumnMetadata implements Cloneable {
     @Builder.Default
     private List<ConstraintType> constraints = new ArrayList<>();
     private Boolean autoIncrement;
+    @Setter
+    private Boolean isPkPart;
 
     @Override
     public ColumnMetadata clone() {

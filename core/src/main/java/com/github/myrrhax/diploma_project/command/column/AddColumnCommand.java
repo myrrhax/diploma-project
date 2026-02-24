@@ -56,6 +56,7 @@ public class AddColumnCommand extends MetadataCommand {
                 .tableId(tableId)
                 .name(name)
                 .columnType(columnType)
+                .isPkPart(isPkPart)
                 .build();
 
         if (length == null && (columnType == ColumnMetadata.ColumnType.CHAR || columnType == ColumnMetadata.ColumnType.NUMERIC)) {

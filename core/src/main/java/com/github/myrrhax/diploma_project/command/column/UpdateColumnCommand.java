@@ -15,6 +15,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -37,6 +38,7 @@ public class UpdateColumnCommand extends MetadataCommand {
     private Integer newLength;
     private List<ColumnMetadata.ConstraintType> constraints;
     private Boolean autoIncrement;
+    private Boolean isPkPart;
 
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
@@ -87,6 +89,10 @@ public class UpdateColumnCommand extends MetadataCommand {
         }
 
         clone.setAutoIncrement(autoIncrement);
+        Boolean oldIsPkPart = column.getIsPkPart();
+        if (isPkPart != null && isPkPart != oldIsPkPart) {
+            clone.setIsPkPart(isPkPart);
+        }
         table.updateColumn(clone);
 
         log.info("Column {} was updated for table {}", columnId, tableId);
@@ -95,7 +101,9 @@ public class UpdateColumnCommand extends MetadataCommand {
 
         if (newColumnType != null && newColumnType != oldType ||
                 (!clone.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)
-                    && column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE))) { // Тип изменен
+                    && column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE))
+            || !Objects.equals(oldIsPkPart, isPkPart)) { // Тип, Часть ключа или Уникальность изменена
+
             SchemaDifference refDiff = metadata.deleteInvalidReferences(clone);
             diff.applyDifference(refDiff);
         }
