@@ -174,7 +174,10 @@ public class MetadataTypeUtils {
         for (int i = 0; i < ref.getFromColumns().length; i++) {
             ColumnMetadata fromColumn = fromTable.getColumn(ref.getFromColumns()[i]).orElseThrow();
             ColumnMetadata toColumn = toTable.getColumn(ref.getToColumns()[i]).orElseThrow();
-            if (fromColumn.getColumnType() != toColumn.getColumnType()) {
+            if (fromColumn.getColumnType() != toColumn.getColumnType()
+                || !Objects.equals(fromColumn.getLength(), toColumn.getLength())
+                || !Objects.equals(fromColumn.getScale(), toColumn.getScale())
+                || !Objects.equals(fromColumn.getPrecision(), toColumn.getPrecision())) {
                 return false;
             }
         }
