@@ -1,4 +1,4 @@
-import type { ColumnType, ConstraintType, ReferenceKey, ReferenceType } from "./SchemaElements";
+import type { ColumnType, ConstraintType, OnDeleteAction, OnUpdateAction, ReferenceKey, ReferenceType } from "./SchemaElements";
 
 export interface BaseMetadataCommand {
     schemeId: string;
@@ -39,6 +39,8 @@ export interface AddReferenceCommand extends BaseMetadataCommand {
     type: 'add-ref';
     referenceKey: ReferenceKey;
     referenceType: ReferenceType;
+    deleteAction: OnDeleteAction;
+    updateAction: OnUpdateAction;
 }
 
 export interface UpdateColumnCommand extends BaseMetadataCommand {

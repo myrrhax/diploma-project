@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite";
 import { erStore } from "@/store/ERStore";
 import './css/TableColumn.css';
 import { AddColumnMenu } from "./AddColumnMenu";
+import { referenceStore } from "@/store/ReferenceStore";
 
 interface TableColumnProps {
     col: Column;
@@ -10,8 +11,8 @@ interface TableColumnProps {
 }
 
 export const TableColumn = observer(({ col, table }: TableColumnProps) => {
-    const srcIdx = erStore.selectedSources.findIndex(s => s.colId === col.id);
-    const tgtIdx = erStore.selectedTargets.findIndex(t => t.colId === col.id);
+    const srcIdx = referenceStore.sourceCols.indexOf(col.id);
+    const tgtIdx = referenceStore.targetCols.indexOf(col.id);
     const isSource = srcIdx !== -1;
     const isTarget = tgtIdx !== -1;
     const isNotNull = col.constraints?.includes('NOT_NULL');
@@ -27,7 +28,7 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
         >
             <div 
                 className={`er_port port_left ${isTarget ? 'port_target_active' : ''}`}
-                onClick={() => erStore.handlePortClick('left', table.id, col.id)}
+                onClick={(e) => referenceStore.handlePortClick('left', table.id, col.id, e.clientX, e.clientY)}
                 title="Input (Target)"
             >
                 {isTarget && <span className="port_badge badge_left">{tgtIdx + 1}</span>}
@@ -52,7 +53,7 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
             
             <div 
                 className={`er_port port_right ${isSource ? 'port_source_active' : ''}`}
-                onClick={() => erStore.handlePortClick('right', table.id, col.id)}
+                onClick={(e) => referenceStore.handlePortClick('right', table.id, col.id, e.clientX, e.clientY)}
                 title="Output (Source)"
             >
                 {isSource && <span className="port_badge badge_right">{srcIdx + 1}</span>}

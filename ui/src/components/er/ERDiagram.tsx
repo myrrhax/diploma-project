@@ -5,6 +5,7 @@ import { type Table } from '@/model/SchemaElements';
 import { refKeyToString } from '@/utils/UtilFunctions';
 import './css/ERDiagram.css';   
 import { observer } from 'mobx-react-lite';
+import { AddReferenceMenu } from './AddReferenceMenu';
 
 const getPortPosition = (table: Table, colId: string, side: 'left' | 'right') => {
     const column = table.columns[colId];
@@ -117,6 +118,7 @@ export const ERDiagram = observer(() => {
             style={{ cursor: isPanning ? 'grabbing' : 'default' }}
             onClick={handleCloseMenu}
         >
+            <AddReferenceMenu />
             <div className="er_viewport" style={{ transform: `translate(${erStore.offsetX}px, ${erStore.offsetY}px) scale(${erStore.scale})` }}>
                 <svg className="er_svg_layer">
                     <defs>

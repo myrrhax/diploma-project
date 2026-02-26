@@ -33,9 +33,6 @@ class ERStore {
 
     lastTick: number = Date.now();
     draggingTableId: string | null = null;
-    
-    selectedSources: SelectedPort[] = [];
-    selectedTargets: SelectedPort[] = [];
 
     contextMenu = { visible: false, x: 0, y: 0, screenX: 0, screenY: 0 };
     activeMenuId: string | null = null;
@@ -265,73 +262,6 @@ class ERStore {
         const table = this.getTable(id);
         if (!table) return 0;
         return this.HEADER_HEIGHT + (length(table.columns) * this.ROW_HEIGHT) + this.FOOTER_HEIGHT;
-    }
-
-    handlePortClick(side: 'left' | 'right', tableId: string, colId: string) {
-        if (side === 'right') {
-            if (this.selectedSources.length > 0 && this.selectedSources[0].tableId !== tableId) {
-                this.selectedSources = [];
-                this.selectedTargets = [];
-            }
-
-            const existsIdx = this.selectedSources.findIndex(p => p.colId === colId);
-            if (existsIdx !== -1) {
-                this.selectedSources.splice(existsIdx, 1);
-                if (this.selectedTargets.length > existsIdx) {
-                    this.selectedTargets.splice(existsIdx, 1);
-                }
-            } else {
-                this.selectedSources.push({ tableId, colId });
-            }
-        } else {
-            if (this.selectedSources.length === 0) return; 
-            const currentIndex = this.selectedTargets.length;            
-            if (currentIndex >= this.selectedSources.length) return;
-            const matchingSource = this.selectedSources[currentIndex];
-            
-            if (matchingSource.colId === colId) {
-                alert("Нельзя создать связь колонки на саму себя!");
-                return;
-            }
-            if (this.selectedTargets.some(t => t.colId === colId)) return;
-            
-            this.selectedTargets.push({ tableId, colId });
-
-            if (this.selectedTargets.length === this.selectedSources.length) {
-                this.createMultiRelation();
-            }
-        }
-    }
-
-    createMultiRelation() {
-        if (!this.state || !this.schema) return;
-
-        const sourceTableId = this.selectedSources[0].tableId;
-        const targetTableId = this.selectedTargets[0].tableId;
-        const fromColumns = this.selectedSources.map((src, _) => src.colId);
-        const toColumns = this.selectedTargets.map((src, _) => src.colId);
-        
-        const key: ReferenceKey = { 
-            fromTableId: sourceTableId,
-            toTableId: targetTableId,
-            fromColumns: fromColumns,
-            toColumns: toColumns
-        };
-        
-        const refKeyStr = refKeyToString(key);
-        const existingRel = this.state.references[refKeyStr];
-
-        if (!existingRel) {
-            schemaSocketService.sendCommand({
-                schemeId: this.schema?.id,
-                type: 'add-ref',
-                referenceKey: key,
-                referenceType: 'MANY_TO_ONE'
-            })
-        }
-
-        this.selectedSources = [];
-        this.selectedTargets = [];
     }
 
     openContextMenu(screenX: number, screenY: number, relativeX: number, relativeY: number) {
