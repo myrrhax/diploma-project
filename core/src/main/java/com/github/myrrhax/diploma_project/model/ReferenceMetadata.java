@@ -1,6 +1,9 @@
 package com.github.myrrhax.diploma_project.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
+import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Data
@@ -24,6 +28,90 @@ public class ReferenceMetadata {
 
     @JsonIgnore
     private SchemaStateMetadata schemaState;
+
+    public boolean isRefValid() {
+        if (key.getFromTableId() == null || key.getToColumns() == null
+                || !Objects.equals(key.getFromColumns().length, key.getToColumns().length)) {
+            throw new ApplicationException(ErrorMessageKey.REFERENCE_INVALID_REF.getKey());
+        }
+
+        if (checkInvalidReferenceKeyPart(key.getFromTableId(), key.getFromColumns())
+                && checkInvalidReferenceKeyPart(key.getToTableId(), key.getToColumns())) {
+            return false;
+        }
+        if (type == ReferenceMetadata.ReferenceType.ONE_TO_MANY
+                && !checkToPart(key.getFromTableId(), key.getFromColumns())) {
+            return false;
+        } else if (type != ReferenceMetadata.ReferenceType.ONE_TO_MANY
+                && !checkToPart(key.getToTableId(), key.getToColumns())) {
+            return false;
+        }
+        return checkKeyCompatibility();
+    }
+
+    private boolean checkKeyCompatibility() {
+        TableMetadata fromTable = schemaState.getTable(key.getFromTableId()).orElseThrow();
+        TableMetadata toTable = schemaState.getTable(key.getToTableId()).orElseThrow();
+
+        for (int i = 0; i < key.getFromColumns().length; i++) {
+            ColumnMetadata fromColumn = fromTable.getColumn(key.getFromColumns()[i]).orElseThrow();
+            ColumnMetadata toColumn = toTable.getColumn(key.getToColumns()[i]).orElseThrow();
+            if (fromColumn.getColumnType() != toColumn.getColumnType()
+                    || !Objects.equals(fromColumn.getLength(), toColumn.getLength())
+                    || !Objects.equals(fromColumn.getScale(), toColumn.getScale())
+                    || !Objects.equals(fromColumn.getPrecision(), toColumn.getPrecision())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean checkToPart(UUID toTableId, UUID[] toColumns) {
+        TableMetadata table = schemaState.getTable(toTableId).orElse(null);
+        Objects.requireNonNull(table);
+
+        var columns = Arrays.stream(toColumns).map(table::getColumn)
+                .map(Optional::orElseThrow)
+                .toList();
+
+        if (columns.size() == 1) {
+            var column = columns.getFirst();
+            // Либо уникальная колонка, либо первичный ключ, либо есть уникальный индекс по колонке
+            return column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)
+                    || (table.getPrimaryKeyParts().size() == 1 && table.getPrimaryKeyParts().contains(column.getId()))
+                    || table.getIndexes().values().stream()
+                    .anyMatch(idx -> idx.isUnique()
+                            && idx.getColumnIds().size() == 1
+                            && idx.getColumnIds().contains(column.getId()));
+        }
+
+        // Проверка по первичному ключу или уникальному индексу
+        return MetadataTypeUtils.isFullEquals(table.getPrimaryKeyParts(), Arrays.asList(toColumns))
+                || table.getIndexes().values().stream()
+                .anyMatch(idx -> idx.isUnique()
+                        && MetadataTypeUtils.isFullEquals(idx.getColumnIds(), Arrays.asList(toColumns)));
+
+    }
+
+    private boolean checkInvalidReferenceKeyPart(UUID tableId, UUID[] columns) {
+        if (tableId == null)
+            return true;
+        if (columns == null || columns.length == 0)
+            return true;
+
+        TableMetadata table = schemaState.getTable(tableId).orElse(null);
+        if (table == null) {
+            return true;
+        }
+
+        for (UUID columnId : columns) {
+            if (columnId == null || table.getColumn(columnId).isEmpty()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public enum ReferenceType {
         ONE_TO_ONE,

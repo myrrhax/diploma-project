@@ -3,6 +3,8 @@ package com.github.myrrhax.diploma_project.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
+import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import com.github.myrrhax.diploma_project.util.ReferenceKeyFromStringDeserializer;
 import lombok.Getter;
@@ -12,9 +14,11 @@ import lombok.Setter;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
@@ -34,6 +38,9 @@ public class SchemaStateMetadata {
     private Instant lastModificationTime = Instant.now();
     private AtomicInteger cacheVersion = new AtomicInteger(0);
 
+    @JsonIgnore
+    private Set<UUID> linkedColumns = new HashSet<>();
+
     public void addTable(TableMetadata tableMetadata) {
         this.tables.putIfAbsent(tableMetadata.getId(), tableMetadata);
         tableMetadata.setSchemaState(this);
@@ -42,6 +49,7 @@ public class SchemaStateMetadata {
     public void addReference(ReferenceMetadata referenceMetadata) {
         referenceMetadata.setSchemaState(this);
         this.references.putIfAbsent(referenceMetadata.getKey(), referenceMetadata);
+        linkReferenceColumn(referenceMetadata);
     }
 
     public void removeReference(ReferenceMetadata.ReferenceKey key) {
@@ -66,7 +74,7 @@ public class SchemaStateMetadata {
         List<ReferenceMetadata.ReferenceKey> cascadeReferences = references.values().stream()
                 .filter(ref -> ref.getKey().getToTableId().equals(changedTable.getId())
                     || ref.getKey().getFromTableId().equals(changedTable.getId()))
-                .filter(ref -> !MetadataTypeUtils.isRefValid(this, ref.getKey(), ref.getType()))
+                .filter(ref -> !ref.isRefValid())
                 .map(ReferenceMetadata::getKey)
                 .toList();
 
@@ -91,7 +99,7 @@ public class SchemaStateMetadata {
                         && Arrays.asList(ref.getKey().getToColumns()).contains(changedColumn.getId()))
                     || (ref.getKey().getFromTableId().equals(tableId)
                         && Arrays.asList(ref.getKey().getFromColumns()).contains(changedColumn.getId())))
-                .filter(ref -> !MetadataTypeUtils.isRefValid(this, ref.getKey(), ref.getType()))
+                .filter(ref -> !ref.isRefValid())
                 .map(ReferenceMetadata::getKey)
                 .toList();
 
@@ -175,6 +183,7 @@ public class SchemaStateMetadata {
 
         for (ReferenceMetadata reference : references.values()) {
             reference.setSchemaState(this);
+            linkReferenceColumn(reference);
         }
     }
 
@@ -182,5 +191,27 @@ public class SchemaStateMetadata {
         return tables.values().stream()
                 .map(TableMetadata::getName)
                 .anyMatch(name -> name.equals(tableName));
+    }
+
+    private void linkReferenceColumn(ReferenceMetadata ref) {
+        if (ref.getType() == ReferenceMetadata.ReferenceType.MANY_TO_MANY) {
+            return;
+        }
+
+        UUID[] columns;
+        var key = ref.getKey();
+
+        if (ref.getType() != ReferenceMetadata.ReferenceType.ONE_TO_MANY) {
+            columns = key.getFromColumns();
+        } else {
+            columns = key.getToColumns();
+        }
+
+        for (UUID columnId : columns) {
+            if (linkedColumns.contains(columnId)) {
+                throw new ApplicationException(ErrorMessageKey.REFERENCE_DUPLICATE_REF_PART.getKey());
+            }
+            linkedColumns.add(columnId);
+        }
     }
 }

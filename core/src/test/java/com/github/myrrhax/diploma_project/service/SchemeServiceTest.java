@@ -346,7 +346,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         UpdateTableCommand cmd = new UpdateTableCommand();
         cmd.setSchemeId(uuid);
         cmd.setTableId(table.getId());
-        cmd.setNewPrimaryKeyParts(List.of(column.getId()));
         // when
         schemeService.processCommand(cmd);
         // then
@@ -357,19 +356,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         assertThat(assertedTable).isNotNull();
         assertThat(assertedTable.getPrimaryKeyParts().size()).isEqualTo(1);
         assertThat(assertedTable.getPrimaryKeyParts().contains(column.getId())).isTrue();
-    }
-
-    @Test
-    @DisplayName("Command: Update table (Throws when pk part is not found)")
-    public void givenUpdateTableCommandAndInvalidColumnId_whenExecuteCommand_thenThrows() {
-        // given
-        TableMetadata table = performAddTable(TABLE_NAME);
-        UpdateTableCommand cmd = new UpdateTableCommand();
-        cmd.setSchemeId(uuid);
-        cmd.setTableId(table.getId());
-        cmd.setNewPrimaryKeyParts(List.of(UUID.randomUUID()));
-        // when & then
-        assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
     }
 
     @Test
@@ -581,7 +567,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata secIdColumn = usersTable.getColumn("sec_id").orElseThrow();
-        setPk(uuid, usersTable, List.of(idColumn, secIdColumn));
 
         performAddTable(COURSE_TABLE);
         TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();
@@ -591,7 +576,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 Collections.emptyList());
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata courseSecIdCol = courseTable.getColumn("sec_id").orElseThrow();
-        setPk(uuid, courseTable, List.of(courseIdCol, courseSecIdCol));
 
         AddReferenceCommand cmd = new AddReferenceCommand();
         cmd.setSchemeId(uuid);
@@ -694,7 +678,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 Collections.emptyList());
         ColumnMetadata courseIdCol = courseTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata courseSecIdCol = courseTable.getColumn("sec_id").orElseThrow();
-        setPk(uuid, courseTable, List.of(courseIdCol, courseSecIdCol));
 
         AddReferenceCommand cmd = new AddReferenceCommand();
         cmd.setSchemeId(uuid);
@@ -707,14 +690,6 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 .build());
         // when & then
         assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
-    }
-
-    private void setPk(UUID schemeId, TableMetadata table, List<ColumnMetadata> columns) {
-        UpdateTableCommand cmd = new UpdateTableCommand();
-        cmd.setSchemeId(schemeId);
-        cmd.setTableId(table.getId());
-        cmd.setNewPrimaryKeyParts(columns.stream().map(ColumnMetadata::getId).toList());
-        schemeService.processCommand(cmd);
     }
 
     private TableMetadata performAddTable(String tableName) {

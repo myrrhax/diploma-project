@@ -8,13 +8,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -32,7 +33,7 @@ public class TableMetadata implements Cloneable {
     private double y;
 
     @Builder.Default
-    private List<UUID> primaryKeyParts = new ArrayList<>();
+    private Set<UUID> primaryKeyParts = new HashSet<>();
 
     @Builder.Default
     private LinkedHashMap<UUID, ColumnMetadata> columns = new LinkedHashMap<>();
@@ -121,7 +122,7 @@ public class TableMetadata implements Cloneable {
             clone.setDescription(description);
             clone.setX(x);
             clone.setY(y);
-            clone.setPrimaryKeyParts(new ArrayList<>(primaryKeyParts));
+            clone.setPrimaryKeyParts(new HashSet<>(primaryKeyParts));
             clone.setColumns(new LinkedHashMap<>(columns));
             clone.setIndexes(new LinkedHashMap<>(indexes));
             
@@ -147,7 +148,7 @@ public class TableMetadata implements Cloneable {
         }
     }
 
-    public void setPrimaryKeyParts(List<UUID> primaryKeyParts) {
+    public void setPrimaryKeyParts(Set<UUID> primaryKeyParts) {
         if (primaryKeyParts != null) {
             this.primaryKeyParts = primaryKeyParts;
         }

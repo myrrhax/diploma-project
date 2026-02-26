@@ -12,6 +12,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
 
 @Slf4j
@@ -38,18 +40,16 @@ public class AddReferenceCommand extends MetadataCommand {
             throw new ApplicationException(ErrorMessageKey.REFERENCE_INVALID_KEY.getKey());
         }
 
-
-        if (referenceKey.getFromColumns().length != referenceKey.getToColumns().length
-            || !MetadataTypeUtils.isRefValid(metadata, referenceKey, referenceType)) {
-            throw new ApplicationException(ErrorMessageKey.REFERENCE_INVALID_REF.getKey());
-        }
-
         ReferenceMetadata reference = ReferenceMetadata.builder()
                 .type(referenceType)
                 .key(referenceKey)
                 .onDeleteAction(deleteAction == null ? ReferenceMetadata.OnDeleteAction.NO_ACTION : deleteAction)
                 .onUpdateAction(updateAction == null ? ReferenceMetadata.OnUpdateAction.NO_ACTION : updateAction)
                 .build();
+
+        if (!reference.isRefValid()) {
+            throw new ApplicationException(ErrorMessageKey.REFERENCE_INVALID_REF.getKey());
+        }
         metadata.addReference(reference);
         log.info("New reference was added to schema {}", schemeId);
         SchemaDifference diff = new SchemaDifference();
