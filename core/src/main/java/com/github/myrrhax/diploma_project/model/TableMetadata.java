@@ -181,4 +181,8 @@ public class TableMetadata implements Cloneable {
             column.setTable(this);
         }
     }
+
+    public void removePkPart(UUID id) {
+        primaryKeyParts.remove(id);
+    }
 }

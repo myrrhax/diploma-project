@@ -106,6 +106,10 @@ public class UpdateColumnCommand extends MetadataCommand {
         SchemaDifference diff = new SchemaDifference();
         diff.upsertColumn(clone);
 
+        if (Objects.equals(pkPart, Boolean.FALSE)) {
+            table.removePkPart(columnId);
+        }
+
         if (newColumnType != null && newColumnType != oldType ||
                 (!clone.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)
                     && column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE))
