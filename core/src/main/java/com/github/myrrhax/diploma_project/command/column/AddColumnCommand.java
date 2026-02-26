@@ -36,7 +36,8 @@ public class AddColumnCommand extends MetadataCommand {
     private Integer length;
     private String defaultValue;
     private List<ColumnMetadata.ConstraintType> constraints;
-    private Boolean isPkPart;
+    private boolean pkPart;
+    private Boolean autoIncrement;
 
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
@@ -56,8 +57,12 @@ public class AddColumnCommand extends MetadataCommand {
                 .tableId(tableId)
                 .name(name)
                 .columnType(columnType)
-                .isPkPart(isPkPart)
+                .pkPart(pkPart)
                 .build();
+
+        if (pkPart && (constraints == null || constraints.isEmpty() || !constraints.contains(ColumnMetadata.ConstraintType.NOT_NULL))) {
+            throw new ApplicationException(ErrorMessageKey.COLUMN_PK_PART_MUST_BE_NOT_NULL.getKey());
+        }
 
         if (length == null && (columnType == ColumnMetadata.ColumnType.CHAR || columnType == ColumnMetadata.ColumnType.NUMERIC)) {
             log.info("Processing column of type {} must have length", columnType);
@@ -87,8 +92,10 @@ public class AddColumnCommand extends MetadataCommand {
         if (constraints != null && !constraints.isEmpty()) {
             column.setConstraints(constraints);
         }
+        column.setAutoIncrement(autoIncrement);
+
         table.addColumn(column);
-        if (isPkPart != null && isPkPart) {
+        if (pkPart) {
             table.addPkPart(column.getId());
             metadata.deleteInvalidReferences(table);
         }

@@ -567,6 +567,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 Collections.emptyList());
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
         ColumnMetadata secIdColumn = usersTable.getColumn("sec_id").orElseThrow();
+        usersTable.addPkPart(secIdColumn.getId());
 
         performAddTable(COURSE_TABLE);
         TableMetadata courseTable = state.getTable(COURSE_TABLE).orElseThrow();

@@ -14,7 +14,6 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
     const tgtIdx = erStore.selectedTargets.findIndex(t => t.colId === col.id);
     const isSource = srcIdx !== -1;
     const isTarget = tgtIdx !== -1;
-    const isPK = table.primaryKeyParts?.includes(col.id);
     const isNotNull = col.constraints?.includes('NOT_NULL');
     const isUnique = col.constraints?.includes('UNIQUE');
     const tooltipText = col.description ? col.description : col.name;
@@ -35,7 +34,7 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
             </div>
 
             <div className="col_info_wrapper" onClick={() => erStore.setActiveMenuId(col.id)}>
-                {isPK && <span title="Primary Key" style={{ fontSize: '12px' }}>🔑</span>}
+                {col.pkPart && <span title="Primary Key" style={{ fontSize: '12px' }}>🔑</span>}
                 
                 <span className="col_name">
                     {col.name}
@@ -61,17 +60,9 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
 
             {isEditMenuOpen && (
                 <AddColumnMenu
-                    isEditing={true}
-                    oldName={col.name}
-                    oldType={col.columnType}
-                    oldLength={col.length}
-                    oldPrecision={col.precision}
-                    oldScale={col.scale}
-                    oldDefaultValue={col.defaultValue}
-                    oldIsNotNull={col.constraints?.some(c => c === 'NOT_NULL')}
-                    oldIsUnique={col.constraints?.some(c => c === 'UNIQUE')}
+                    tableId={table.id}
+                    oldColumn={col}
                     onCancel={() => erStore.setActiveMenuId(null)}
-                    oldAutoIncrement={col.autoIncrement}
                     onClose={(updatedColumn) => {
                         if (col !== updatedColumn) {
                             erStore.updateColumn(table.id, col, updatedColumn);

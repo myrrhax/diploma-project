@@ -38,7 +38,7 @@ public class UpdateColumnCommand extends MetadataCommand {
     private Integer newLength;
     private List<ColumnMetadata.ConstraintType> constraints;
     private Boolean autoIncrement;
-    private Boolean isPkPart;
+    private Boolean pkPart;
 
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
@@ -52,11 +52,26 @@ public class UpdateColumnCommand extends MetadataCommand {
             return new ApplicationException(ErrorMessageKey.COLUMN_NOT_FOUND.getKey());
         });
         ColumnMetadata.ColumnType oldType = column.getColumnType();
+        boolean oldIsPkPart = column.isPkPart();
 
         ColumnMetadata clone = column.clone();
         if (newColumnType != null && newColumnType != oldType) {
             clone.setColumnType(newColumnType);
         }
+
+        if (constraints != null) {
+            clone.setConstraints(constraints);
+        }
+
+        if (pkPart != null) {
+            if (clone.getConstraints() == null || clone.getConstraints().isEmpty()
+                || !clone.getConstraints().contains(ColumnMetadata.ConstraintType.NOT_NULL)
+            ) {
+                throw new ApplicationException(ErrorMessageKey.COLUMN_PK_PART_MUST_BE_NOT_NULL.getKey());
+            }
+            clone.setPkPart(pkPart);
+        }
+
         if (newColumnName != null) {
             if (table.containsColumn(newColumnName)) {
                 throw new ApplicationException(ErrorMessageKey.COLUMN_DUPLICATE.getKey(), newColumnName);
@@ -84,15 +99,7 @@ public class UpdateColumnCommand extends MetadataCommand {
             clone.setScale(newScale);
         }
 
-        if (constraints != null) {
-            clone.setConstraints(constraints);
-        }
-
-        clone.setAutoIncrement(autoIncrement);
-        Boolean oldIsPkPart = column.getIsPkPart();
-        if (isPkPart != null && isPkPart != oldIsPkPart) {
-            clone.setIsPkPart(isPkPart);
-        }
+        clone.setAutoIncrement(autoIncrement != null ? autoIncrement : column.getAutoIncrement());
         table.updateColumn(clone);
 
         log.info("Column {} was updated for table {}", columnId, tableId);
@@ -102,7 +109,7 @@ public class UpdateColumnCommand extends MetadataCommand {
         if (newColumnType != null && newColumnType != oldType ||
                 (!clone.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)
                     && column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE))
-            || !Objects.equals(oldIsPkPart, isPkPart)) { // Тип, Часть ключа или Уникальность изменена
+            || oldIsPkPart != Objects.requireNonNullElse(pkPart, false)) { // Тип, Часть ключа или Уникальность изменена
 
             SchemaDifference refDiff = metadata.deleteInvalidReferences(clone);
             diff.applyDifference(refDiff);

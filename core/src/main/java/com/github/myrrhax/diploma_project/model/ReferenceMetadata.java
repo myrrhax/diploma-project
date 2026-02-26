@@ -1,8 +1,6 @@
 package com.github.myrrhax.diploma_project.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
-import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,23 +27,24 @@ public class ReferenceMetadata {
     @JsonIgnore
     private SchemaStateMetadata schemaState;
 
-    public boolean isRefValid() {
-        if (key.getFromTableId() == null || key.getToColumns() == null
-                || !Objects.equals(key.getFromColumns().length, key.getToColumns().length)) {
-            throw new ApplicationException(ErrorMessageKey.REFERENCE_INVALID_REF.getKey());
+    public boolean checkIsRefValid() {
+        if (key.getFromColumns() == null || key.getToColumns() == null
+                || key.getFromColumns().length != key.getToColumns().length) {
+            return false;
         }
 
         if (checkInvalidReferenceKeyPart(key.getFromTableId(), key.getFromColumns())
-                && checkInvalidReferenceKeyPart(key.getToTableId(), key.getToColumns())) {
+                || checkInvalidReferenceKeyPart(key.getToTableId(), key.getToColumns())) {
             return false;
         }
         if (type == ReferenceMetadata.ReferenceType.ONE_TO_MANY
-                && !checkToPart(key.getFromTableId(), key.getFromColumns())) {
+                && !isToPartValid(key.getFromTableId(), key.getFromColumns())) {
             return false;
         } else if (type != ReferenceMetadata.ReferenceType.ONE_TO_MANY
-                && !checkToPart(key.getToTableId(), key.getToColumns())) {
+                && !isToPartValid(key.getToTableId(), key.getToColumns())) {
             return false;
         }
+
         return checkKeyCompatibility();
     }
 
@@ -66,9 +65,11 @@ public class ReferenceMetadata {
         return true;
     }
 
-    private boolean checkToPart(UUID toTableId, UUID[] toColumns) {
+    private boolean isToPartValid(UUID toTableId, UUID[] toColumns) {
         TableMetadata table = schemaState.getTable(toTableId).orElse(null);
-        Objects.requireNonNull(table);
+        if (table == null) {
+            return false;
+        }
 
         var columns = Arrays.stream(toColumns).map(table::getColumn)
                 .map(Optional::orElseThrow)
@@ -111,6 +112,29 @@ public class ReferenceMetadata {
         }
 
         return false;
+    }
+
+    public ReferenceMetadata buildReverse() {
+        var newKey = ReferenceKey.builder()
+                .fromColumns(key.toColumns)
+                .toColumns(key.fromColumns)
+                .fromTableId(key.toTableId)
+                .toTableId(key.fromTableId)
+                .build();
+        var newReference = ReferenceMetadata.builder()
+                .key(newKey)
+                .onDeleteAction(onDeleteAction)
+                .onUpdateAction(onUpdateAction);
+
+        if (type == ReferenceType.ONE_TO_MANY) {
+            newReference.type(ReferenceType.MANY_TO_ONE);
+        } else if (type == ReferenceType.MANY_TO_ONE) {
+            newReference.type(ReferenceType.ONE_TO_MANY);
+        } else {
+            newReference.type(type);
+        }
+
+        return newReference.build();
     }
 
     public enum ReferenceType {

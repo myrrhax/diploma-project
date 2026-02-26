@@ -12,6 +12,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -47,7 +48,7 @@ public class ColumnMetadata implements Cloneable {
     private List<ConstraintType> constraints = new ArrayList<>();
     private Boolean autoIncrement;
     @Setter
-    private Boolean isPkPart;
+    private boolean pkPart;
 
     @Override
     public ColumnMetadata clone() {
@@ -65,6 +66,7 @@ public class ColumnMetadata implements Cloneable {
             clone.setScale(scale);
             clone.setLength(length);
             clone.setConstraints(new ArrayList<>(constraints));
+            clone.setPkPart(pkPart);
             clone.setAutoIncrement(autoIncrement);
 
             return clone;
@@ -118,21 +120,23 @@ public class ColumnMetadata implements Cloneable {
             return;
         }
         if (autoIncrement != null) {
-            if (autoIncrement && !MetadataTypeUtils.isValidAutoincrement(this)) {
-                throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_AUTOINCREMENT_TYPE.getKey());
-            }
-            if (table.getColumns().values().stream()
-                    .anyMatch(ColumnMetadata::getAutoIncrement)) {
-                throw new ApplicationException(ErrorMessageKey.COLUMN_DUPLICATE_AUTOINCREMENT.getKey());
-            }
-
-            if (!constraints.contains(ConstraintType.UNIQUE)
-                    && (table.getPrimaryKeyParts().size() != 1
-                            || !table.getPrimaryKeyParts().contains(this.getId()))) {
-                throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_AUTOINCREMENT.getKey());
+            if (autoIncrement) {
+                if (!MetadataTypeUtils.isValidAutoincrement(this)) {
+                    throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_AUTOINCREMENT_TYPE.getKey());
+                }
+                if (table.getAutoIncrementedColumn() != null && !table.getAutoIncrementedColumn().equals(id)) {
+                    throw new ApplicationException(ErrorMessageKey.COLUMN_DUPLICATE_AUTOINCREMENT.getKey());
+                }
+                if (!pkPart && !constraints.contains(ConstraintType.UNIQUE)) {
+                    throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_AUTOINCREMENT.getKey());
+                }
+                table.setAutoIncrementedColumn(id);
             }
 
             this.autoIncrement = autoIncrement;
+            if (!autoIncrement && !Objects.equals(table.getAutoIncrementedColumn(), id)) {
+                table.setAutoIncrementedColumn(null);
+            }
         }
     }
 

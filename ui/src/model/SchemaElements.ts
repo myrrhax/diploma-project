@@ -7,6 +7,7 @@ export interface Table {
     primaryKeyParts: string[];
     columns: Record<string, Column>;
     indexes: Record<string, Index>;
+    autoIncrementedColumn: string | null;
 }
 
 export interface Column {
@@ -20,6 +21,7 @@ export interface Column {
     length: number | null;
     constraints: ConstraintType[] | null;
     autoIncrement: boolean | null;
+    pkPart: boolean;
 }
 
 export interface Index {

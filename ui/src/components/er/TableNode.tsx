@@ -50,6 +50,7 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
 
             {erStore.activeMenuId === table.id && (
                 <AddColumnMenu 
+                    tableId={ table.id }
                     onClose={(col) => {
                         erStore.addColumn(table.id, col);
                         erStore.setActiveMenuId(null);

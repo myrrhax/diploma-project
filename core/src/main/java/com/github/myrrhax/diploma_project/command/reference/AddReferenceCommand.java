@@ -6,14 +6,11 @@ import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
-import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Objects;
 
 @Slf4j
@@ -45,11 +42,17 @@ public class AddReferenceCommand extends MetadataCommand {
                 .key(referenceKey)
                 .onDeleteAction(deleteAction == null ? ReferenceMetadata.OnDeleteAction.NO_ACTION : deleteAction)
                 .onUpdateAction(updateAction == null ? ReferenceMetadata.OnUpdateAction.NO_ACTION : updateAction)
+                .schemaState(metadata)
                 .build();
 
-        if (!reference.isRefValid()) {
+        if (!reference.checkIsRefValid()) {
             throw new ApplicationException(ErrorMessageKey.REFERENCE_INVALID_REF.getKey());
         }
+
+        if (metadata.checkDuplicate(reference)) {
+            throw new ApplicationException(ErrorMessageKey.REFERENCE_DUPLICATE_REF_PART.getKey());
+        }
+
         metadata.addReference(reference);
         log.info("New reference was added to schema {}", schemeId);
         SchemaDifference diff = new SchemaDifference();

@@ -45,6 +45,9 @@ public class TableMetadata implements Cloneable {
     @JsonIgnore
     private SchemaStateMetadata schemaState;
 
+    @Setter
+    private UUID autoIncrementedColumn;
+
     public Optional<ColumnMetadata> getColumn(UUID id) {
         return Optional.ofNullable(columns.get(id));
     }

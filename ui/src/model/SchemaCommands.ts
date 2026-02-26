@@ -22,6 +22,8 @@ export interface AddColumnCommand extends BaseMetadataCommand {
     length: number | null;
     defaultValue: string | null;
     constraints: ConstraintType[] | null;
+    pkPart: boolean | null;
+    autoIncrement: boolean | null;
 }
 export interface UpdateTableCommand extends BaseMetadataCommand { 
     type: 'update-table';
@@ -51,6 +53,7 @@ export interface UpdateColumnCommand extends BaseMetadataCommand {
     newScale: number | null;
     newLength: number | null;
     constraints: ConstraintType[] | null;
+    pkPart?: boolean | null;
     autoIncrement: boolean | null;
 }
 

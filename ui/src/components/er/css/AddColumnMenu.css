@@ -24,7 +24,8 @@
 
 .col_input,
 .col_type_select,
-.col_length_input {
+.col_length_input,
+.col_description_input {
     padding: 6px;
     border-radius: 4px;
 }

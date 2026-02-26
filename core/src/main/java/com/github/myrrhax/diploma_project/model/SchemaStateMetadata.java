@@ -3,9 +3,6 @@ package com.github.myrrhax.diploma_project.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
-import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
-import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
-import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import com.github.myrrhax.diploma_project.util.ReferenceKeyFromStringDeserializer;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -74,7 +71,7 @@ public class SchemaStateMetadata {
         List<ReferenceMetadata.ReferenceKey> cascadeReferences = references.values().stream()
                 .filter(ref -> ref.getKey().getToTableId().equals(changedTable.getId())
                     || ref.getKey().getFromTableId().equals(changedTable.getId()))
-                .filter(ref -> !ref.isRefValid())
+                .filter(ref -> !ref.checkIsRefValid())
                 .map(ReferenceMetadata::getKey)
                 .toList();
 
@@ -99,7 +96,7 @@ public class SchemaStateMetadata {
                         && Arrays.asList(ref.getKey().getToColumns()).contains(changedColumn.getId()))
                     || (ref.getKey().getFromTableId().equals(tableId)
                         && Arrays.asList(ref.getKey().getFromColumns()).contains(changedColumn.getId())))
-                .filter(ref -> !ref.isRefValid())
+                .filter(ref -> !ref.checkIsRefValid())
                 .map(ReferenceMetadata::getKey)
                 .toList();
 
@@ -112,55 +109,31 @@ public class SchemaStateMetadata {
         return difference;
     }
 
-//    public SchemaDifference deleteHangingReferences(ColumnMetadata changedColumn, boolean isDeleted) {
-//        List<ReferenceMetadata.ReferenceKey> hangingFromRefs = references.values().stream()
-//                .filter(ref -> changedColumn.getTableId().equals(ref.getKey().getFromTableId()))
-//                .filter(ref -> Arrays.asList(ref.getKey().getFromColumns()).contains(changedColumn.getId()))
-//                .filter(ref -> !MetadataTypeUtils.isRefValid(this, ref.getKey(), ref.getType()))
-//                .map(ReferenceMetadata::getKey)
-//                .toList();
-//        List<ReferenceMetadata.ReferenceKey> hangingToRefs = references.values().stream()
-//                .filter(ref -> changedColumn.getTableId().equals(ref.getKey().getToTableId()))
-//                .filter(ref -> Arrays.asList(ref.getKey().getToColumns()).contains(changedColumn.getId()))
-//                .filter(ref -> !MetadataTypeUtils.isRefValid(this, ref.getKey(), ref.getType()))
-//                .map(ReferenceMetadata::getKey)
-//                .toList();
-//        SchemaDifference difference = new SchemaDifference();
-//        hangingToRefs.stream()
-//                .peek(difference::removeReference)
-//                .forEach(this::removeReference);
-//        // Колонка удалена
-//        if (isDeleted) {
-//            hangingFromRefs.stream()
-//                    .peek(difference::removeReference)
-//                    .forEach(this::removeReference);
-//        }
-//
-//        return difference;
-//    }
-//
-//    public SchemaDifference deleteHangingReferences(TableMetadata changedTable, boolean isDeleted) {
-//        List<ReferenceMetadata.ReferenceKey> affectedFromReferences = references.keySet().stream()
-//                .filter(key -> key.getFromTableId().equals(changedTable.getId()))
-//                .toList();
-//        List<ReferenceMetadata.ReferenceKey> affectedToReferences = references.keySet().stream()
-//                .filter(key -> key.getToTableId().equals(changedTable.getId()))
-//                .toList();
-//
-//        SchemaDifference difference = new SchemaDifference();
-//        // Изменился ключ или индекс, или таблица удалена
-//        affectedToReferences.stream()
-//                .peek(difference::removeReference)
-//                .forEach(this::removeReference);
-//        // Таблица удалена
-//        if (isDeleted) {
-//            affectedFromReferences.stream()
-//                    .peek(difference::removeReference)
-//                    .forEach(this::removeReference);
-//        }
-//
-//        return difference;
-//    }
+    public boolean checkDuplicate(ReferenceMetadata ref) {
+        if (containsReference(ref.getKey())) {
+            return true;
+        }
+        ReferenceMetadata reverseRef = ref.buildReverse();
+        if (containsReference(reverseRef.getKey())) {
+            ReferenceMetadata foundRef = references.get(reverseRef.getKey());
+            if (foundRef.getType() == reverseRef.getType()) {
+                return true;
+            }
+        }
+
+        UUID[] columns = ref.getKey().getFromColumns();
+        if (ref.getType() == ReferenceMetadata.ReferenceType.ONE_TO_MANY) {
+            columns = ref.getKey().getToColumns();
+        }
+
+        for (UUID colId : columns) { // Колонки уже использовались для связей, тогда получится неоднозначность ссылок
+            if (linkedColumns.contains(colId)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public boolean containsReference(ReferenceMetadata.ReferenceKey key) {
         return references.containsKey(key);
@@ -207,11 +180,6 @@ public class SchemaStateMetadata {
             columns = key.getToColumns();
         }
 
-        for (UUID columnId : columns) {
-            if (linkedColumns.contains(columnId)) {
-                throw new ApplicationException(ErrorMessageKey.REFERENCE_DUPLICATE_REF_PART.getKey());
-            }
-            linkedColumns.add(columnId);
-        }
+        linkedColumns.addAll(Arrays.asList(columns));
     }
 }

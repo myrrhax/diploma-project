@@ -14,12 +14,14 @@ public enum ErrorMessageKey {
     COLUMN_INVALID_DEFAULT("error.column.invalid-default"),
     COLUMN_INVALID_DECIMAL("error.column.invalid-decimal"),
     COLUMN_BLANK_NAME("error.column.blank-name"),
+    COLUMN_PK_PART_MUST_BE_NOT_NULL("error.column.pk-part-must-be-not-null"),
     COLUMN_INVALID_AUTOINCREMENT_TYPE("error.column.invalid-autoincrement-type"),
     COLUMN_DUPLICATE_AUTOINCREMENT("error.column.duplicate-autoincrement"),
     COLUMN_INVALID_AUTOINCREMENT("error.column.invalid-autoincrement"),
     REFERENCE_INVALID_KEY("error.reference.invalid-key"),
     REFERENCE_INVALID_REF("error.reference.invalid-ref"),
-    REFERENCE_NOT_FOUND("error.reference.notfound"),;
+    REFERENCE_NOT_FOUND("error.reference.notfound"),
+    REFERENCE_DUPLICATE_REF_PART("error.reference.duplicate-ref-part"),;
 
     private final String key;
 

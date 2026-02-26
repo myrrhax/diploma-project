@@ -133,7 +133,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .name("users")
                 .columns(columns)
                 .indexes(Map.of(idx.getId(), idx))
-                .primaryKeyParts(List.of(cmId.getId()))
+                .primaryKeyParts(Set.of(cmId.getId()))
                 .build();
         schemaStateMetadata.getTables().put(table.getId(), table);
     }
@@ -182,7 +182,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .name("flights")
                 .columns(columns)
                 .indexes(Map.of(idx.getId(), idx))
-                .primaryKeyParts(List.of(cmId.getId()))
+                .primaryKeyParts(Set.of(cmId.getId()))
                 .build();
         schemaStateMetadata.getTables().put(table.getId(), table);
     }
@@ -224,7 +224,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .id(UUID.randomUUID())
                 .name("bookings")
                 .columns(columns)
-                .primaryKeyParts(List.of(userId.getId(), flightId.getId()))
+                .primaryKeyParts(Set.of(userId.getId(), flightId.getId()))
                 .build();
         schemaStateMetadata.getTables().put(table.getId(), table);
 
@@ -308,7 +308,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         var table = TableMetadata.builder()
                 .name("employees")
                 .description("Сотрудники")
-                .primaryKeyParts(List.of(idCol.getId()))
+                .primaryKeyParts(Set.of(idCol.getId()))
                 .build();
 
         table.addColumns(idCol, fioCol, positionCol, phoneCol, emailCol, admissionDateCol);
@@ -337,7 +337,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         TableMetadata table = TableMetadata.builder()
                 .name("suppliers")
                 .description("Поставщики")
-                .primaryKeyParts(List.of(idCol.getId()))
+                .primaryKeyParts(Set.of(idCol.getId()))
                 .build();
 
         table.addColumns(idCol, companyName, memberFio, phoneCol, emailCol, lastSupplyDate);
@@ -386,7 +386,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         var table = TableMetadata.builder()
                 .name("orders")
                 .description("Заказы")
-                .primaryKeyParts(List.of(idCol.getId()))
+                .primaryKeyParts(Set.of(idCol.getId()))
                 .build();
         table.addColumns(idCol, ordertime, status, sum, employeeId, itemId, clientId, updateTime);
         schema.addTable(table);
@@ -432,7 +432,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         var table = TableMetadata.builder()
-                .primaryKeyParts(List.of(idCol.getId()))
+                .primaryKeyParts(Set.of(idCol.getId()))
                 .name("clients")
                 .description("Клиенты")
                 .build();
@@ -493,7 +493,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .build();
 
         var table = TableMetadata.builder()
-                .primaryKeyParts(List.of(idCol.getId()))
+                .primaryKeyParts(Set.of(idCol.getId()))
                 .name("items")
                 .description("Товары")
                 .build();

@@ -13,6 +13,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+
 @Slf4j
 @Getter
 @Setter
@@ -46,9 +48,12 @@ public class AddTableCommand extends MetadataCommand {
                 .columnType(ColumnMetadata.ColumnType.INT)
                 .name(DEFAULT_ID_COL)
                 .autoIncrement(true)
+                .pkPart(true)
+                .constraints(List.of(ColumnMetadata.ConstraintType.UNIQUE, ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         table.addColumn(defaultColumn);
         table.getPrimaryKeyParts().add(defaultColumn.getId());
+        table.setAutoIncrementedColumn(defaultColumn.getId());
         log.info("Default PK {} was added to table {} of schema {}", DEFAULT_ID_COL, tableName, schemeId);
 
         SchemaDifference diff = new SchemaDifference();

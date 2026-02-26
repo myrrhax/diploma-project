@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -60,12 +61,12 @@ public abstract class MetadataToSqlScriptProcessor {
             List<ColumnMetadata> columns = tableMetadata.getColumns().values()
                     .stream().toList();
 
-            List<UUID> primaryKeyParts = tableMetadata.getPrimaryKeyParts();
+            Set<UUID> primaryKeyParts = tableMetadata.getPrimaryKeyParts();
             if (primaryKeyParts.isEmpty()) {
                 throw new ApplicationException("Table must contain primary key", HttpStatus.BAD_REQUEST);
             }
             buildColumnsPart(columns, sqlBuilder);
-            buildPrimaryKeyConstraint(tableMetadata, primaryKeyParts);
+            buildPrimaryKeyConstraint(tableMetadata, primaryKeyParts.stream().toList());
 
             sqlBuilder.append(");\n");
 
@@ -122,7 +123,7 @@ public abstract class MetadataToSqlScriptProcessor {
                 .columns(concatColumnsMap)
                 .primaryKeyParts(concatMtmCols.stream()
                         .map(ColumnMetadata::getId)
-                        .toList())
+                        .collect(Collectors.toSet()))
                 .build();
 
         ReferenceMetadata ftmRef = buildRef(mtmTable, fromTable, mtmFrom, fromCols);
