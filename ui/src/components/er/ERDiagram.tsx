@@ -6,6 +6,7 @@ import { refKeyToString } from '@/utils/UtilFunctions';
 import './css/ERDiagram.css';   
 import { observer } from 'mobx-react-lite';
 import { AddReferenceMenu } from './AddReferenceMenu';
+import { referenceStore } from '@/store/ReferenceStore';
 
 const getPortPosition = (table: Table, colId: string, side: 'left' | 'right') => {
     const column = table.columns[colId];
@@ -77,7 +78,10 @@ export const ERDiagram = observer(() => {
         }
     };
 
-    const handleCloseMenu = () => erStore.closeContextMenu();
+    const handleCloseMenu = () => {
+        erStore.closeContextMenu();
+        referenceStore.closeRefContextMenu();
+    }
 
     const handleOpenMenu = (screenX: number, screenY: number, relativeX: number, relativeY: number) => {
         erStore.openContextMenu(screenX, screenY, relativeX, relativeY);
@@ -119,13 +123,13 @@ export const ERDiagram = observer(() => {
             onClick={handleCloseMenu}
         >
             <AddReferenceMenu />
+            
             <div className="er_viewport" style={{ transform: `translate(${erStore.offsetX}px, ${erStore.offsetY}px) scale(${erStore.scale})` }}>
                 <svg className="er_svg_layer">
                     <defs>
                         <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
                             <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
                         </marker>
-                        {/* Маркер для начала ветвления (опционально, точка) */}
                         <marker id="dot" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
                              <circle cx="3" cy="3" r="2" fill="#64748b" />
                         </marker>
@@ -138,6 +142,20 @@ export const ERDiagram = observer(() => {
                         const tTable = tables[key.toTableId];
                         if (!sTable || !tTable) return null;
                         
+                        const handleRefContextMenu = (e: React.MouseEvent) => {
+                            e.preventDefault();
+                            e.stopPropagation(); // Не даем открыться меню холста
+                            const rect = containerRef.current?.getBoundingClientRect();
+                            if (rect) {
+                                referenceStore.openRefContextMenu(
+                                    e.clientX - rect.left, 
+                                    e.clientY - rect.top, 
+                                    refKeyToString(key)
+                                );
+                            }
+                        };
+
+                        // --- ОДИНОЧНАЯ СВЯЗЬ ---
                         if (key.toColumns.length === 1) {
                             const start = getPortPosition(tables[key.fromTableId], key.fromColumns[0], 'right');
                             const end = getPortPosition(tables[key.toTableId], key.toColumns[0], 'left');
@@ -145,15 +163,26 @@ export const ERDiagram = observer(() => {
                             const d = getTrunkPath(tables, start.x, start.y, end.x, end.y, sTable.id, tTable.id, index);
                             
                             return ( 
-                                <path 
+                                <g 
                                     key={refKeyToString(key)} 
-                                    d={d} 
-                                    className="er_line" 
-                                    markerEnd="url(#arrow)" 
-                                />
+                                    className="er_relation_group"
+                                    style={{ cursor: 'context-menu' }}
+                                    onContextMenu={handleRefContextMenu}
+                                >
+                                    {/* Невидимый хитбокс для удобного клика */}
+                                    <path d={d} stroke="transparent" strokeWidth="15" fill="none" />
+                                    {/* Видимая линия */}
+                                    <path 
+                                        d={d} 
+                                        className="er_line" 
+                                        markerEnd="url(#arrow)" 
+                                        fill="none" // обязательно fill none чтобы SVG не заливал фигуру черным
+                                    />
+                                </g>
                             );
                         }
 
+                        // --- МНОЖЕСТВЕННАЯ СВЯЗЬ ---
                         else {
                             const sourcePoints = key.fromColumns.map(p => getPortPosition(sTable, p, 'right'));
                             const targetPoints = key.toColumns.map(p => getPortPosition(tTable, p, 'left'));
@@ -178,7 +207,7 @@ export const ERDiagram = observer(() => {
                             pathData += `M ${sBusX} ${sMinY} L ${sBusX} ${sMaxY} `;
 
                             targetPoints.forEach(p => {
-                                pathData += `M ${tBusX} ${p.y} L ${p.x} ${p.y} `; // Здесь стрелка придет в порт
+                                pathData += `M ${tBusX} ${p.y} L ${p.x} ${p.y} `; 
                             });
 
                             pathData += `M ${tBusX} ${tMinY} L ${tBusX} ${tMaxY} `;
@@ -188,7 +217,15 @@ export const ERDiagram = observer(() => {
                             pathData += trunkPath;
 
                             return (
-                                <g key={refKeyToString(key)} className="er_relation_group">
+                                <g 
+                                    key={refKeyToString(key)} 
+                                    className="er_relation_group"
+                                    style={{ cursor: 'context-menu' }}
+                                    onContextMenu={handleRefContextMenu}
+                                >
+                                    {/* Невидимый хитбокс */}
+                                    <path d={pathData} stroke="transparent" strokeWidth="15" fill="none" />
+                                    {/* Видимая линия */}
                                     <path 
                                         d={pathData} 
                                         className="er_line" 
@@ -206,9 +243,23 @@ export const ERDiagram = observer(() => {
                 {Object.values(tables).map(table => <TableNode key={table.id} table={table} />)}
             </div>
 
+            {/* МЕНЮ ХОЛСТА (Добавить таблицу) */}
             {erStore.contextMenu.visible && (
                 <div className="er_ctx_menu" style={{ left: erStore.contextMenu.x, top: erStore.contextMenu.y }}>
                     <div className="er_ctx_item" onClick={() => erStore.addTable()}>Добавить таблицу</div>
+                </div>
+            )}
+
+            {/* МЕНЮ СВЯЗИ (Удалить) */}
+            {referenceStore.refContextMenu?.visible && (
+                <div className="er_ctx_menu" style={{ left: referenceStore.refContextMenu.x, top: referenceStore.refContextMenu.y, zIndex: 1000 }}>
+                    <div 
+                        className="er_ctx_item" 
+                        onClick={() => erStore.deleteReference(referenceStore.refContextMenu.refKeyStr)}
+                        style={{ color: '#ef4444', fontWeight: 'bold' }}
+                    >
+                        Удалить
+                    </div>
                 </div>
             )}
         </div>

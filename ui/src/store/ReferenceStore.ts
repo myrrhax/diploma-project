@@ -18,19 +18,18 @@ class ReferenceStore {
     refType: ReferenceType = 'MANY_TO_ONE';
     onDelete: OnDeleteAction = 'NO_ACTION';
     onUpdate: OnUpdateAction = 'NO_ACTION';
+    refContextMenu = { visible: false, x: 0, y: 0, refKeyStr: '' };
 
     constructor() {
         makeAutoObservable(this);
     }
 
     handlePortClick(side: 'left' | 'right', tableId: string, colId: string, clientX: number, clientY: number) {
-        // Обновляем позицию меню рядом с последним кликом
         this.menuX = clientX;
         this.menuY = clientY;
         this.isOpen = true;
 
         if (side === 'right') { // Клик по Source (Output)
-            // Если начали выделять порты другой таблицы - сбрасываем старое выделение
             if (this.sourceTableId && this.sourceTableId !== tableId) {
                 this.reset();
                 this.menuX = clientX; this.menuY = clientY; this.isOpen = true;
@@ -39,14 +38,13 @@ class ReferenceStore {
             
             const idx = this.sourceCols.indexOf(colId);
             if (idx === -1) this.sourceCols.push(colId);
-            else this.sourceCols.splice(idx, 1); // Повторный клик снимает выделение
+            else this.sourceCols.splice(idx, 1);
 
-        } else { // Клик по Target (Input)
+        } else {
             if (this.sourceCols.length === 0) {
                 alert("Сначала выберите исходную колонку (Output)");
                 return;
             }
-            // Если начали выделять таргеты другой таблицы
             if (this.targetTableId && this.targetTableId !== tableId) {
                 this.targetCols = []; 
             }
@@ -63,7 +61,6 @@ class ReferenceStore {
         }
     }
 
-    // Методы для перестановки порядка колонок
     moveTargetUp(index: number) {
         if (index > 0) {
             const temp = this.targetCols[index - 1];
@@ -118,6 +115,14 @@ class ReferenceStore {
         this.refType = 'MANY_TO_ONE';
         this.onDelete = 'NO_ACTION';
         this.onUpdate = 'NO_ACTION';
+    }
+
+    openRefContextMenu(x: number, y: number, refKeyStr: string) {
+        this.refContextMenu = { visible: true, x, y, refKeyStr };
+    }
+
+    closeRefContextMenu() {
+        this.refContextMenu.visible = false;
     }
 }
 

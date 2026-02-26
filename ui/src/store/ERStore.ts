@@ -6,6 +6,7 @@ import { compareAndReturnNew, length, refKeyToString } from "@/utils/UtilFunctio
 import { type MetadataCommandProcessResult } from "@/model/SchemaEvents";
 import { schemaApi } from "@/api/SchemaApiService";
 import { schemaSocketService } from "@/api/SchemaSocketService";
+import { referenceStore } from "./ReferenceStore";
 
 interface SelectedPort {
     tableId: string;
@@ -276,6 +277,23 @@ class ERStore {
 
     allow() {
         this.isAccessDenied = false;
+    }
+
+    deleteReference(refKeyStr: string) {
+        if (!this.state || !this.schema) {
+            return;
+        }
+
+        const ref = this.state.references[refKeyStr];
+        if (!ref) return;
+
+        schemaSocketService.sendCommand({
+            schemeId: this.schema.id,
+            type: 'delete-ref',
+            key: ref.key
+        });
+
+        referenceStore.closeRefContextMenu();
     }
 
     private sendCoords() {
