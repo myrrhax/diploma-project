@@ -123,19 +123,28 @@ export const ERDiagram = observer(() => {
             <div className="er_viewport" style={{ transform: `translate(${erStore.offsetX}px, ${erStore.offsetY}px) scale(${erStore.scale})` }}>
                 <svg className="er_svg_layer">
                     <defs>
-                        {/* Маркер "Один" (Вертикальная черта) - придвинут ближе (x="-8") */}
-                        <marker id="marker-one" overflow='visible' orient='auto-start-reverse'>
-                            <line x1="-5" y1="-5" x2="-5" y2="5" stroke="#94a3b8" strokeWidth="1.2" />
+                        {/* --- SOURCE МАРКЕРЫ (Начало связи, без стрелки направления) --- */}
+                        <marker id="marker-source-one" overflow='visible' orient='auto-start-reverse'>
+                            <line x1="-10" y1="-4" x2="-10" y2="4" stroke="#94a3b8" strokeWidth="1.2" />
                         </marker>
                         
-                        {/* Маркер "Многие" (Звездочка) - центр теперь на x="-8" */}
-                        <marker id="marker-many" overflow="visible" orient="auto-start-reverse">
-                            {/* Центральная вертикальная линия, короче и ближе */}
+                        <marker id="marker-source-many" overflow="visible" orient="auto-start-reverse">
                             <line x1="-4" y1="-3" x2="-4" y2="3" stroke="#94a3b8" strokeWidth="1.2" />
-                            
-                            {/* Диагональные линии, компактнее и тоньше */}
                             <line x1="-6" y1="-2" x2="-2" y2="2" stroke="#94a3b8" strokeWidth="1.2" />
                             <line x1="-6" y1="2" x2="-2" y2="-2" stroke="#94a3b8" strokeWidth="1.2" />
+                        </marker>
+
+                        {/* --- TARGET МАРКЕРЫ (Конец связи, со стрелкой, указывающей на таблицу) --- */}
+                        <marker id="marker-target-one" overflow='visible' orient='auto-start-reverse'>
+                            <line x1="-8" y1="-6" x2="-8" y2="6" stroke="#94a3b8" strokeWidth="2" />
+                            <path d="M -20 -4 L -12 0 L -20 4 z" fill="#94a3b8" />
+                        </marker>
+                        
+                        <marker id="marker-target-many" overflow="visible" orient="auto-start-reverse">
+                            <line x1="-4" y1="-3" x2="-4" y2="3" stroke="#94a3b8" strokeWidth="1.2" />
+                            <line x1="-6" y1="-2" x2="-2" y2="2" stroke="#94a3b8" strokeWidth="1.2" />
+                            <line x1="-6" y1="2" x2="-2" y2="-2" stroke="#94a3b8" strokeWidth="1.2" />
+                            <path d="M -20 -4 L -12 0 L -20 4 z" fill="#94a3b8" />
                         </marker>
                     </defs>
                     
@@ -145,24 +154,32 @@ export const ERDiagram = observer(() => {
                         const tTable = tables[key.toTableId];
                         if (!sTable || !tTable) return null;
 
-                        // Определяем маркеры и текст в зависимости от типа связи
                         let sourceLabel = 'M';
                         let targetLabel = '1';
-                        let sourceMarker = 'url(#marker-many)';
-                        let targetMarker = 'url(#marker-one)';
+                        
+                        let sourceMarker = 'url(#marker-source-many)';
+                        let targetMarker = 'url(#marker-target-one)';
+                        
+                        let sourceTextOffset = 8;
+                        let targetTextOffset = -14;
 
                         if (ref.type === 'ONE_TO_ONE') {
                             sourceLabel = '1'; targetLabel = '1';
-                            sourceMarker = 'url(#marker-one)'; targetMarker = 'url(#marker-one)';
+                            sourceMarker = 'url(#marker-source-one)'; 
+                            targetMarker = 'url(#marker-target-one)';
                         } else if (ref.type === 'ONE_TO_MANY') {
                             sourceLabel = '1'; targetLabel = 'M';
-                            sourceMarker = 'url(#marker-one)'; targetMarker = 'url(#marker-many)';
+                            sourceMarker = 'url(#marker-source-one)'; 
+                            targetMarker = 'url(#marker-target-many)';
                         } else if (ref.type === 'MANY_TO_ONE') {
                             sourceLabel = 'M'; targetLabel = '1';
-                            sourceMarker = 'url(#marker-many)'; targetMarker = 'url(#marker-one)';
+                            sourceMarker = 'url(#marker-source-many)'; 
+                            targetMarker = 'url(#marker-target-one)';
                         } else if (ref.type === 'MANY_TO_MANY') {
                             sourceLabel = 'M'; targetLabel = 'M';
-                            sourceMarker = 'url(#marker-many)'; targetMarker = 'url(#marker-many)';
+                            sourceMarker = 'url(#marker-source-many)'; 
+                            targetMarker = 'url(#marker-source-many)'; 
+                            targetTextOffset = -8; 
                         }
                         
                         const handleRefContextMenu = (e: React.MouseEvent) => {
@@ -193,8 +210,8 @@ export const ERDiagram = observer(() => {
                                     <path d={d} className="er_line" markerStart={sourceMarker} markerEnd={targetMarker} fill="none" />
                                     
                                     {/* Подписи "1" и "M" */}
-                                    <text x={start.x + 16} y={start.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="16" fontWeight="bold">{sourceLabel}</text>
-                                    <text x={end.x - 16} y={end.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="16" fontWeight="bold">{targetLabel}</text>
+                                    <text x={start.x + sourceTextOffset} y={start.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
+                                    <text x={end.x + targetTextOffset} y={end.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
                                 </g>
                             );
                         }
@@ -241,8 +258,8 @@ export const ERDiagram = observer(() => {
                                     <circle cx={tBusX} cy={tCenterY} r="3" fill="#64748b" />
 
                                     {/* Подписи "1" и "M" около магистрали */}
-                                    <text x={sBusX + 16} y={sCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="16" fontWeight="bold">{sourceLabel}</text>
-                                    <text x={tBusX - 16} y={tCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="16" fontWeight="bold">{targetLabel}</text>
+                                    <text x={sBusX + sourceTextOffset} y={sCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
+                                    <text x={tBusX + targetTextOffset} y={tCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
                                 </g>
                             );
                         }
