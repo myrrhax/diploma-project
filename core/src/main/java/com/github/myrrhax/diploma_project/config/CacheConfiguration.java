@@ -42,9 +42,4 @@ public class CacheConfiguration {
                 .withInitialCacheConfigurations(config)
                 .build();
     }
-
-    @Data
-    public static class CacheProperty{
-        private Duration ttl = Duration.ZERO;
-    }
 }
