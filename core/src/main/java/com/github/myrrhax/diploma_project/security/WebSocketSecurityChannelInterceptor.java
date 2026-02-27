@@ -1,6 +1,6 @@
 package com.github.myrrhax.diploma_project.security;
 
-import com.github.myrrhax.diploma_project.service.AuthorityService;
+import com.github.myrrhax.diploma_project.service.AuthorityCheckService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
@@ -25,9 +25,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class WebSocketSecurityChannelInterceptor implements ChannelInterceptor {
     private static final String SCHEMA_SUBSCRIPTION_TOPIC_PATTERN = "/topic/schema/{id}";
-    private final JwsTokenProvider tokenProvider;
     private final TokenAuthenticationDetailsService tokenDetailsService;
-    private final AuthorityService authorityService;
+    private final AuthorityCheckService authorityCheckService;
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
@@ -81,7 +80,7 @@ public class WebSocketSecurityChannelInterceptor implements ChannelInterceptor {
                     throw new MessageDeliveryException("Invalid token");
                 }
 
-                if (!authorityService.hasAccess(tokenUser.getToken().userId(), parsedId)) {
+                if (!authorityCheckService.hasAccess(tokenUser.getToken().userId(), parsedId)) {
                     throw new MessageDeliveryException("Access denied");
                 }
             } catch (IllegalArgumentException e) {

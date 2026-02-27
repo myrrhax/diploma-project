@@ -1,7 +1,5 @@
 package com.github.myrrhax.diploma_project.service;
 
-import com.github.myrrhax.diploma_project.mapper.AuthorityMapper;
-import com.github.myrrhax.diploma_project.model.UserAuthority;
 import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
@@ -11,6 +9,8 @@ import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.shared.model.AuthorityType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,17 +29,18 @@ public class AuthorityService {
     private final AuthorityRepository authorityRepository;
     private final UserRepository userRepository;
     private final SchemeRepository schemeRepository;
-    private final AuthorityMapper authorityMapper;
 
     @Transactional(readOnly = true)
-    public Set<UserAuthority> getAuthorities(UUID userId, UUID schemeId) {
+    @Cacheable(value = "authorities", key = "{#userId, #schemeId}")
+    public Set<AuthorityType> getAuthorities(UUID userId, UUID schemeId) {
         var authoritiesFromDb = authorityRepository.findAllAuthoritiesForUserAndScheme(userId, schemeId);
 
         return authoritiesFromDb.stream()
-                .map(authorityMapper::toAuthority)
+                .map(AuthorityEntity::getType)
                 .collect(Collectors.toSet());
     }
 
+    @CacheEvict(value = "authorities", key = "{#userId, #schemeId}")
     public void grantUser(UUID userId, UUID schemeId, List<AuthorityType> types) {
         if (getAuthorities(userId, schemeId).isEmpty()) {
             throw new ApplicationException("Can't grant user authorities, invite user instead", HttpStatus.BAD_REQUEST);
@@ -50,7 +51,7 @@ public class AuthorityService {
 
         var scheme = schemeRepository.findById(schemeId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
-        var user = userRepository.findById(userId).get();
+        var user = userRepository.findById(userId).orElseThrow();
         log.info("Applying authorities {} for user {} and scheme {}", types, userId, schemeId);
 
         List<AuthorityEntity> authorities = new LinkedList<>();
@@ -65,6 +66,7 @@ public class AuthorityService {
         authorityRepository.saveAll(authorities);
     }
 
+    @CacheEvict(value = "authorities", key = "{#userId, #schemeId}")
     public void discardUser(UUID userId, UUID schemeId, Set<AuthorityType> types) {
         if (types.contains(AuthorityType.READ_SCHEME)) {
             throw new ApplicationException("Can't discard READ_SCHEME authority from user, kick user instead",

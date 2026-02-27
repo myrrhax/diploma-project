@@ -10,7 +10,8 @@ version = "0.0.1-SNAPSHOT"
 val libVersions = mapOf(
     "liquibase" to "5.0.1",
     "jjwt" to "0.13.0",
-    "mapstruct" to "1.6.3"
+    "mapstruct" to "1.6.3",
+    "jedisVersion" to "6.1.0"
 )
 
 java {
@@ -42,6 +43,7 @@ dependencies {
     implementation("org.liquibase:liquibase-core:${libVersions["liquibase"]}")
     implementation("io.jsonwebtoken:jjwt-api:${libVersions["jjwt"]}")
     implementation("org.mapstruct:mapstruct:${libVersions["mapstruct"]}")
+    implementation("redis.clients:jedis:${libVersions["jedisVersion"]}")
 
     compileOnly("org.projectlombok:lombok")
 

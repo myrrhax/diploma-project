@@ -38,6 +38,7 @@ services:
     depends_on:
       - db
       - rabbitmq
+      - redis
     networks:
       - backend
 
@@ -56,6 +57,14 @@ services:
     networks:
       - backend
 
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
 networks:
   backend:
     driver: bridge
@@ -63,3 +72,4 @@ networks:
 volumes:
   pg_db:
   rabbitmq:
+  redis_data:

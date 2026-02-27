@@ -44,6 +44,9 @@ app:
 
   cache:
     schema-ttl: 15m
+    caches:
+      authorities:
+        ttl: 15m
 
 server:
   port: 8000
