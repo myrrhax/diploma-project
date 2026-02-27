@@ -7,6 +7,8 @@ import './css/ERDiagram.css';
 import { observer } from 'mobx-react-lite';
 import { AddReferenceMenu } from './AddReferenceMenu';
 import { referenceStore } from '@/store/ReferenceStore';
+import { tableDeleteStore } from '@/store/TableDeleteStore';
+import { DeleteTableModal } from './DeleteTableModal';
 
 const getPortPosition = (table: Table, colId: string, side: 'left' | 'right') => {
     const column = table.columns[colId];
@@ -77,6 +79,7 @@ export const ERDiagram = observer(() => {
     const handleCloseMenu = () => {
         erStore.closeContextMenu();
         referenceStore.closeRefContextMenu();
+        tableDeleteStore.closeTableContextMenu(); 
     }
 
     const handleOpenMenu = (screenX: number, screenY: number, relativeX: number, relativeY: number) => {
@@ -119,6 +122,7 @@ export const ERDiagram = observer(() => {
             onClick={handleCloseMenu}
         >
             <AddReferenceMenu />
+            <DeleteTableModal />
             
             <div className="er_viewport" style={{ transform: `translate(${erStore.offsetX}px, ${erStore.offsetY}px) scale(${erStore.scale})` }}>
                 <svg className="er_svg_layer">
@@ -283,6 +287,21 @@ export const ERDiagram = observer(() => {
                         style={{ color: '#ef4444', fontWeight: 'bold' }}
                     >
                         Удалить
+                    </div>
+                </div>
+            )}
+            
+            {tableDeleteStore.tableContextMenu.visible && (
+                <div className="er_ctx_menu" style={{ left: tableDeleteStore.tableContextMenu.x, top: tableDeleteStore.tableContextMenu.y, zIndex: 1000 }}>
+                    <div 
+                        className="er_ctx_item" 
+                        onClick={() => {
+                            tableDeleteStore.open();
+                            tableDeleteStore.closeTableContextMenu();
+                        }}
+                        style={{ color: '#ef4444', fontWeight: 'bold' }}
+                    >
+                        Удалить таблицу
                     </div>
                 </div>
             )}

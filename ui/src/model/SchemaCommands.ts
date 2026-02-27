@@ -60,7 +60,12 @@ export interface UpdateColumnCommand extends BaseMetadataCommand {
 }
 
 export interface DeleteColumnCommand extends BaseMetadataCommand { type: 'delete-column'; /* поля */ }
-export interface DeleteTableCommand extends BaseMetadataCommand { type: 'delete-table'; /* поля */ }
+
+export interface DeleteTableCommand extends BaseMetadataCommand { 
+    type: 'delete-table';
+    tableId: string;     
+}
+
 export interface DeleteReferenceCommand extends BaseMetadataCommand { 
     type: 'delete-ref';
     key: ReferenceKey;

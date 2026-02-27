@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import { type Column, type Reference, type ReferenceKey } from "@/model/SchemaElements";
+import { type Column, type Reference } from "@/model/SchemaElements";
 import type { Schema, VersionState } from "@/model/SchemaTypes";
 import { type Table } from "@/model/SchemaElements";
 import { compareAndReturnNew, length, refKeyToString } from "@/utils/UtilFunctions";
@@ -7,6 +7,7 @@ import { type MetadataCommandProcessResult } from "@/model/SchemaEvents";
 import { schemaApi } from "@/api/SchemaApiService";
 import { schemaSocketService } from "@/api/SchemaSocketService";
 import { referenceStore } from "./ReferenceStore";
+import { tableDeleteStore } from "./TableDeleteStore";
 
 class ERStore {
     readonly TABLE_WIDTH = 220;
@@ -289,6 +290,18 @@ class ERStore {
         });
 
         referenceStore.closeRefContextMenu();
+    }
+
+    deleteTable(tableId: string) {
+        if (!this.schema || !this.state) return;
+
+        schemaSocketService.sendCommand({
+            schemeId: this.schema.id,
+            type: 'delete-table',
+            tableId: tableId
+        });
+
+        tableDeleteStore.closeTableContextMenu();
     }
 
     private sendCoords() {

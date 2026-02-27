@@ -4,6 +4,7 @@ import { type Table } from '@/model/SchemaElements';
 import { AddColumnMenu } from './AddColumnMenu';
 import { TableColumn } from './TableColumn';
 import './css/TableNode.css';
+import { tableDeleteStore } from '@/store/TableDeleteStore';
 
 interface TableNodeProps {
     table: Table;
@@ -20,6 +21,21 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
                 width: erStore.TABLE_WIDTH
             }}
             onMouseDown={(e) => e.stopPropagation()}
+            onContextMenu={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const wrapper = e.currentTarget.closest('.er_diagram_wrapper');
+                const rect = wrapper?.getBoundingClientRect();
+                
+                if (rect) {
+                    tableDeleteStore.openTableContextMenu(
+                        e.clientX - rect.left, 
+                        e.clientY - rect.top, 
+                        table.id
+                    );
+                }
+            }}
         >
             <div 
                 className="er_table_header"
