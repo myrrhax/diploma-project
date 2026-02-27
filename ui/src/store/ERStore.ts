@@ -8,17 +8,12 @@ import { schemaApi } from "@/api/SchemaApiService";
 import { schemaSocketService } from "@/api/SchemaSocketService";
 import { referenceStore } from "./ReferenceStore";
 
-interface SelectedPort {
-    tableId: string;
-    colId: string;
-}
-
 class ERStore {
     readonly TABLE_WIDTH = 220;
     readonly HEADER_HEIGHT = 42;
     readonly ROW_HEIGHT = 32;
     readonly FOOTER_HEIGHT = 32;
-    readonly MOVE_TICK_MS = 500;
+    readonly MOVE_TICK_MS = 2000;
 
     schemaId: string | null = null;
     schema: Schema | null = null;

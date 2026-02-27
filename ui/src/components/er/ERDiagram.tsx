@@ -42,11 +42,8 @@ const getTrunkPath = (
     if (tX > sX + 40) {
         const midX = (sX + tX) / 2;
         return `M ${sX} ${sY} L ${midX} ${sY} L ${midX} ${tY} L ${tX} ${tY}`;
-    }
-    
-    else {
+    } else {
         const safeY = Math.max(sBottom, tBottom) + 20 + gap;
-        
         return `M ${sX} ${sY} 
                 L ${sX + 20} ${sY} 
                 L ${sX + 20} ${safeY} 
@@ -55,7 +52,6 @@ const getTrunkPath = (
                 L ${tX} ${tY}`;
     }
 };
-    
 
 export const ERDiagram = observer(() => {
     if (!erStore.state) {
@@ -127,24 +123,51 @@ export const ERDiagram = observer(() => {
             <div className="er_viewport" style={{ transform: `translate(${erStore.offsetX}px, ${erStore.offsetY}px) scale(${erStore.scale})` }}>
                 <svg className="er_svg_layer">
                     <defs>
-                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                            <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                        {/* Маркер "Один" (Вертикальная черта) - придвинут ближе (x="-8") */}
+                        <marker id="marker-one" overflow='visible' orient='auto-start-reverse'>
+                            <line x1="-5" y1="-5" x2="-5" y2="5" stroke="#94a3b8" strokeWidth="1.2" />
                         </marker>
-                        <marker id="dot" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-                             <circle cx="3" cy="3" r="2" fill="#64748b" />
+                        
+                        {/* Маркер "Многие" (Звездочка) - центр теперь на x="-8" */}
+                        <marker id="marker-many" overflow="visible" orient="auto-start-reverse">
+                            {/* Центральная вертикальная линия, короче и ближе */}
+                            <line x1="-4" y1="-3" x2="-4" y2="3" stroke="#94a3b8" strokeWidth="1.2" />
+                            
+                            {/* Диагональные линии, компактнее и тоньше */}
+                            <line x1="-6" y1="-2" x2="-2" y2="2" stroke="#94a3b8" strokeWidth="1.2" />
+                            <line x1="-6" y1="2" x2="-2" y2="-2" stroke="#94a3b8" strokeWidth="1.2" />
                         </marker>
                     </defs>
                     
                     {Object.values(references).map((ref, index) => {
                         const key = ref.key;
-
                         const sTable = tables[key.fromTableId];
                         const tTable = tables[key.toTableId];
                         if (!sTable || !tTable) return null;
+
+                        // Определяем маркеры и текст в зависимости от типа связи
+                        let sourceLabel = 'M';
+                        let targetLabel = '1';
+                        let sourceMarker = 'url(#marker-many)';
+                        let targetMarker = 'url(#marker-one)';
+
+                        if (ref.type === 'ONE_TO_ONE') {
+                            sourceLabel = '1'; targetLabel = '1';
+                            sourceMarker = 'url(#marker-one)'; targetMarker = 'url(#marker-one)';
+                        } else if (ref.type === 'ONE_TO_MANY') {
+                            sourceLabel = '1'; targetLabel = 'M';
+                            sourceMarker = 'url(#marker-one)'; targetMarker = 'url(#marker-many)';
+                        } else if (ref.type === 'MANY_TO_ONE') {
+                            sourceLabel = 'M'; targetLabel = '1';
+                            sourceMarker = 'url(#marker-many)'; targetMarker = 'url(#marker-one)';
+                        } else if (ref.type === 'MANY_TO_MANY') {
+                            sourceLabel = 'M'; targetLabel = 'M';
+                            sourceMarker = 'url(#marker-many)'; targetMarker = 'url(#marker-many)';
+                        }
                         
                         const handleRefContextMenu = (e: React.MouseEvent) => {
                             e.preventDefault();
-                            e.stopPropagation(); // Не даем открыться меню холста
+                            e.stopPropagation(); 
                             const rect = containerRef.current?.getBoundingClientRect();
                             if (rect) {
                                 referenceStore.openRefContextMenu(
@@ -163,26 +186,20 @@ export const ERDiagram = observer(() => {
                             const d = getTrunkPath(tables, start.x, start.y, end.x, end.y, sTable.id, tTable.id, index);
                             
                             return ( 
-                                <g 
-                                    key={refKeyToString(key)} 
-                                    className="er_relation_group"
-                                    style={{ cursor: 'context-menu' }}
-                                    onContextMenu={handleRefContextMenu}
-                                >
-                                    {/* Невидимый хитбокс для удобного клика */}
+                                <g key={refKeyToString(key)} className="er_relation_group" style={{ cursor: 'context-menu' }} onContextMenu={handleRefContextMenu}>
+                                    {/* Хитбокс */}
                                     <path d={d} stroke="transparent" strokeWidth="15" fill="none" />
-                                    {/* Видимая линия */}
-                                    <path 
-                                        d={d} 
-                                        className="er_line" 
-                                        markerEnd="url(#arrow)" 
-                                        fill="none" // обязательно fill none чтобы SVG не заливал фигуру черным
-                                    />
+                                    {/* Линия с маркерами на концах */}
+                                    <path d={d} className="er_line" markerStart={sourceMarker} markerEnd={targetMarker} fill="none" />
+                                    
+                                    {/* Подписи "1" и "M" */}
+                                    <text x={start.x + 16} y={start.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="16" fontWeight="bold">{sourceLabel}</text>
+                                    <text x={end.x - 16} y={end.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="16" fontWeight="bold">{targetLabel}</text>
                                 </g>
                             );
                         }
 
-                        // --- МНОЖЕСТВЕННАЯ СВЯЗЬ ---
+                        // --- МНОЖЕСТВЕННАЯ СВЯЗЬ (Составной ключ) ---
                         else {
                             const sourcePoints = key.fromColumns.map(p => getPortPosition(sTable, p, 'right'));
                             const targetPoints = key.toColumns.map(p => getPortPosition(tTable, p, 'left'));
@@ -198,42 +215,34 @@ export const ERDiagram = observer(() => {
                             const sCenterY = (sMinY + sMaxY) / 2;
                             const tCenterY = (tMinY + tMaxY) / 2;
 
-                            let pathData = "";
+                            // Ветки (от портов до магистрали) - БЕЗ маркеров
+                            let branchPaths = "";
+                            sourcePoints.forEach(p => { branchPaths += `M ${p.x} ${p.y} L ${sBusX} ${p.y} `; });
+                            branchPaths += `M ${sBusX} ${sMinY} L ${sBusX} ${sMaxY} `;
+                            targetPoints.forEach(p => { branchPaths += `M ${tBusX} ${p.y} L ${p.x} ${p.y} `; });
+                            branchPaths += `M ${tBusX} ${tMinY} L ${tBusX} ${tMaxY} `;
 
-                            sourcePoints.forEach(p => {
-                                pathData += `M ${p.x} ${p.y} L ${sBusX} ${p.y} `;
-                            });
-
-                            pathData += `M ${sBusX} ${sMinY} L ${sBusX} ${sMaxY} `;
-
-                            targetPoints.forEach(p => {
-                                pathData += `M ${tBusX} ${p.y} L ${p.x} ${p.y} `; 
-                            });
-
-                            pathData += `M ${tBusX} ${tMinY} L ${tBusX} ${tMaxY} `;
-
+                            // Сама магистраль (соединяет две таблицы) - С маркерами
                             const trunkPath = getTrunkPath(tables, sBusX, sCenterY, tBusX, tCenterY, sTable.id, tTable.id, index);
-                            
-                            pathData += trunkPath;
 
                             return (
-                                <g 
-                                    key={refKeyToString(key)} 
-                                    className="er_relation_group"
-                                    style={{ cursor: 'context-menu' }}
-                                    onContextMenu={handleRefContextMenu}
-                                >
-                                    {/* Невидимый хитбокс */}
-                                    <path d={pathData} stroke="transparent" strokeWidth="15" fill="none" />
-                                    {/* Видимая линия */}
-                                    <path 
-                                        d={pathData} 
-                                        className="er_line" 
-                                        markerEnd="url(#arrow)"
-                                        fill="none"
-                                    />
+                                <g key={refKeyToString(key)} className="er_relation_group" style={{ cursor: 'context-menu' }} onContextMenu={handleRefContextMenu}>
+                                    {/* Хитбокс для всей связи */}
+                                    <path d={branchPaths + trunkPath} stroke="transparent" strokeWidth="15" fill="none" />
+                                    
+                                    {/* Отрисовка веток без маркеров */}
+                                    <path d={branchPaths} className="er_line" fill="none" />
+                                    
+                                    {/* Отрисовка магистрали с маркерами */}
+                                    <path d={trunkPath} className="er_line" markerStart={sourceMarker} markerEnd={targetMarker} fill="none" />
+                                    
+                                    {/* Узелки на стыке портов и магистрали */}
                                     <circle cx={sBusX} cy={sCenterY} r="3" fill="#64748b" />
                                     <circle cx={tBusX} cy={tCenterY} r="3" fill="#64748b" />
+
+                                    {/* Подписи "1" и "M" около магистрали */}
+                                    <text x={sBusX + 16} y={sCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="16" fontWeight="bold">{sourceLabel}</text>
+                                    <text x={tBusX - 16} y={tCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="16" fontWeight="bold">{targetLabel}</text>
                                 </g>
                             );
                         }
@@ -243,14 +252,12 @@ export const ERDiagram = observer(() => {
                 {Object.values(tables).map(table => <TableNode key={table.id} table={table} />)}
             </div>
 
-            {/* МЕНЮ ХОЛСТА (Добавить таблицу) */}
             {erStore.contextMenu.visible && (
                 <div className="er_ctx_menu" style={{ left: erStore.contextMenu.x, top: erStore.contextMenu.y }}>
                     <div className="er_ctx_item" onClick={() => erStore.addTable()}>Добавить таблицу</div>
                 </div>
             )}
 
-            {/* МЕНЮ СВЯЗИ (Удалить) */}
             {referenceStore.refContextMenu?.visible && (
                 <div className="er_ctx_menu" style={{ left: referenceStore.refContextMenu.x, top: referenceStore.refContextMenu.y, zIndex: 1000 }}>
                     <div 
