@@ -17,12 +17,17 @@ public interface SchemeRepository extends JpaRepository<SchemeEntity, UUID>, Jpa
                 join fetch se.currentVersion
         where se.id = :id
         """;
+    String FIND_ONLY_SCHEME_BY_ID = """
+            select se from SchemeEntity se
+                join fetch se.currentVersion
+            where se.id = :id
+            """;
 
     @Query(value = FIND_SCHEME_BY_ID_JPQL)
     Optional<SchemeEntity> findById(UUID id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query(FIND_SCHEME_BY_ID_JPQL)
+    @Query(FIND_ONLY_SCHEME_BY_ID)
     Optional<SchemeEntity> findByIdLocking(UUID id);
 
     boolean existsByNameAndCreator_Id(String name, UUID creatorId);

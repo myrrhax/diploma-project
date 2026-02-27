@@ -28,7 +28,7 @@ app:
   jwt:
     secret: ${APP_JWT_SECRET}
     issuer: myrrermdev.space
-    accessTokenTtl: 15m
+    accessTokenTtl: 1d
     refreshTokenTtl: 30d
 
   security:

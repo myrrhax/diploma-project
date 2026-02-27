@@ -7,7 +7,7 @@ import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.AuthorityService;
-import com.github.myrrhax.diploma_project.service.SchemeService;
+import com.github.myrrhax.diploma_project.service.SchemaService;
 import com.github.myrrhax.shared.model.AuthorityType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,7 +31,7 @@ import java.util.UUID;
 @RequestMapping("/api/schema")
 @RequiredArgsConstructor
 public class SchemaController {
-    private final SchemeService schemeService;
+    private final SchemaService schemaService;
     private final AuthorityService authorityService;
 
     @PostMapping
@@ -39,14 +39,14 @@ public class SchemaController {
                                                   @AuthenticationPrincipal TokenUser tokenUser) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(this.schemeService.createScheme(createSchemeDTO.name(), tokenUser));
+                .body(this.schemaService.createScheme(createSchemeDTO.name(), tokenUser));
     }
 
     @GetMapping
     public ResponseEntity<List<SchemeDTO>> findSchemas(@RequestParam(value = "takeParticipation", defaultValue = "true") boolean takeParticipation,
                                                        @RequestParam(value = "query", required = false) String query,
                                                        @AuthenticationPrincipal TokenUser tokenUser) {
-        var schemes = schemeService.filterSchemes(takeParticipation, query, tokenUser.getToken().userId());
+        var schemes = schemaService.filterSchemes(takeParticipation, query, tokenUser.getToken().userId());
 
         return schemes.isEmpty()
                 ? ResponseEntity.notFound().build()
@@ -58,14 +58,14 @@ public class SchemaController {
     public ResponseEntity<SchemeDTO> getScheme(@PathVariable UUID id,
                                                @AuthenticationPrincipal TokenUser tokenUser) {
         return ResponseEntity
-                .ok(this.schemeService.getScheme(id));
+                .ok(this.schemaService.getScheme(id));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@authorityService.hasAuthority(#tokenUser.token.userId, #id, 'ALL')")
     public ResponseEntity<Void> deleteScheme(@PathVariable UUID id,
                                              @AuthenticationPrincipal TokenUser tokenUser) {
-        this.schemeService.deleteScheme(id);
+        this.schemaService.deleteScheme(id);
 
         return ResponseEntity.noContent()
                 .build();

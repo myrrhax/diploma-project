@@ -10,7 +10,6 @@ import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
-import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
 import com.github.myrrhax.diploma_project.repository.AuthorityRepository;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
@@ -18,7 +17,6 @@ import com.github.myrrhax.diploma_project.repository.specification.SchemeSpecifi
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
 import com.github.myrrhax.shared.model.AuthorityType;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,23 +24,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 @Slf4j
 @Service
 @Validated
-@Transactional
 @RequiredArgsConstructor
-public class SchemeService {
-    private final SchemaCacheStorage schemaCacheStorage;
-    private final SchemeRepository schemeRepository;
-    private final UserRepository userRepository;
-    private final AuthorityRepository authorityRepository;
-    private final SchemaMapper schemaMapper;
-    private final JsonSchemaStateMapper schemaStateMapper;
+public abstract class SchemaService {
+    protected final SchemeRepository schemeRepository;
+    protected final UserRepository userRepository;
+    protected final AuthorityRepository authorityRepository;
+    protected final SchemaMapper schemaMapper;
+    protected final JsonSchemaStateMapper schemaStateMapper;
 
+    @Transactional
     public SchemeDTO createScheme(String name, TokenUser tokenUser) {
         UUID userId = tokenUser.getToken().userId();
         log.info("Processing create scheme request for user with id {}", userId);
@@ -98,41 +94,9 @@ public class SchemeService {
                 .toList();
     }
 
-    public SchemeDTO getScheme(UUID schemeId) {
-        SchemeDTO currentSchema = schemaCacheStorage.getSchema(schemeId);
-        if (currentSchema == null) {
-            throw new SchemaNotFoundException(schemeId);
-        }
+    public abstract MetadataCommandProcessResult process(MetadataCommand command);
 
-        return currentSchema;
-    }
+    public abstract SchemeDTO getScheme(UUID schemeId);
 
-    public void deleteScheme(UUID schemeId) {
-        if (!this.schemeRepository.existsById(schemeId)) {
-            throw new SchemaNotFoundException(schemeId);
-        }
-
-        schemaCacheStorage.deleteFromCache(schemeId);
-        schemeRepository.deleteById(schemeId);
-    }
-
-    public MetadataCommandProcessResult processCommand(@Valid MetadataCommand command) {
-        SchemeDTO currentSchema = schemaCacheStorage.getSchema(command.getSchemeId());
-        var version = currentSchema.currentVersion();
-        if (version.currentState() != null) {
-            SchemaStateMetadata state = version.currentState();
-            try {
-                state.getLock().lock();
-                var difference = command.execute(state);
-                int newVersion = state.getCacheVersion().incrementAndGet();
-                state.setLastModificationTime(Instant.now());
-
-                return new MetadataCommandProcessResult(newVersion, difference);
-            } finally {
-                state.getLock().unlock();
-            }
-        } else {
-            throw new SchemaNotFoundException(command.getSchemeId());
-        }
-    }
+    public abstract void deleteScheme(UUID schemeId);
 }

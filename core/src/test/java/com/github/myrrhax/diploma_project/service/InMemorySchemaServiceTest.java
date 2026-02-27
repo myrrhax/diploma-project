@@ -22,6 +22,7 @@ import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.TokenFactory;
 import com.github.myrrhax.diploma_project.security.TokenUser;
+import com.github.myrrhax.diploma_project.service.impl.InMemoryCacheSchemaServiceImpl;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
 import com.github.myrrhax.shared.model.AuthorityType;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class SchemeServiceTest extends AbstractIntegrationTest {
+public class InMemorySchemaServiceTest extends AbstractIntegrationTest {
     private static final String SCHEMA_NAME = "test_scheme";
     private static final String TABLE_NAME = "test_table";
     private static final String ID_COLUMN = "id";
@@ -51,7 +52,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     private static final String COURSE_TABLE = "courses";
 
     @Autowired
-    private SchemeService schemeService;
+    private InMemoryCacheSchemaServiceImpl schemaService;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -82,7 +83,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
 
     @BeforeEach
     public void addScheme() {
-        SchemeDTO dto = schemeService.createScheme(SCHEMA_NAME, tokenUser);
+        SchemeDTO dto = schemaService.createScheme(SCHEMA_NAME, tokenUser);
         uuid = dto.id();
     }
 
@@ -116,7 +117,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Create schema: When user already have schema then throws")
     public void givenUserHasSchemaWithName_whenUserCreatesSchemaWithSameName_thenThrowsException() {
-        assertThrows(ApplicationException.class, () -> schemeService.createScheme(SCHEMA_NAME, tokenUser));
+        assertThrows(ApplicationException.class, () -> schemaService.createScheme(SCHEMA_NAME, tokenUser));
     }
 
     @Test
@@ -129,7 +130,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd.setX(0d);
         cmd.setY(0d);
         // when & then
-        assertThrows(SchemaNotFoundException.class, () -> schemeService.processCommand(cmd));
+        assertThrows(SchemaNotFoundException.class, () -> schemaService.process(cmd));
     }
 
     @Test
@@ -143,7 +144,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd.setY(0d);
 
         // when
-        schemeService.processCommand(cmd);
+        schemaService.process(cmd);
 
         // then
         var schema = cache.getSchema(uuid);
@@ -156,7 +157,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         assertThat(parsedScheme).isNotNull();
         assertThat(parsedScheme.getTable(TABLE_NAME)).isEmpty();
 
-        var versionFromService = schemeService.getScheme(uuid);
+        var versionFromService = schemaService.getScheme(uuid);
         assertThat(versionFromService).isNotNull();
         assertThat(versionFromService.currentVersion()).isNotNull();
         assertThat(versionFromService.currentVersion().currentState()).isNotNull();
@@ -178,9 +179,9 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd.setSchemeId(uuid);
         cmd.setX(0d);
         cmd.setY(0d);
-        schemeService.processCommand(cmd);
+        schemaService.process(cmd);
         // when & then
-        assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
+        assertThrows(Exception.class, () -> schemaService.process(cmd));
     }
 
     @Test
@@ -189,7 +190,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         // given
         performAddTable(TABLE_NAME);
 
-        SchemeDTO scheme = schemeService.getScheme(uuid);
+        SchemeDTO scheme = schemaService.getScheme(uuid);
         var state = scheme.currentVersion().currentState();
         UUID tableId = state.getTable(TABLE_NAME).orElseThrow().getId();
 
@@ -200,10 +201,10 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd2.setColumnType(ColumnMetadata.ColumnType.VARCHAR);
 
         // when
-        schemeService.processCommand(cmd2);
+        schemaService.process(cmd2);
 
         // then
-        var version = schemeService.getScheme(scheme.id());
+        var version = schemaService.getScheme(scheme.id());
         var schema = version.currentVersion().currentState();
         assertThat(version).isNotNull();
         assertThat(schema).isNotNull();
@@ -251,13 +252,13 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         // given
         performAddTable(TABLE_NAME);
 
-        SchemaStateMetadata state = schemeService.getScheme(uuid).currentVersion().currentState();
+        SchemaStateMetadata state = schemaService.getScheme(uuid).currentVersion().currentState();
 
         DeleteTableCommand deleteTable = new DeleteTableCommand();
         deleteTable.setSchemeId(uuid);
         deleteTable.setTableId(state.getTable(TABLE_NAME).orElseThrow().getId());
         // when
-        schemeService.processCommand(deleteTable);
+        schemaService.process(deleteTable);
         // then
         assertThat(state.getTable(TABLE_NAME)).isNotPresent();
     }
@@ -270,7 +271,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd.setSchemeId(uuid);
         cmd.setTableId(UUID.randomUUID());
         // when & then
-        assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
+        assertThrows(Exception.class, () -> schemaService.process(cmd));
     }
 
     @Test
@@ -285,7 +286,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         colDeleteCmd.setColumnId(table.getColumn("username").orElseThrow().getId());
 
         // when
-        schemeService.processCommand(colDeleteCmd);
+        schemaService.process(colDeleteCmd);
 
         // then
         assertThat(table.getColumn("username")).isNotPresent();
@@ -302,7 +303,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         colCmd.setTableId(UUID.randomUUID());
 
         // when & then
-        assertThrows(Exception.class, () -> schemeService.processCommand(colCmd));
+        assertThrows(Exception.class, () -> schemaService.process(colCmd));
     }
 
     @Test
@@ -316,7 +317,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         String expectedName = "NEW" + TABLE_NAME;
         cmd.setNewTableName(expectedName);
         // when
-        schemeService.processCommand(cmd);
+        schemaService.process(cmd);
         // then
         var state = cache.getSchema(uuid).currentState();
         assertThat(state).isNotNull();
@@ -333,7 +334,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd.setSchemeId(uuid);
         cmd.setNewTableName("NEW_TABLE_NAME");
         // when & then
-        assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
+        assertThrows(Exception.class, () -> schemaService.process(cmd));
     }
 
     @Test
@@ -347,7 +348,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd.setSchemeId(uuid);
         cmd.setTableId(table.getId());
         // when
-        schemeService.processCommand(cmd);
+        schemaService.process(cmd);
         // then
         var schema = cache.getSchema(uuid);
         var state = schema.currentVersion().currentState();
@@ -363,7 +364,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     public void givenTwoTablesAndCreateReferenceCommand_whenExecute_thenSuccess() throws Exception {
         // given
         performAddTable(USERS_TABLE);
-        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        var state = schemaService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
         performAddTable(USER_PROFILE_TABLE);
         TableMetadata profileTable = state.getTable(USER_PROFILE_TABLE).orElseThrow();
@@ -383,7 +384,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 .build());
         addRefCmd.setReferenceType(ReferenceMetadata.ReferenceType.ONE_TO_ONE);
         // when
-        schemeService.processCommand(addRefCmd);
+        schemaService.process(addRefCmd);
         // then
         var schema = cache.getSchema(uuid);
         var assertState = schema.currentVersion().currentState();
@@ -395,7 +396,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     public void givenTwoTablesWithDifferentTypesAndCreateReferenceCommand_whenExecute_thenThrows() {
         // given
         performAddTable(USERS_TABLE);
-        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        var state = schemaService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
 
@@ -416,7 +417,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 .build());
         addRefCmd.setReferenceType(ReferenceMetadata.ReferenceType.ONE_TO_ONE);
         // when & then
-        assertThrows(Exception.class, () -> schemeService.processCommand(addRefCmd));
+        assertThrows(Exception.class, () -> schemaService.process(addRefCmd));
     }
 
     @Test
@@ -424,7 +425,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     public void givenTwoTablesAndAddOneToManyReferenceCommand_whenExecute_thenSuccess() {
         // given
         performAddTable(USERS_TABLE);
-        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        var state = schemaService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
 
@@ -449,7 +450,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd.setDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE);
 
         // when
-        schemeService.processCommand(cmd);
+        schemaService.process(cmd);
 
         // then
         var schema = cache.getSchema(uuid);
@@ -461,7 +462,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     public void givenTwoTablesAndManyToOneReferenceCommand_whenExecute_thenSuccess() {
         // given
         performAddTable(USERS_TABLE);
-        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        var state = schemaService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
 
@@ -487,7 +488,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd.setDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE);
 
         // when
-        schemeService.processCommand(cmd);
+        schemaService.process(cmd);
 
         // then
         var schema = cache.getSchema(uuid).currentState();
@@ -499,7 +500,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     public void givenTwoTablesAndManyToManyReference_whenExecute_thenSuccess() {
         // given
         performAddTable(USERS_TABLE);
-        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        var state = schemaService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
 
@@ -520,7 +521,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd.setDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE);
 
         // when
-        schemeService.processCommand(cmd);
+        schemaService.process(cmd);
 
         // then
         var schema = cache.getSchema(uuid).currentState();
@@ -533,7 +534,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     public void givenTwoTablesAndReferenceOnUniqueField_whenExecute_thenSuccess() {
         // given
         performAddTable(USERS_TABLE);
-        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        var state = schemaService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
         ColumnMetadata idColumn = usersTable.getColumn(ID_COLUMN).orElseThrow();
         performAddTable(COURSE_TABLE);
@@ -550,7 +551,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 .toColumns(new UUID[] { idColumn.getId() })
                 .build());
         // when
-        schemeService.processCommand(cmd);
+        schemaService.process(cmd);
         // then
         assertThat(state.getReferences().size()).isEqualTo(1);
     }
@@ -559,7 +560,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Add reference (With 2 columns as pk - Success)")
     public void givenTwoTablesAndReferenceOnTwoColumns_whenExecute_thenSuccess() {
         performAddTable(USERS_TABLE);
-        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        var state = schemaService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
         performAddColumn(usersTable.getId(),
                 "sec_id",
@@ -588,7 +589,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 .toColumns(new UUID[] { idColumn.getId(), secIdColumn.getId() })
                 .build());
         // when
-        schemeService.processCommand(cmd);
+        schemaService.process(cmd);
         // then
         assertThat(state.getReferences().size()).isEqualTo(1);
     }
@@ -597,7 +598,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
     @DisplayName("Command: Add reference (From 1 col to 2 - Throws)")
     public void givenTwoTablesAndReferenceOnTwoColumnsFromOne_whenExecute_thenThrows() {
         performAddTable(USERS_TABLE);
-        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        var state = schemaService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
         performAddColumn(usersTable.getId(),
                 "sec_id",
@@ -620,14 +621,14 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 .toColumns(new UUID[] { idColumn.getId(), secIdColumn.getId() })
                 .build());
         // when & then
-        assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
+        assertThrows(Exception.class, () -> schemaService.process(cmd));
     }
 
     @Test
     @DisplayName("Command: Add reference (From 2 to 1 - Throws)")
     public void given() {
         performAddTable(USERS_TABLE);
-        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        var state = schemaService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
         performAddColumn(usersTable.getId(),
                 "sec_id",
@@ -655,14 +656,14 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 .toColumns(new UUID[] { idColumn.getId() })
                 .build());
         // when & then
-        assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
+        assertThrows(Exception.class, () -> schemaService.process(cmd));
     }
 
     @Test
     @DisplayName("Command: Add reference (On not full key - Throws)")
     public void givenTwoTablesAndReferenceOnPartOfPk_whenExecute_thenThrows() {
         performAddTable(USERS_TABLE);
-        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        var state = schemaService.getScheme(uuid).currentVersion().currentState();
         TableMetadata usersTable = state.getTable(USERS_TABLE).orElseThrow();
         performAddColumn(usersTable.getId(),
                 "sec_id",
@@ -690,7 +691,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
                 .toColumns(new UUID[] { idColumn.getId(), secIdColumn.getId() })
                 .build());
         // when & then
-        assertThrows(Exception.class, () -> schemeService.processCommand(cmd));
+        assertThrows(Exception.class, () -> schemaService.process(cmd));
     }
 
     private TableMetadata performAddTable(String tableName) {
@@ -699,8 +700,8 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd.setTableName(tableName);
         cmd.setX(0d);
         cmd.setY(0d);
-        schemeService.processCommand(cmd);
-        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        schemaService.process(cmd);
+        var state = schemaService.getScheme(uuid).currentVersion().currentState();
         return state.getTable(tableName).orElseThrow();
     }
 
@@ -715,7 +716,7 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         cmd.setColumnType(type);
         cmd.setConstraints(constraints);
 
-        schemeService.processCommand(cmd);
+        schemaService.process(cmd);
     }
 
     private @NotNull TableMetadata performAddColumnAndGetTable(String tableName,
@@ -725,10 +726,10 @@ public class SchemeServiceTest extends AbstractIntegrationTest {
         colCmd.setSchemeId(uuid);
         colCmd.setName(name);
         colCmd.setColumnType(type);
-        var state = schemeService.getScheme(uuid).currentVersion().currentState();
+        var state = schemaService.getScheme(uuid).currentVersion().currentState();
         TableMetadata table = state.getTable(tableName).orElseThrow();
         colCmd.setTableId(table.getId());
-        schemeService.processCommand(colCmd);
+        schemaService.process(colCmd);
         return table;
     }
 
