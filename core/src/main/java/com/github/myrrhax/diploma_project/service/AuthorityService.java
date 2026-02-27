@@ -82,28 +82,4 @@ public class AuthorityService {
                 .collect(Collectors.toList())
         );
     }
-
-    @Transactional(readOnly = true)
-    public boolean hasAccess(UUID userId, UUID schemeId) {
-        return hasAuthority(userId, schemeId, AuthorityType.READ_SCHEME.name());
-    }
-
-    @Transactional(readOnly = true)
-    public boolean hasAuthority(UUID userId, UUID schemeId, String authority) {
-        log.info("Checking user {} access to scheme {} with authority {}", userId, schemeId, authority);
-        try {
-            AuthorityType type = AuthorityType.valueOf(authority.toUpperCase());
-            Set<AuthorityType> authorities = getAuthorities(userId, schemeId)
-                    .stream()
-                    .map(UserAuthority::type)
-                    .collect(Collectors.toSet());
-
-            log.info("User authorities for scheme {}: {}", schemeId, authorities);
-            return authorities.contains(AuthorityType.ALL) || authorities.contains(type);
-        } catch (IllegalArgumentException e) {
-            log.error("Unable to parse authority {}, {}", authority, e.getMessage());
-
-            throw new RuntimeException(e);
-        }
-    }
 }

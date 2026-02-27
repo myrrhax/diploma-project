@@ -54,7 +54,7 @@ public class SchemaController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("@authorityService.hasAccess(#tokenUser.token.userId, #id)")
+    @PreAuthorize("@authorityCheckService.hasAccess(#tokenUser.token.userId, #id)")
     public ResponseEntity<SchemeDTO> getScheme(@PathVariable UUID id,
                                                @AuthenticationPrincipal TokenUser tokenUser) {
         return ResponseEntity
@@ -62,7 +62,7 @@ public class SchemaController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("@authorityService.hasAuthority(#tokenUser.token.userId, #id, 'ALL')")
+    @PreAuthorize("@authorityCheckService.hasAuthority(#tokenUser.token.userId, #id, 'ALL')")
     public ResponseEntity<Void> deleteScheme(@PathVariable UUID id,
                                              @AuthenticationPrincipal TokenUser tokenUser) {
         this.schemaService.deleteScheme(id);
@@ -72,7 +72,7 @@ public class SchemaController {
     }
 
     @PostMapping("/grant")
-    @PreAuthorize("@authorityService.hasAuthority(#tokenUser.token.userId, #dto.schemeId, 'ALL')")
+    @PreAuthorize("@authorityCheckService.hasAuthority(#tokenUser.token.userId, #dto.schemeId, 'ALL')")
     public ResponseEntity<Void> grantUser(@RequestBody GrantUserDTO dto,
                                           @AuthenticationPrincipal TokenUser tokenUser) {
         if (dto.authorities().contains(AuthorityType.ALL))
@@ -83,7 +83,7 @@ public class SchemaController {
     }
 
     @PostMapping("/discard")
-    @PreAuthorize("@authorityService.hasAuthority(#tokenUser.token.userId, #dto.schemeId, 'ALL')")
+    @PreAuthorize("@authorityCheckService.hasAuthority(#tokenUser.token.userId, #dto.schemeId, 'ALL')")
     public ResponseEntity<Void> discardUser(@RequestBody DiscardUserDTO dto,
                                             @AuthenticationPrincipal TokenUser tokenUser) {
         authorityService.discardUser(tokenUser.getToken().userId(), dto.schemeId(), dto.types());

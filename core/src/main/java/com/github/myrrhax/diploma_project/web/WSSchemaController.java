@@ -3,6 +3,7 @@ package com.github.myrrhax.diploma_project.web;
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.event.SchemaChangedEvent;
 import com.github.myrrhax.diploma_project.security.TokenUser;
+import com.github.myrrhax.diploma_project.service.AuthorityCheckService;
 import com.github.myrrhax.diploma_project.service.AuthorityService;
 import com.github.myrrhax.diploma_project.service.SchemaService;
 import com.github.myrrhax.shared.model.AuthorityType;
@@ -24,14 +25,14 @@ import java.util.UUID;
 public class WSSchemaController {
     private final SchemaService schemaService;
     private final SimpMessagingTemplate messagingTemplate;
-    private final AuthorityService authorityService;
+    private final AuthorityCheckService checkService;
 
     @MessageMapping("/schema/{id}")
     public void processCommand(@DestinationVariable("id") UUID schemaId,
                                @Payload MetadataCommand command,
                                Authentication authentication) {
         TokenUser tokenUser = (TokenUser) authentication.getPrincipal();
-        if (tokenUser == null || !authorityService.hasAuthority(
+        if (tokenUser == null || !checkService.hasAuthority(
                 tokenUser.getToken().userId(), schemaId, AuthorityType.MODIFY_SCHEME.name())) {
             throw new AccessDeniedException("User can't modify schemas");
         }

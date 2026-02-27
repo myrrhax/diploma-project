@@ -22,7 +22,7 @@ public class InvitationController {
     private final InvitationService invitationService;
 
     @PostMapping
-    @PreAuthorize("@authorityService.hasAuthority(#tokenUser.token.userId, #dto.schemeId, 'INVITE_USERS')")
+    @PreAuthorize("@authorityCheckService.hasAuthority(#tokenUser.token.userId, #dto.schemeId, 'INVITE_USERS')")
     public ResponseEntity<Void> inviteUser(@RequestBody @Validated InviteUserDTO dto,
                                            @AuthenticationPrincipal TokenUser tokenUser) {
         invitationService.sendInvitation(tokenUser.getToken().userId(),

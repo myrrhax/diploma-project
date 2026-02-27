@@ -135,7 +135,7 @@ public class AuthService implements UserDetailsService {
 
     public AuthResultDTO confirmEmail(String code, UUID userId, HttpServletResponse response) {
         log.info("Trying to confirm email for user: {}", userId);
-        UserEntity user = userRepository.findById(userId).get();
+        UserEntity user = userRepository.findById(userId).orElseThrow();
         if (user.getIsConfirmed()) {
             throw new AccountIsAlreadyConfirmedException(userId);
         }
@@ -158,7 +158,7 @@ public class AuthService implements UserDetailsService {
     }
 
     public void resendCode(UUID userId) {
-        UserEntity user = userRepository.findById(userId).get();
+        UserEntity user = userRepository.findById(userId).orElseThrow();
         if (user.getIsConfirmed()) {
             throw new AccountIsAlreadyConfirmedException(userId);
         }
