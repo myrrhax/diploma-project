@@ -5,9 +5,17 @@ class SchemaStore {
     schemas: Schema[] | null = null;
     currentSchema: Schema | null = null;
     isLoading: boolean = false;
+    isCreateModalOpen: boolean = false;
 
     constructor() {
         makeAutoObservable(this);
+    }
+
+    public addSchema(schema: Schema) {
+        if (!this.schemas) {
+            this.schemas = [];
+        }
+        this.schemas.push(schema);
     }
 
     public setSchemas(schemas: Schema[]) {

@@ -252,3 +252,27 @@
   margin-bottom: 16px;
   opacity: 0.5;
 }
+
+.btn_create_holder {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.btn_create {
+  background-color: var(--primary-color); 
+  color: white; 
+  padding: 10px 16px; 
+  border-radius: 8px; 
+  border: none;
+  cursor: pointer; 
+  font-weight: bold; 
+  display: flex; 
+  align-items: center; 
+  gap: 8px;
+}
+
+.btn_create:hover {
+  background-color: var(--primary-hover);
+}

@@ -38,6 +38,23 @@ class SchemaApiService extends AbstractApiService {
             throw e;
         }
     }
+
+    async createSchema(name: string): Promise<Schema | ErrorResponse> {
+        try {
+            const response = await $api.post<Schema | ErrorResponse>('/schema', {
+                name: name
+            });
+
+            return response.data;
+        } catch (e: any) {
+            const errorResponse = this.processApiError(e);
+
+            if (errorResponse) {
+                return errorResponse;
+            }
+            throw e;
+        }
+    }
 }
 
 export const schemaApi = new SchemaApiService();

@@ -5,6 +5,8 @@ import { schemaStore } from '../store/SchemaStore';
 import { schemaApi } from '../api/SchemaApiService';
 import profilePic from '@/assets/user.png'; // Оставляем как фоллбэк или дефолт
 import './css/HomePage.css';
+import { CreateSchemaModal } from '@/components/CreateSchemaModal/CreateSchemaModal';
+import { createSchemaModalStore } from '@/store/CreateShemaModalStore';
 
 export const HomePage = observer(() => {
   const navigate = useNavigate();
@@ -32,6 +34,8 @@ export const HomePage = observer(() => {
 
   return (
     <div className="home-page">
+      <CreateSchemaModal />
+
       <div className="home-container">
         {/* Header Section */}
         <div className="dashboard-header">
@@ -65,6 +69,15 @@ export const HomePage = observer(() => {
             </label>
           </div>
         </div>
+        <div className='btn_create_holder'>
+            <button 
+              onClick={() => createSchemaModalStore.openCreateModal()}
+              className='btn_create'
+            >
+              Создать схему
+          </button>
+        </div>
+        
 
         {/* Content Section */}
         {isLoading ? (
