@@ -1,4 +1,3 @@
-import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { columnModalsStore } from '@/store/ColumnModalsStore';
 import { erStore } from '@/store/ERStore';

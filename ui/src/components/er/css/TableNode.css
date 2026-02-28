@@ -11,24 +11,17 @@
 
 .er_table_header {
   background: #2563eb;
-  padding: 8px;
+  padding: 13px;
   border-radius: 7px 7px 0 0;
   cursor: grab;
-}
-
-.er_table_header:active { cursor: grabbing; }
-
-.er_table_name_input {
-  width: 80%;
-  padding: 5px;
-  background: transparent;
-  border: none;
   color: white;
   font-weight: 600;
   font-size: 14px;
   outline: none;
   text-align: center;
 }
+
+.er_table_header:active { cursor: grabbing; }
 
 .er_table_separator {
   height: 2px;

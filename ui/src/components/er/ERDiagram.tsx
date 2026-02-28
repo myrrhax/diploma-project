@@ -7,10 +7,11 @@ import './css/ERDiagram.css';
 import { observer } from 'mobx-react-lite';
 import { AddReferenceMenu } from './AddReferenceMenu';
 import { referenceStore } from '@/store/ReferenceStore';
-import { tableDeleteStore } from '@/store/TableDeleteStore';
+import { tableModalsStore } from '@/store/TableModalsStore';
 import { DeleteTableModal } from './DeleteTableModal';
 import { columnModalsStore } from '@/store/ColumnModalsStore';
 import { DeleteColumnModal } from './DeleteColumnModal';
+import { EditTableModal } from './EditTableModal';
 
 const getPortPosition = (table: Table, colId: string, side: 'left' | 'right') => {
     const column = table.columns[colId];
@@ -81,7 +82,7 @@ export const ERDiagram = observer(() => {
     const handleCloseMenu = () => {
         erStore.closeContextMenu();
         referenceStore.closeRefContextMenu();
-        tableDeleteStore.closeTableContextMenu(); 
+        tableModalsStore.closeTableContextMenu(); 
         columnModalsStore.closeColumnContextMenu();
     }
 
@@ -127,6 +128,7 @@ export const ERDiagram = observer(() => {
             <AddReferenceMenu />
             <DeleteTableModal />
             <DeleteColumnModal />
+            <EditTableModal />
             
             <div className="er_viewport" style={{ transform: `translate(${erStore.offsetX}px, ${erStore.offsetY}px) scale(${erStore.scale})` }}>
                 <svg className="er_svg_layer">
@@ -295,13 +297,23 @@ export const ERDiagram = observer(() => {
                 </div>
             )}
             
-            {tableDeleteStore.tableContextMenu.visible && (
-                <div className="er_ctx_menu" style={{ left: tableDeleteStore.tableContextMenu.x, top: tableDeleteStore.tableContextMenu.y, zIndex: 1000 }}>
+            {tableModalsStore.tableContextMenu.visible && (
+                <div className="er_ctx_menu" style={{ left: tableModalsStore.tableContextMenu.x, top: tableModalsStore.tableContextMenu.y, zIndex: 1000 }}>
                     <div 
                         className="er_ctx_item" 
                         onClick={() => {
-                            tableDeleteStore.open();
-                            tableDeleteStore.closeTableContextMenu();
+                            tableModalsStore.openEdit();
+                            tableModalsStore.closeTableContextMenu();
+                        }}
+                    >
+                        Редактировать
+                    </div>
+                    
+                    <div 
+                        className="er_ctx_item" 
+                        onClick={() => {
+                            tableModalsStore.open();
+                            tableModalsStore.closeTableContextMenu();
                         }}
                         style={{ color: '#ef4444', fontWeight: 'bold' }}
                     >

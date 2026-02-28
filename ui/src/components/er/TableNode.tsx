@@ -4,7 +4,7 @@ import { type Table } from '@/model/SchemaElements';
 import { AddColumnMenu } from './AddColumnMenu';
 import { TableColumn } from './TableColumn';
 import './css/TableNode.css';
-import { tableDeleteStore } from '@/store/TableDeleteStore';
+import { tableModalsStore } from '@/store/TableModalsStore';
 
 interface TableNodeProps {
     table: Table;
@@ -29,7 +29,7 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
                 const rect = wrapper?.getBoundingClientRect();
                 
                 if (rect) {
-                    tableDeleteStore.openTableContextMenu(
+                    tableModalsStore.openTableContextMenu(
                         e.clientX - rect.left, 
                         e.clientY - rect.top, 
                         table.id
@@ -43,13 +43,9 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
                     e.stopPropagation();
                     erStore.setDraggingTable(table.id);
                 }}
+                title={table.description ?? table.name}
             >
-                <input 
-                    className="er_table_name_input"
-                    value={table.name}
-                    onChange={(e) => erStore.updateTableName(table.id, e.target.value)}
-                    onMouseDown={(e) => e.stopPropagation()} 
-                />
+                {table.name}
             </div>
 
             <div className="er_table_separator" />

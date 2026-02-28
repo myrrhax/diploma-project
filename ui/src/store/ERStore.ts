@@ -7,7 +7,7 @@ import { type MetadataCommandProcessResult } from "@/model/SchemaEvents";
 import { schemaApi } from "@/api/SchemaApiService";
 import { schemaSocketService } from "@/api/SchemaSocketService";
 import { referenceStore } from "./ReferenceStore";
-import { tableDeleteStore } from "./TableDeleteStore";
+import { tableModalsStore } from "./TableModalsStore";
 
 class ERStore {
     readonly TABLE_WIDTH = 220;
@@ -181,14 +181,15 @@ class ERStore {
         this.closeContextMenu();
     }
 
-    updateTableName(id: string, newName: string) {
+    updateTable(id: string, newName: string | null, newDescription: string | null) {
         const table = this.getTable(id);
         if (this.schema && table) {
             schemaSocketService.sendCommand({
                 type: 'update-table',
                 schemeId: this.schema.id,
                 tableId: id,
-                newTableName: newName
+                newTableName: newName,
+                newDescription: newDescription
             })
         }
     }
@@ -301,7 +302,7 @@ class ERStore {
             tableId: tableId
         });
 
-        tableDeleteStore.closeTableContextMenu();
+        tableModalsStore.closeTableContextMenu();
     }
 
     deleteColumn(tableId: string, columnId: string) {
