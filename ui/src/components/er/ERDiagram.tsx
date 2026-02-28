@@ -9,6 +9,8 @@ import { AddReferenceMenu } from './AddReferenceMenu';
 import { referenceStore } from '@/store/ReferenceStore';
 import { tableDeleteStore } from '@/store/TableDeleteStore';
 import { DeleteTableModal } from './DeleteTableModal';
+import { columnDeleteStore } from '@/store/ColumnDeleteStore';
+import { DeleteColumnModal } from './DeleteColumnModal';
 
 const getPortPosition = (table: Table, colId: string, side: 'left' | 'right') => {
     const column = table.columns[colId];
@@ -80,6 +82,7 @@ export const ERDiagram = observer(() => {
         erStore.closeContextMenu();
         referenceStore.closeRefContextMenu();
         tableDeleteStore.closeTableContextMenu(); 
+        columnDeleteStore.closeColumnContextMenu();
     }
 
     const handleOpenMenu = (screenX: number, screenY: number, relativeX: number, relativeY: number) => {
@@ -123,6 +126,7 @@ export const ERDiagram = observer(() => {
         >
             <AddReferenceMenu />
             <DeleteTableModal />
+            <DeleteColumnModal />
             
             <div className="er_viewport" style={{ transform: `translate(${erStore.offsetX}px, ${erStore.offsetY}px) scale(${erStore.scale})` }}>
                 <svg className="er_svg_layer">
@@ -302,6 +306,21 @@ export const ERDiagram = observer(() => {
                         style={{ color: '#ef4444', fontWeight: 'bold' }}
                     >
                         Удалить таблицу
+                    </div>
+                </div>
+            )}
+
+            {columnDeleteStore.columnContextMenu.visible && (
+                <div className="er_ctx_menu" style={{ left: columnDeleteStore.columnContextMenu.x, top: columnDeleteStore.columnContextMenu.y, zIndex: 1000 }}>
+                    <div 
+                        className="er_ctx_item" 
+                        onClick={() => {
+                            columnDeleteStore.open(columnDeleteStore.columnContextMenu.tableId, columnDeleteStore.columnContextMenu.colId);
+                            columnDeleteStore.closeColumnContextMenu();
+                        }}
+                        style={{ color: '#ef4444', fontWeight: 'bold' }}
+                    >
+                        Удалить колонку
                     </div>
                 </div>
             )}

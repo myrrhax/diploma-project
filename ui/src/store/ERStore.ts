@@ -304,6 +304,19 @@ class ERStore {
         tableDeleteStore.closeTableContextMenu();
     }
 
+    deleteColumn(tableId: string, columnId: string) {
+        if (!this.schema || !this.state) {
+            return;
+        }
+
+        schemaSocketService.sendCommand({
+            type: 'delete-column',
+            schemeId: this.schema.id,
+            tableId: tableId,
+            columnId: columnId
+        });
+    }
+
     private sendCoords() {
         if (this.draggingTableId && this.schema) {
             const table = this.state?.tables[this.draggingTableId];

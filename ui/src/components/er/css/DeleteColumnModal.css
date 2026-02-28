@@ -1,0 +1,77 @@
+.er_modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.er_modal_content {
+    background-color: #1e293b;
+    padding: 24px;
+    border-radius: 8px;
+    width: 400px;
+    border: 1px solid #334155;
+    color: white;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+.er_modal_title {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.er_modal_icon {
+    font-size: 24px;
+}
+
+.er_modal_text {
+    margin: 0 0 24px 0;
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.er_modal_highlight {
+    color: white;
+}
+
+.er_modal_actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.er_modal_btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.er_modal_btn_cancel {
+    background-color: #475569;
+}
+
+.er_modal_btn_cancel:hover {
+    background-color: #334155;
+}
+
+.er_modal_btn_delete {
+    background-color: #ef4444;
+    font-weight: bold;
+}
+
+.er_modal_btn_delete:hover {
+    background-color: #dc2626;
+}

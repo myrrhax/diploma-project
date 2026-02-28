@@ -59,7 +59,11 @@ export interface UpdateColumnCommand extends BaseMetadataCommand {
     autoIncrement: boolean | null;
 }
 
-export interface DeleteColumnCommand extends BaseMetadataCommand { type: 'delete-column'; /* поля */ }
+export interface DeleteColumnCommand extends BaseMetadataCommand {
+    type: 'delete-column';
+    tableId: string;
+    columnId: string;    
+}
 
 export interface DeleteTableCommand extends BaseMetadataCommand { 
     type: 'delete-table';

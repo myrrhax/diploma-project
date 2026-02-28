@@ -4,6 +4,7 @@ import { erStore } from "@/store/ERStore";
 import './css/TableColumn.css';
 import { AddColumnMenu } from "./AddColumnMenu";
 import { referenceStore } from "@/store/ReferenceStore";
+import { columnDeleteStore } from "@/store/ColumnDeleteStore";
 
 interface TableColumnProps {
     col: Column;
@@ -25,6 +26,22 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
             key={col.id} 
             className="er_column_row" 
             title={tooltipText}
+            onContextMenu={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const wrapper = e.currentTarget.closest('.er_diagram_wrapper');
+                const rect = wrapper?.getBoundingClientRect();
+                
+                if (rect) {
+                    columnDeleteStore.openColumnContextMenu(
+                        e.clientX - rect.left, 
+                        e.clientY - rect.top, 
+                        table.id,
+                        col.id
+                    );
+                }
+            }}
         >
             <div 
                 className={`er_port port_left ${isTarget ? 'port_target_active' : ''}`}
