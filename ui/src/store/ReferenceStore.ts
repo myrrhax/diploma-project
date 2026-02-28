@@ -25,14 +25,16 @@ class ReferenceStore {
     }
 
     handlePortClick(side: 'left' | 'right', tableId: string, colId: string, clientX: number, clientY: number) {
-        this.menuX = clientX;
-        this.menuY = clientY;
-        this.isOpen = true;
-
-        if (side === 'right') { // Клик по Source (Output)
+        if (side === 'right') {
             if (this.sourceTableId && this.sourceTableId !== tableId) {
                 this.reset();
-                this.menuX = clientX; this.menuY = clientY; this.isOpen = true;
+                this.menuX = clientX; 
+                this.menuY = clientY; 
+                this.isOpen = true;
+            } else if (!this.isOpen) {
+                this.menuX = clientX;
+                this.menuY = clientY;
+                this.isOpen = true;
             }
             this.sourceTableId = tableId;
             

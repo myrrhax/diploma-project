@@ -26,14 +26,12 @@ const UPDATE_ACTION_LABELS: Record<OnUpdateAction, string> = {
 }
 
 export const AddReferenceMenu = observer(() => {
-    // Рефы для логики перетаскивания окна
     const isDragging = useRef(false);
     const dragOffset = useRef({ x: 0, y: 0 });
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (isDragging.current) {
-                // Плавно обновляем координаты в сторе при движении мыши
                 referenceStore.menuX = e.clientX - dragOffset.current.x;
                 referenceStore.menuY = e.clientY - dragOffset.current.y;
             }
@@ -43,7 +41,6 @@ export const AddReferenceMenu = observer(() => {
             isDragging.current = false;
         };
 
-        // Вешаем глобальные слушатели, чтобы окно не "срывалось", если мышка уйдет за его пределы
         window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('mouseup', handleMouseUp);
 
@@ -55,7 +52,6 @@ export const AddReferenceMenu = observer(() => {
 
     const handleMouseDown = (e: React.MouseEvent) => {
         isDragging.current = true;
-        // Запоминаем, за какое место шапки мы "схватили" окно
         dragOffset.current = {
             x: e.clientX - referenceStore.menuX,
             y: e.clientY - referenceStore.menuY

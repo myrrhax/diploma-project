@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import { erStore } from '@/store/ERStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -20,7 +20,6 @@ interface AddColumnMenuProps {
 export const AddColumnMenu = observer(({ onClose, onCancel, oldColumn, tableId }: AddColumnMenuProps) => {
     const { state } = erStore;
     const table = state?.tables[tableId];
-    
     if (!table) {
         return null;
     }
@@ -32,11 +31,9 @@ export const AddColumnMenu = observer(({ onClose, onCancel, oldColumn, tableId }
     let hasOtherAutoIncrement = false;
 
     if (allColumns.length > 0) {
-        // Если доступ к колонкам есть, считаем по их реальным актуальным флагам
         otherPkPartsCount = allColumns.filter((c: any) => c.id !== oldColumn?.id && (c.pkPart || c.isPkPart)).length;
         hasOtherAutoIncrement = allColumns.some((c: any) => c.id !== oldColumn?.id && c.autoIncrement);
     } else {
-        // Фолбэк на старое поведение, если table.columns недоступен
         otherPkPartsCount = (table.primaryKeyParts || []).filter(id => id !== oldColumn?.id).length;
         hasOtherAutoIncrement = !!table.autoIncrementedColumn && table.autoIncrementedColumn !== oldColumn?.id;
     }
@@ -61,14 +58,18 @@ export const AddColumnMenu = observer(({ onClose, onCancel, oldColumn, tableId }
     const isDateType = ['DATE', 'TIME', 'TIMESTAMP', 'DATETIME'].includes(type);
     const isAutoIncrementableType = ['INT', 'SMALLINT', 'BIGINT'].includes(type);
     
-    // Флаг единственного ключа теперь работает корректно, даже если primaryKeyParts отстает
     const isSolePk = isPkPart && otherPkPartsCount === 0;
 
     const canAutoincrement = 
         isPkPart && 
         isUnique && 
         isAutoIncrementableType &&
-        !hasOtherAutoIncrement; // Используем актуальную проверку других колонок
+        !hasOtherAutoIncrement;
+
+    const menuRef = useRef<HTMLDivElement>(null);
+    const position = useRef({ x: 0, y: 0 });
+    const isDragging = useRef(false);
+    const dragOffset = useRef({ x: 0, y: 0 });
 
     useEffect(() => {
         if (isPkPart) {
@@ -85,6 +86,30 @@ export const AddColumnMenu = observer(({ onClose, onCancel, oldColumn, tableId }
             setIsAutoIncrement(false);
         }
     }, [canAutoincrement]);
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (isDragging.current && menuRef.current) {
+                position.current = {
+                    x: e.clientX - dragOffset.current.x,
+                    y: e.clientY - dragOffset.current.y
+                };
+                menuRef.current.style.transform = `translate(${position.current.x}px, ${position.current.y}px)`;
+            }
+        };
+
+        const handleMouseUp = () => {
+            isDragging.current = false;
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, []);
 
     const handleSave = () => {
         if (!name.trim()) {
@@ -113,17 +138,41 @@ export const AddColumnMenu = observer(({ onClose, onCancel, oldColumn, tableId }
         onClose(column);
     };
 
+    const handleMouseDown = (e: React.MouseEvent) => {
+        isDragging.current = true;
+        dragOffset.current = {
+            x: e.clientX - position.current.x,
+            y: e.clientY - position.current.y
+        };
+    };
+
     const title = isEditing ? 'Обновление колонки' : 'Добавление колонки';
 
     return (
         <div 
             className="er_add_column_menu__container"
-            style={{left: `${erStore.TABLE_WIDTH + 15}px`}}
+            style={{
+                left: `${erStore.TABLE_WIDTH + 15}px`,
+                transform: `translate(${position.current.x}px, ${position.current.y}px)`, 
+                zIndex: 1000
+            }}
+            ref={menuRef}
             onMouseDown={(e) => e.stopPropagation()} 
             onClick={(e) => e.stopPropagation() }
             title={title}
         >
-            <h4 className='add_column_title'>{ title }</h4>
+            <h4 
+                className='add_column_title' 
+                onMouseDown={handleMouseDown}
+                style={{ 
+                    cursor: 'grab', 
+                    userSelect: 'none', 
+                    margin: 0,
+                    paddingBottom: '10px'
+                }}
+            >
+                { title }
+            </h4>
 
             <div className='er_add_column_menu'>
                 <input className='col_input' placeholder="Имя колонки" value={name} onChange={e => setName(e.target.value)} />
