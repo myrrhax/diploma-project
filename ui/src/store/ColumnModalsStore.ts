@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 import { erStore } from "./ERStore";
 
-class ColumnDeleteStore {
+class ColumnModalsStore {
     isOpen = false;
     tableId: string | null = null;
     colId: string | null = null;
@@ -39,4 +39,4 @@ class ColumnDeleteStore {
     }
 }
 
-export const columnDeleteStore = new ColumnDeleteStore();
+export const columnModalsStore = new ColumnModalsStore();

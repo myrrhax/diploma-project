@@ -4,7 +4,7 @@ import { erStore } from "@/store/ERStore";
 import './css/TableColumn.css';
 import { AddColumnMenu } from "./AddColumnMenu";
 import { referenceStore } from "@/store/ReferenceStore";
-import { columnDeleteStore } from "@/store/ColumnDeleteStore";
+import { columnModalsStore } from "@/store/ColumnModalsStore";
 
 interface TableColumnProps {
     col: Column;
@@ -34,7 +34,7 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
                 const rect = wrapper?.getBoundingClientRect();
                 
                 if (rect) {
-                    columnDeleteStore.openColumnContextMenu(
+                    columnModalsStore.openColumnContextMenu(
                         e.clientX - rect.left, 
                         e.clientY - rect.top, 
                         table.id,
@@ -51,7 +51,7 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
                 {isTarget && <span className="port_badge badge_left">{tgtIdx + 1}</span>}
             </div>
 
-            <div className="col_info_wrapper" onClick={() => erStore.setActiveMenuId(col.id)}>
+            <div className="col_info_wrapper">
                 {col.pkPart && <span title="Primary Key" style={{ fontSize: '12px' }}>🔑</span>}
                 
                 <span className="col_name">

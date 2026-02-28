@@ -1,20 +1,20 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
-import { columnDeleteStore } from '@/store/ColumnDeleteStore';
+import { columnModalsStore } from '@/store/ColumnModalsStore';
 import { erStore } from '@/store/ERStore';
 import './css/DeleteColumnModal.css'; // Подключаем наш новый файл
 
 export const DeleteColumnModal = observer(() => {
-    if (!columnDeleteStore.isOpen || !columnDeleteStore.tableId || !columnDeleteStore.colId) return null;
+    if (!columnModalsStore.isOpen || !columnModalsStore.tableId || !columnModalsStore.colId) return null;
 
-    const table = erStore.getTable(columnDeleteStore.tableId);
-    const column = table?.columns[columnDeleteStore.colId];
+    const table = erStore.getTable(columnModalsStore.tableId);
+    const column = table?.columns[columnModalsStore.colId];
     const columnName = column ? column.name : 'выбранную колонку';
 
     return (
         <div 
             className="er_modal_overlay"
-            onClick={() => columnDeleteStore.close()}
+            onClick={() => columnModalsStore.close()}
             onWheel={(e) => e.stopPropagation()}       
             onMouseDown={(e) => e.stopPropagation()}   
             onMouseMove={(e) => e.stopPropagation()}   
@@ -36,13 +36,13 @@ export const DeleteColumnModal = observer(() => {
                 <div className="er_modal_actions">
                     <button 
                         className="er_modal_btn er_modal_btn_cancel"
-                        onClick={() => columnDeleteStore.close()} 
+                        onClick={() => columnModalsStore.close()} 
                     >
                         Отмена
                     </button>
                     <button 
                         className="er_modal_btn er_modal_btn_delete"
-                        onClick={() => columnDeleteStore.confirm()} 
+                        onClick={() => columnModalsStore.confirm()} 
                     >
                         Да, удалить
                     </button>
