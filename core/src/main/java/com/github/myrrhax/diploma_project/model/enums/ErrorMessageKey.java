@@ -21,7 +21,9 @@ public enum ErrorMessageKey {
     REFERENCE_INVALID_KEY("error.reference.invalid-key"),
     REFERENCE_INVALID_REF("error.reference.invalid-ref"),
     REFERENCE_NOT_FOUND("error.reference.notfound"),
-    REFERENCE_DUPLICATE_REF_PART("error.reference.duplicate-ref-part"),;
+    REFERENCE_DUPLICATE_REF_PART("error.reference.duplicate-ref-part"),
+    VERSION_DUPLICATE("error.versions.duplicate"),
+    VERSION_TAG_DUPLICATE("error.versions.tag.duplicate");
 
     private final String key;
 

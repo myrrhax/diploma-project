@@ -9,6 +9,7 @@ import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.VersionRepository;
+import com.github.myrrhax.diploma_project.util.SchemaHashGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,15 @@ public class VersionService {
             throw new ApplicationException(ErrorMessageKey.VERSION_TAG_DUPLICATE.getKey(), tag);
         }
         VersionEntity currentVersion = schema.getCurrentVersion();
-        String hashSum = currentVersion.calculateHash();
+        String hashSum;
+        try {
+             hashSum = SchemaHashGenerator.hashSchema(currentVersion.getSchema());
+        } catch (Exception ex) {
+            log.error("Failed to generate schema hash", ex);
+
+            throw new RuntimeException(ex);
+        }
+
         log.info("Calculated hash sum for schema with id {}: {}", schemaId, hashSum);
 
         Optional<VersionEntity> sameVersion = versionRepository.findBySchemeIdAndHashSum(schemaId, hashSum);

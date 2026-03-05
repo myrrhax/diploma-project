@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -39,7 +38,7 @@ public class TableMetadata implements Cloneable {
     private LinkedHashMap<UUID, ColumnMetadata> columns = new LinkedHashMap<>();
 
     @Builder.Default
-    private Map<UUID, IndexMetadata> indexes = new HashMap<>();
+    private Map<UUID, IndexMetadata> indexes = new LinkedHashMap<>();
 
     @Setter
     @JsonIgnore

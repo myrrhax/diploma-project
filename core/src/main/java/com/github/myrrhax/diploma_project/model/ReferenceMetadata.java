@@ -161,7 +161,7 @@ public class ReferenceMetadata {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ReferenceKey {
+    public static class ReferenceKey implements Comparable<ReferenceKey> {
         private UUID fromTableId;
         private UUID[] fromColumns;
         private UUID toTableId;
@@ -195,6 +195,15 @@ public class ReferenceMetadata {
                             String.join(",", Arrays.stream(toColumns).map(Object::toString)
                                     .toArray(String[]::new))
                     );
+        }
+
+        @Override
+        public int compareTo(ReferenceKey o) {
+            if (o == null) {
+                return 1;
+            }
+
+            return this.toString().compareTo(o.toString());
         }
     }
 }
