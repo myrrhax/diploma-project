@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
+import java.security.MessageDigest;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;

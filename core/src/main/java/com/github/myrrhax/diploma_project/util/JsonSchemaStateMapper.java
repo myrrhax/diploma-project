@@ -2,6 +2,7 @@ package com.github.myrrhax.diploma_project.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
@@ -22,6 +23,7 @@ public class JsonSchemaStateMapper {
         var module = new SimpleModule();
         module.addKeyDeserializer(ReferenceMetadata.ReferenceKey.class, new ReferenceKeyFromStringDeserializer());
 
+        objectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.registerModule(module);
     }

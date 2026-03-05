@@ -1,5 +1,9 @@
 package com.github.myrrhax.diploma_project.model.entity;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
+import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,6 +22,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -60,4 +66,27 @@ public class VersionEntity extends BaseEntity {
 
     @Column(name = "is_working_copy")
     Boolean isWorkingCopy;
+
+
+    public String calculateHash() {
+        if (!isWorkingCopy) {
+            throw new ApplicationException("Hash sum must be calculated only for working copies");
+        }
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] hash = md.digest(schema.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexBuilder = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(b & 0xff);
+                if (hex.length() == 1) {
+                    hexBuilder.append('0');
+                }
+                hexBuilder.append(hex);
+            }
+
+            return hexBuilder.toString();
+        } catch (Exception e) {
+            throw new ApplicationException("Failed to calculate hash", e);
+        }
+    }
 }
