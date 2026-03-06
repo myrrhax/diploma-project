@@ -2,7 +2,6 @@ import { schemaSocketService } from "@/api/SchemaSocketService";
 import { versionsApi } from "@/api/VersionsApiService";
 import type { Version } from "@/model/SchemaTypes";
 import { makeAutoObservable } from "mobx";
-import { erStore } from "./ERStore";
 
 class VersionsStore {
     isLoading: boolean = false;

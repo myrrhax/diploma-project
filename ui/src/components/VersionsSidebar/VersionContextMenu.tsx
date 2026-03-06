@@ -4,7 +4,6 @@ import { contextMenuStore } from '@/store/VersionContextMenuStore';
 import { versionsStore } from '@/store/VersionsStore'; 
 import { createPortal } from 'react-dom';
 import './css/VersionContextMenu.css';
-import type { Version } from '@/model/SchemaTypes';
 
 export const VersionContextMenu = observer(() => {
     const { isOpen, position, version } = contextMenuStore;
