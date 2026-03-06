@@ -30,4 +30,6 @@ public class VersionDTO implements Serializable {
         String hashSum;
         @JsonView(ViewMarkers.Basic.class)
         LocalDateTime versionedAt;
+        @JsonView(ViewMarkers.Basic.class)
+        long parentId;
 }

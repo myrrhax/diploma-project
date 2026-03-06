@@ -16,8 +16,10 @@ import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.repository.specification.SchemeSpecification;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
+import com.github.myrrhax.diploma_project.util.SchemaHashGenerator;
 import com.github.myrrhax.shared.model.AuthorityType;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -39,6 +41,7 @@ public abstract class SchemaService {
     protected final SchemaMapper schemaMapper;
     protected final JsonSchemaStateMapper schemaStateMapper;
 
+    @SneakyThrows
     @Transactional
     public SchemeDTO createScheme(String name, TokenUser tokenUser) {
         UUID userId = tokenUser.getToken().userId();
@@ -73,7 +76,10 @@ public abstract class SchemaService {
         log.info("Applying schema state metadata for scheme {}", savedScheme.getId());
         SchemaStateMetadata state = new SchemaStateMetadata();
         state.setSchemaId(savedScheme.getId());
-        savedVersion.setSchema(schemaStateMapper.toJson(state));
+        String jsonSchema = schemaStateMapper.toJson(state);
+        savedVersion.setSchema(jsonSchema);
+        String hashSum = SchemaHashGenerator.hashSchema(jsonSchema);
+        version.setHashSum(hashSum);
 
         log.info("Grant user {} full access for created scheme {}", userId, savedScheme.getId());
         AuthorityEntity authority = AuthorityEntity.builder()
