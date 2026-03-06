@@ -42,7 +42,7 @@ public class SchemaCacheStorage {
                 .map(schemaMapper::toDto)
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
 
-            dto.currentVersion().currentState().setLastModificationTime(Instant.now());
+            dto.currentVersion().getCurrentState().setLastModificationTime(Instant.now());
             return dto;
         });
     }
@@ -50,7 +50,7 @@ public class SchemaCacheStorage {
     @Transactional
     public void flush(UUID id, boolean calledFromUser) {
         SchemeDTO schema = schemaCache.get(id);
-        SchemaStateMetadata state = schema.currentVersion().currentState();
+        SchemaStateMetadata state = schema.currentVersion().getCurrentState();
         if (state != null) {
             Lock lock = null;
             try {
@@ -91,7 +91,7 @@ public class SchemaCacheStorage {
         for (UUID key : schemaCache.keySet()) {
             SchemeDTO schema = schemaCache.get(key);
             VersionDTO version = schema.currentVersion();
-            SchemaStateMetadata state = version.currentState();
+            SchemaStateMetadata state = version.getCurrentState();
             if (state != null) {
                 Lock lock = null;
                 boolean locked = false;
@@ -122,7 +122,7 @@ public class SchemaCacheStorage {
             return;
         }
         VersionDTO version = schemaCache.get(id).currentVersion();
-        SchemaStateMetadata state = version.currentState();
+        SchemaStateMetadata state = version.getCurrentState();
         if (state != null) {
             Lock lock = null;
             try {
@@ -145,7 +145,7 @@ public class SchemaCacheStorage {
         log.info("Gracefully flushing schemas...");
         for (UUID key : schemaCache.keySet()) {
             VersionDTO version = schemaCache.get(key).currentVersion();
-            SchemaStateMetadata state = version.currentState();
+            SchemaStateMetadata state = version.getCurrentState();
             if (state != null) {
                 Lock lock = null;
                 try {

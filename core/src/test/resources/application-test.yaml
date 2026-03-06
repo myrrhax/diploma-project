@@ -12,6 +12,9 @@ spring:
     hibernate:
       ddl-auto: validate
       dialect: org.hibernate.dialect.PostgresSQLDialect
+    properties:
+      hibernate:
+        format-sql: true
 
   liquibase:
     change-log: classpath:liquibase-master.yaml
@@ -39,6 +42,13 @@ app:
 
   cache:
     schema-ttl: 15m
+    caches:
+      authorities:
+        ttl: 15m
+      versions:
+        ttl: 15m
+      versionById:
+        ttl: 15m
 
 server:
   port: 8000

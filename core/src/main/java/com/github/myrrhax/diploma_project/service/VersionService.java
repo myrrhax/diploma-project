@@ -12,6 +12,8 @@ import com.github.myrrhax.diploma_project.repository.VersionRepository;
 import com.github.myrrhax.diploma_project.util.SchemaHashGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,7 @@ public class VersionService {
     private final VersionMapper versionMapper;
 
     @Transactional
+    @CacheEvict(value = "versions", key = "#schemaId")
     public VersionDTO saveVersion(UUID schemaId, String tag) {
         log.info("Processing save version for schema {} wit tag {}", schemaId, tag);
         SchemeEntity schema = schemeRepository.findByIdLocking(schemaId)
@@ -76,6 +79,7 @@ public class VersionService {
     }
 
     // ToDo добавить кэширование
+    @Cacheable(value = "versionById", key = "#id")
     @Transactional(readOnly = true)
     public Optional<VersionDTO> findById(long id) {
         return versionRepository.findById(id)
@@ -83,6 +87,7 @@ public class VersionService {
     }
 
     // ToDo добавить кэширование
+    @Cacheable(value = "versions", key = "#schemaId")
     @Transactional(readOnly = true)
     public List<VersionDTO> findAll(UUID schemaId) {
         return versionRepository.findAllBySchemeId(schemaId).stream()

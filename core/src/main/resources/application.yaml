@@ -47,6 +47,10 @@ app:
     caches:
       authorities:
         ttl: 15m
+      versions:
+        ttl: 15m
+      versionById:
+        ttl: 15m
 
 server:
   port: 8000

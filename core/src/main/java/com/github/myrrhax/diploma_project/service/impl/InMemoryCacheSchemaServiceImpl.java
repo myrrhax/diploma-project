@@ -39,8 +39,8 @@ public class InMemoryCacheSchemaServiceImpl extends SchemaService {
         log.info("Processing command by InMemoryCachingProcessingService for schema {}", command.getSchemeId());
         SchemeDTO currentSchema = schemaCacheStorage.getSchema(command.getSchemeId());
         var version = currentSchema.currentVersion();
-        if (version.currentState() != null) {
-            SchemaStateMetadata state = version.currentState();
+        if (version.getCurrentState() != null) {
+            SchemaStateMetadata state = version.getCurrentState();
             try {
                 state.getLock().lock();
                 var difference = command.execute(state);

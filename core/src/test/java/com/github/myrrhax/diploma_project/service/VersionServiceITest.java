@@ -10,7 +10,9 @@ import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
+import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
 import com.github.myrrhax.diploma_project.model.enums.JwtAuthority;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.repository.VersionRepository;
@@ -24,9 +26,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class VersionServiceITest extends AbstractIntegrationTest {
     public static final String SCHEMA_NAME = "DEFAULT_SCHEMA";
@@ -97,6 +101,7 @@ public class VersionServiceITest extends AbstractIntegrationTest {
                         .build();
         t1.addColumn(c1);
         t1.addPkPart(c1.getId());
+        state.addTable(t1);
 
         TableMetadata t2 = TableMetadata.builder()
                 .name(TABLE_2_NAME)
@@ -114,6 +119,7 @@ public class VersionServiceITest extends AbstractIntegrationTest {
                 .build();
         t2.addColumn(c2);
         t2.addPkPart(c2.getId());
+        state.addTable(t2);
 
         ReferenceMetadata ref = ReferenceMetadata.builder()
                 .key(ReferenceMetadata.ReferenceKey.builder()
@@ -185,5 +191,55 @@ public class VersionServiceITest extends AbstractIntegrationTest {
 
         List<VersionDTO> versions = serviceUnderTest.findAll(uuid);
         assertThat(versions.size()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("Save version without changes (Negative)")
+    public void givenVersion_whenSaveUnchanged_thenThrows() {
+        // given
+        serviceUnderTest.saveVersion(uuid, TAG_V_1);
+
+        // when & then
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> serviceUnderTest.saveVersion(uuid, TAG_V_2));
+
+        assertThat(ex.getMessage()).isEqualTo(ErrorMessageKey.VERSION_DUPLICATE.getKey());
+    }
+
+    @Test
+    @DisplayName("Save version with same tag (Negative)")
+    public void givenVersion_whenSavesNewWithSameTag_thenThrows() throws Exception {
+        // given
+        serviceUnderTest.saveVersion(uuid, TAG_V_1);
+        SchemeEntity scheme = schemeRepository.findById(uuid).orElseThrow();
+        SchemaStateMetadata state = jsonSchemaStateMapper.toMetadata(scheme.getCurrentVersion().getSchema());
+        state.addTable(TableMetadata.builder()
+                .name("NEW_TABLE")
+                .build());
+        scheme.getCurrentVersion().setSchema(jsonSchemaStateMapper.toJson(state));
+        schemeRepository.save(scheme);
+
+        // when & then
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> serviceUnderTest.saveVersion(uuid, TAG_V_1));
+        assertThat(ex.getMessage()).isEqualTo(ErrorMessageKey.VERSION_TAG_DUPLICATE.getKey());
+    }
+
+    @Test
+    @DisplayName("Save version with unhashable changes (Negative)")
+    public void givenVersion_whenSavesNewWithUnhashableChanges_thenThrows() throws Exception {
+        // given
+        serviceUnderTest.saveVersion(uuid, TAG_V_1);
+        SchemeEntity scheme = schemeRepository.findById(uuid).orElseThrow();
+        SchemaStateMetadata state = jsonSchemaStateMapper.toMetadata(scheme.getCurrentVersion().getSchema());
+        TableMetadata t = state.getTable(TABLE_1_NAME).orElseThrow();
+        Random rnd = new Random();
+        t.setX(rnd.nextDouble() * 500);
+        t.setY(rnd.nextDouble() * 500);
+        t.setDescription("NEW_" + t.getDescription());
+        scheme.getCurrentVersion().setSchema(jsonSchemaStateMapper.toJson(state));
+        schemeRepository.save(scheme);
+
+        // when & then
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> serviceUnderTest.saveVersion(uuid, TAG_V_2));
+        assertThat(ex.getMessage()).isEqualTo(ErrorMessageKey.VERSION_DUPLICATE.getKey());
     }
 }

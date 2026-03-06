@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.config;
 
+import org.springframework.boot.autoconfigure.data.redis.RedisConnectionDetails;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,8 +12,11 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration(proxyBeanMethods = false)
 public class RedisConfiguration {
     @Bean
-    public JedisConnectionFactory jedisConnectionFactory(RedisProperties redisProperties) {
-        var connection = new RedisStandaloneConfiguration(redisProperties.getHost(), redisProperties.getPort());
+    public JedisConnectionFactory jedisConnectionFactory(RedisConnectionDetails redisProperties) {
+        var connection = new RedisStandaloneConfiguration(
+                redisProperties.getStandalone().getHost(),
+                redisProperties.getStandalone().getPort()
+        );
 
         return new JedisConnectionFactory(connection);
     }

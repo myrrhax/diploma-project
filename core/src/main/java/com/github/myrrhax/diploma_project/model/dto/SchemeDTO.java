@@ -11,6 +11,6 @@ public record SchemeDTO(
         VersionDTO currentVersion
 ) {
     public SchemaStateMetadata currentState() {
-        return currentVersion.currentState();
+        return currentVersion.getCurrentState();
     }
 }
