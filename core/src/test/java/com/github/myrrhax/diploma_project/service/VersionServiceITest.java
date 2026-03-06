@@ -6,6 +6,7 @@ import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
+import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
@@ -36,6 +37,7 @@ public class VersionServiceITest extends AbstractIntegrationTest {
     public static final String TABLE_2_NAME = "table2";
     public static final String DESCRIPTION_TABLE_2 = "description_table2";
     public static final String TAG_V_1 = "TAG_V1";
+    private static final String TAG_V_2 = "TAG_V2";
 
     @Autowired
     private UserRepository userRepository;
@@ -134,7 +136,7 @@ public class VersionServiceITest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Save version test")
+    @DisplayName("Save version test (Positive)")
     public void givenSchema_whenSave_thenNewVersionWasGeneratedAndOldHasHashSum() {
         // given
         VersionEntity version = getCurrentVersion();
@@ -157,4 +159,31 @@ public class VersionServiceITest extends AbstractIntegrationTest {
         assertThat(scheme.getCurrentVersion().getId()).isEqualTo(afterSaveId);
     }
 
+    @Test
+    @DisplayName("Save version test with new version (Positive)")
+    public void givenSchemaWithVersionV1_whenSaveV2WithChanges_thenNewVersionWasGenerated() throws Exception {
+        // given
+        serviceUnderTest.saveVersion(uuid, TAG_V_1);
+        VersionEntity version = getCurrentVersion();
+        long versionId = version.getId();
+        SchemeEntity scheme = schemeRepository.findById(uuid).orElseThrow();
+        SchemaStateMetadata state = jsonSchemaStateMapper.toMetadata(scheme.getCurrentVersion().getSchema());
+        state.addTable(TableMetadata.builder()
+                        .name("NEW_TABLE")
+                        .build());
+        scheme.getCurrentVersion().setSchema(jsonSchemaStateMapper.toJson(state));
+        schemeRepository.save(scheme);
+
+        // when
+        serviceUnderTest.saveVersion(uuid, TAG_V_2);
+
+        // then
+        VersionEntity afterSave = getCurrentVersion();
+        long afterSaveId = afterSave.getId();
+
+        assertThat(afterSaveId).isNotEqualTo(versionId);
+
+        List<VersionDTO> versions = serviceUnderTest.findAll(uuid);
+        assertThat(versions.size()).isEqualTo(3);
+    }
 }
