@@ -29,6 +29,8 @@ public class VersionController {
     @PreAuthorize("@authorityCheckService.hasAccess(#tokenUser.token.userId, #schemaId)")
     public List<VersionDTO> getAll(@PathVariable("id") UUID schemaId,
                                                    @AuthenticationPrincipal TokenUser tokenUser) {
+        log.info("Fetching schema versions for schema with id {}", schemaId);
+
         return versionService.findAll(schemaId);
     }
 
@@ -36,6 +38,8 @@ public class VersionController {
     @JsonView(ViewMarkers.Stateful.class)
     public VersionDTO getById(@PathVariable("id") Long id,
                                @AuthenticationPrincipal TokenUser tokenUser) {
+        log.info("Fetching version with id {}", id);
+
         return versionService.findById(id);
     }
 }

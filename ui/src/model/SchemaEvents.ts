@@ -1,6 +1,6 @@
 import type { Table, Reference, Column, Index, ReferenceKey } from "./SchemaElements";
 
-export type EventType = 'SCHEMA_UPDATE' | 'USER_CONNECTED';
+export type EventType = 'SCHEMA_UPDATE' | 'USER_CONNECTED' | 'SCHEMA_NEW_VERSION';
 
 export interface SchemaChangedEvent<T> {
     eventType: EventType;

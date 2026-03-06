@@ -1,6 +1,7 @@
 import type { Version } from "@/model/SchemaTypes";
 import { AbstractApiService } from "./AbstractApiService";
 import $api from "./AxiosClient";
+import { schemaSocketService } from "./SchemaSocketService";
 
 class VersionsApiService extends AbstractApiService {
     async loadVersions(schema: string): Promise<Version[]> {

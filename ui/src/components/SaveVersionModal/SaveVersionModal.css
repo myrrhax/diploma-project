@@ -1,0 +1,110 @@
+/* Затемненный фон */
+.version_modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Карточка */
+.version_modal_content {
+    background-color: #1e293b;
+    padding: 24px;
+    border-radius: 8px;
+    width: 400px;
+    border: 1px solid #334155;
+    color: white;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+/* Заголовок и описание */
+.version_modal_title {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.version_modal_description {
+    margin: 0 0 20px 0;
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Поле ввода */
+.version_modal_form_group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 24px;
+}
+
+.version_modal_label {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.version_modal_input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #475569;
+    background-color: #0f172a;
+    color: white;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+}
+
+.version_modal_input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.version_modal_error {
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* Кнопки */
+.version_modal_actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.version_modal_btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+.version_modal_btn_cancel {
+    background-color: #475569;
+}
+
+.version_modal_btn_cancel:hover {
+    background-color: #334155;
+}
+
+.version_modal_btn_save {
+    background-color: #10b981; /* Зеленый цвет для сохранения/успеха */
+    font-weight: bold;
+}
+
+.version_modal_btn_save:hover {
+    background-color: #059669;
+}

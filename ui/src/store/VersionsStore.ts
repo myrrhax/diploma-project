@@ -1,3 +1,4 @@
+import { schemaSocketService } from "@/api/SchemaSocketService";
 import { versionsApi } from "@/api/VersionsApiService";
 import type { Version } from "@/model/SchemaTypes";
 import { makeAutoObservable } from "mobx";
@@ -6,9 +7,15 @@ class VersionsStore {
     isLoading: boolean = false;
     schemaId: string | null = null;
     versions: Version[] = [];
+    currentVersion: Version | null = null;
 
     constructor() {
         makeAutoObservable(this);
+    }
+
+    addVersion(v: Version) {
+        console.log('New version received: ', v);
+        this.fetchSchemas();
     }
 
     async setSchema(id: string | null) {
@@ -18,11 +25,29 @@ class VersionsStore {
         this.schemaId = id;
         if (!id) {
             this.versions = [];
+            this.currentVersion = null;
         } else {
-            this.isLoading = true;
-            this.versions = await versionsApi.loadVersions(id);
-            this.isLoading = false;
+            this.fetchSchemas();
         }
+    }
+
+    async saveVersion(tag: string) {
+        if (!this.schemaId) {
+            return;
+        }
+        this.isLoading = true;
+        schemaSocketService.saveVersion(this.schemaId, tag);
+        this.isLoading = false;
+    }
+
+    private async fetchSchemas() {
+        if (!this.schemaId) {
+            return;
+        }
+        this.isLoading = true;
+        this.versions = await versionsApi.loadVersions(this.schemaId);
+        this.currentVersion = this.versions.find(v => v.isWorkingCopy) ?? null;
+        this.isLoading = false;
     }
 }
 

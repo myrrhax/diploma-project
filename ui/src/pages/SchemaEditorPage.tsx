@@ -9,6 +9,7 @@ import './css/SchemaEditorPage.css';
 import { schemaSocketService } from '@/api/SchemaSocketService';
 import { ErrorToasts } from '@/components/ErrorToast/ErrorToast';
 import { versionsStore } from '@/store/VersionsStore';
+import { SaveVersionModal } from '@/components/SaveVersionModal/SaveVersionModal';
 
 const FAKE_USERS = [
     { id: '1', email: 'admin@test.com', isConfirmed: true },
@@ -20,6 +21,8 @@ export const SchemaEditorPage = observer(() => {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [isUsersOpen, setUsersOpen] = useState(true);
     const { schema, state, isLoading } = erStore;
+
+    const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
     if (!id) return;
 
@@ -52,10 +55,20 @@ export const SchemaEditorPage = observer(() => {
             await versionsStore.setSchema(id);
         }
     }
+
+    const onSave = async (tag: string) => {
+        await versionsStore.saveVersion(tag);
+        setIsSaveModalOpen(false);
+    }
     
     return (
         <div className="schema_page__container">
             <ErrorToasts />
+            <SaveVersionModal
+                isOpen={isSaveModalOpen}
+                onSave={onSave}
+                onClose={() => setIsSaveModalOpen(false)} 
+            />
             {isLoading ? (
                 <div>Загрузка...</div>
             ) : state != null ? (
@@ -74,7 +87,7 @@ export const SchemaEditorPage = observer(() => {
                             <button className="btn_secondary">История</button>
                             <button 
                                 className="btn_primary" 
-                                onClick={() => console.log('Saving...', erStore.state?.tables)}
+                                onClick={() => setIsSaveModalOpen(true)}
                             >
                                 Сохранить версию
                             </button>

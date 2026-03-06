@@ -1,5 +1,6 @@
 import './VersionSidebar.css'
 import { versionsStore } from '@/store/VersionsStore';
+import { toVersionDateFormat } from '@/utils/UtilFunctions';
 import { observer } from 'mobx-react-lite';
 
 interface VersionsSidebarProps {
@@ -23,7 +24,7 @@ export const VersionsSidebar = observer(({isOpen, changeVisibleCallback}: Versio
 							<div key={v.versionId} className={`version-item ${v.isWorkingCopy ? 'version-working': ''} ${v.isInitial ? 'version-initial' : ''}`}>
 								<span className="version-name">{v.tag ?? 'Рабочая версия'}</span>
 								{v.versionedAt ? (
-									<span className="version-date">{v.versionedAt?.toString()}</span>
+									<span className="version-date">{v.versionedAt ? toVersionDateFormat(v.versionedAt) : ''}</span>
 								) : null}
 							</div>
 						))

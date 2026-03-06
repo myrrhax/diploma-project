@@ -8,6 +8,7 @@ import type { MetadataCommandProcessResult } from "@/model/SchemaEvents";
 import type { MetadataCommand } from "@/model/SchemaCommands";
 import type ErrorResponse from "@/model/ErrorResponse";
 import { errorsStore } from "@/store/ErrorsStore";
+import { versionsStore } from "@/store/VersionsStore";
 
 const WS_ENDPOINT = 'http://localhost:8000/ws';
 
@@ -109,6 +110,16 @@ class SchemaSocketService {
         }
     }
 
+    saveVersion(id: string, tag: string) {
+        if (!this.client || !this.client.connected) return;
+
+        const destination = '/app/schema/' + id + '/saveVersion';
+        this.client.publish({
+            destination: destination,
+            body: JSON.stringify({ tag: tag })
+        });
+    }
+
     private executeSubscription(schemaId: string) {
         if (!this.client || !this.client.connected) return;
         
@@ -116,9 +127,13 @@ class SchemaSocketService {
 
         this.subscription = this.client.subscribe(topic, (msg) => {
             if (msg.body) {
-                const event = JSON.parse(msg.body) as SchemaChangedEvent<MetadataCommandProcessResult>;
-                console.log(`Received: ${event}`);
-                this.handleDifference(event);
+                const body = JSON.parse(msg.body) as SchemaChangedEvent<any>;
+                console.log('Received: ', body);
+                if (body.eventType === 'SCHEMA_UPDATE') {
+                    this.handleDifference(body);
+                } else if (body.eventType === 'SCHEMA_NEW_VERSION') {
+                    versionsStore.addVersion(body.type);
+                }                
             }
         });
 
