@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -27,4 +28,6 @@ public class VersionDTO implements Serializable {
         boolean isWorkingCopy;
         @JsonView(ViewMarkers.Basic.class)
         String hashSum;
+        @JsonView(ViewMarkers.Basic.class)
+        LocalDateTime versionedAt;
 }
