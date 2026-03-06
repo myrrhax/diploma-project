@@ -1,6 +1,10 @@
 import type { Table, Reference, Column, Index, ReferenceKey } from "./SchemaElements";
+import type { Version } from "./SchemaTypes";
 
-export type EventType = 'SCHEMA_UPDATE' | 'USER_CONNECTED' | 'SCHEMA_NEW_VERSION';
+export type EventType = 'SCHEMA_UPDATE' 
+    | 'USER_CONNECTED' 
+    | 'SCHEMA_NEW_VERSION' 
+    | 'SCHEMA_VERSION_DELETED';
 
 export interface SchemaChangedEvent<T> {
     eventType: EventType;
@@ -9,6 +13,14 @@ export interface SchemaChangedEvent<T> {
 
 export interface CommandEvent extends SchemaChangedEvent<MetadataCommandProcessResult> {
     eventType: 'SCHEMA_UPDATE';
+}
+
+export interface NewVersionEvent extends SchemaChangedEvent<Version[]> {
+    eventType: 'SCHEMA_NEW_VERSION';
+}
+
+export interface VersionDeletedEvent extends SchemaChangedEvent<Version[]> {
+    eventType: 'SCHEMA_VERSION_DELETED';
 }
 
 export interface MetadataCommandProcessResult {

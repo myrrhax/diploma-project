@@ -14,8 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +33,7 @@ public class VersionService {
 
     @Transactional
     @CacheEvict(value = "versions", key = "#schemaId")
-    public VersionDTO saveVersion(UUID schemaId, String tag) {
+    public List<VersionDTO> saveVersion(UUID schemaId, String tag) {
         log.info("Processing save version for schema {} wit tag {}", schemaId, tag);
         SchemeEntity schema = schemeRepository.findByIdLocking(schemaId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemaId));
@@ -79,7 +78,7 @@ public class VersionService {
         schemeRepository.save(schema);
         log.info("New version was set to schema with id: {}", schemaId);
 
-        return versionMapper.toVersionDTO(newVersion);
+        return findAll(schemaId);
     }
 
     @Cacheable(value = "versionById", key = "#id")
@@ -87,7 +86,7 @@ public class VersionService {
     public VersionDTO findById(long id) {
         return versionRepository.findById(id)
                 .map(versionMapper::toVersionDTO)
-                .orElseThrow(() -> new ApplicationException("Version is not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ApplicationException(ErrorMessageKey.VERSION_NOT_FOUND.getKey()));
     }
 
     @Cacheable(value = "versions", key = "#schemaId")
@@ -97,5 +96,31 @@ public class VersionService {
         return versionRepository.findAllBySchemeId(schemaId).stream()
                 .map(versionMapper::toVersionDTO)
                 .toList();
+    }
+
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "versions", key = "#schemaId"),
+            @CacheEvict(value = "versionById", key = "#id")
+    })
+    public List<VersionDTO> deleteVersion(UUID schemaId, Long id) {
+        log.info("Deleting version by id: {} for schema {}", id, schemaId);
+        // acquire lock
+        schemeRepository.findByIdLocking(schemaId);
+        VersionEntity version = versionRepository.findById(id)
+                .orElseThrow(() -> new ApplicationException(ErrorMessageKey.VERSION_NOT_FOUND.getKey()));
+
+        if (version.getIsWorkingCopy()) {
+            throw new ApplicationException(ErrorMessageKey.VERSION_CANT_DELETE_WORKING_COPY.getKey());
+        }
+
+        VersionEntity parent = version.getParent();
+        log.info("Applying new parent for children: {}", parent == null ? "null" : parent.getId());
+        versionRepository.updateParentForChildren(id, parent);
+
+        log.info("Deleting version {}", version.getId());
+        versionRepository.deleteById(id);
+
+        return findAll(schemaId);
     }
 }

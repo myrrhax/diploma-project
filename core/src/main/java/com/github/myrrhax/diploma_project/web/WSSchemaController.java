@@ -3,6 +3,7 @@ package com.github.myrrhax.diploma_project.web;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.event.SchemaChangedEvent;
+import com.github.myrrhax.diploma_project.model.dto.DeleteVersionDto;
 import com.github.myrrhax.diploma_project.model.dto.SaveVersionDto;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.security.TokenUser;
@@ -23,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -51,7 +53,7 @@ public class WSSchemaController {
     }
 
     @MessageMapping("/schema/{id}/saveVersion")
-    @JsonView(ViewMarkers.Stateful.class)
+    @JsonView(ViewMarkers.Basic.class)
     public void saveVersion(@DestinationVariable("id") UUID schemaId,
                             @Payload @Valid SaveVersionDto dto,
                             Authentication authentication) {
@@ -60,9 +62,25 @@ public class WSSchemaController {
                 tokenUser.getToken().userId(), schemaId, AuthorityType.SNAPSHOT_VERSION.name())) {
             throw new AccessDeniedException("User can't save version");
         }
-        VersionDTO newVersion = versionService.saveVersion(schemaId, dto.tag());
+        List<VersionDTO> newVersion = versionService.saveVersion(schemaId, dto.tag());
 
         messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
                 new SchemaChangedEvent.SchemaNewVersionEvent(newVersion));
+    }
+
+    @MessageMapping("/schema/{id}/deleteVersion")
+    @JsonView(ViewMarkers.Basic.class)
+    public void deleteVersion(@DestinationVariable("id") UUID schemaId,
+                            @Payload @Valid DeleteVersionDto dto,
+                            Authentication authentication) {
+        TokenUser tokenUser = (TokenUser) authentication.getPrincipal();
+        if (tokenUser == null || !checkService.hasAuthority(
+                tokenUser.getToken().userId(), schemaId, AuthorityType.DELETE_VERSIONS.name())) {
+            throw new AccessDeniedException("User can't delete version");
+        }
+        List<VersionDTO> versions = versionService.deleteVersion(schemaId, dto.versionId());
+
+        messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
+                new SchemaChangedEvent.SchemaVersionDeletedEvent(versions));
     }
 }

@@ -24,11 +24,15 @@ class VersionsStore {
         }
         this.schemaId = id;
         if (!id) {
-            this.versions = [];
-            this.currentVersion = null;
+            this.setVersions(null);
         } else {
             this.fetchSchemas();
         }
+    }
+
+    setVersions(versions: Version[] | null) {
+        this.versions = versions ?? [];
+        this.currentVersion = versions?.find(v => v.isWorkingCopy) ?? null;
     }
 
     async saveVersion(tag: string) {
@@ -40,15 +44,20 @@ class VersionsStore {
         this.isLoading = false;
     }
 
+    async deleteVersion(version: Version) {
+        console.log('Deleting version: ', version)
+        this.isLoading = true;
+        schemaSocketService.deleteVersion(version);
+        this.isLoading = false;
+    }
+
     private async fetchSchemas() {
         if (!this.schemaId) {
             return;
         }
         this.isLoading = true;
-        const fromApi = await versionsApi.loadVersions(this.schemaId);
-        this.versions = fromApi;
-        console.log('Fetched versions: ', fromApi);
-        this.currentVersion = this.versions.find(v => v.isWorkingCopy) ?? null;
+        this.setVersions(await versionsApi.loadVersions(this.schemaId));
+        
         this.isLoading = false;
     }
 }

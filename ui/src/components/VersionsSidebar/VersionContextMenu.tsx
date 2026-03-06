@@ -40,7 +40,6 @@ export const VersionContextMenu = observer(() => {
 
     const onView = () => console.log('View:', version.versionId);
     const onRollback = () => console.log('Rollback:', version.versionId);
-    const onDelete = () => console.log('Delete:', version.versionId);
     const onGenerate = (format: string) => console.log(`Generate ${format}:`, version.versionId);
     const onDiff = (format: string) => console.log(`Diff ${format}:`, version.versionId);
 
@@ -95,7 +94,7 @@ export const VersionContextMenu = observer(() => {
 
             <div className="menu-divider" />
 
-            <div className="menu-item item-danger" onClick={() => handleAction(onDelete)}>
+            <div className="menu-item item-danger" onClick={() => versionsStore.deleteVersion(version)}>
                 Удалить версию
             </div>
         </div>,

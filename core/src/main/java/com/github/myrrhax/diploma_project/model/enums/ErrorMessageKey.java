@@ -23,7 +23,9 @@ public enum ErrorMessageKey {
     REFERENCE_NOT_FOUND("error.reference.notfound"),
     REFERENCE_DUPLICATE_REF_PART("error.reference.duplicate-ref-part"),
     VERSION_DUPLICATE("error.versions.duplicate"),
-    VERSION_TAG_DUPLICATE("error.versions.tag.duplicate");
+    VERSION_TAG_DUPLICATE("error.versions.tag.duplicate"),
+    VERSION_NOT_FOUND("error.version.notfound"),
+    VERSION_CANT_DELETE_WORKING_COPY("error.version.cant-delete-working-copy"),;
 
     private final String key;
 

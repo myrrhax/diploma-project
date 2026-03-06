@@ -6,10 +6,13 @@ import com.github.myrrhax.diploma_project.model.enums.EventType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.List;
+
 @AllArgsConstructor
 @Getter
 public abstract sealed class SchemaChangedEvent<T> permits SchemaChangedEvent.CommandEvent,
-                                                            SchemaChangedEvent.SchemaNewVersionEvent {
+                                                            SchemaChangedEvent.SchemaNewVersionEvent,
+                                                            SchemaChangedEvent.SchemaVersionDeletedEvent {
     private final EventType eventType;
     private final T type;
 
@@ -19,7 +22,11 @@ public abstract sealed class SchemaChangedEvent<T> permits SchemaChangedEvent.Co
         }
     }
 
-    public static final class SchemaNewVersionEvent extends SchemaChangedEvent<VersionDTO> {
-        public SchemaNewVersionEvent(VersionDTO payload) { super(EventType.SCHEMA_NEW_VERSION, payload); }
+    public static final class SchemaNewVersionEvent extends SchemaChangedEvent<List<VersionDTO>> {
+        public SchemaNewVersionEvent(List<VersionDTO> payload) { super(EventType.SCHEMA_NEW_VERSION, payload); }
+    }
+
+    public static final class SchemaVersionDeletedEvent extends SchemaChangedEvent<List<VersionDTO>> {
+        public SchemaVersionDeletedEvent(List<VersionDTO> payload) { super(EventType.SCHEMA_VERSION_DELETED, payload); }
     }
 }

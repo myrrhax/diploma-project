@@ -9,6 +9,7 @@ import type { MetadataCommand } from "@/model/SchemaCommands";
 import type ErrorResponse from "@/model/ErrorResponse";
 import { errorsStore } from "@/store/ErrorsStore";
 import { versionsStore } from "@/store/VersionsStore";
+import type { Version } from "@/model/SchemaTypes";
 
 const WS_ENDPOINT = 'http://localhost:8000/ws';
 
@@ -120,6 +121,16 @@ class SchemaSocketService {
         });
     }
 
+    deleteVersion(version: Version) {
+        if (!this.client || !this.client.connected) return;
+
+        const destination = '/app/schema/' + version.schemeId + '/deleteVersion';
+        this.client.publish({
+            destination: destination,
+            body: JSON.stringify({ versionId: version.versionId })
+        })
+    }
+
     private executeSubscription(schemaId: string) {
         if (!this.client || !this.client.connected) return;
         
@@ -131,9 +142,9 @@ class SchemaSocketService {
                 console.log('Received: ', body);
                 if (body.eventType === 'SCHEMA_UPDATE') {
                     this.handleDifference(body);
-                } else if (body.eventType === 'SCHEMA_NEW_VERSION') {
-                    versionsStore.addVersion(body.type);
-                }                
+                } else if (body.eventType === 'SCHEMA_NEW_VERSION' || body.eventType === 'SCHEMA_VERSION_DELETED') {
+                    versionsStore.setVersions(body.type);
+                }         
             }
         });
 
