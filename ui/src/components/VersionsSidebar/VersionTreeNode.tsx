@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, version } from 'react';
 import { toVersionDateFormat } from '@/utils/UtilFunctions';
 import type { TreeNode } from '@/utils/Tree';
 import type { Version } from '@/model/SchemaTypes';
+import { contextMenuStore } from '@/store/VersionContextMenuStore';
 import './css/VersionTreeNode.css';
 
 interface VersionTreeNodeProps {
@@ -22,6 +23,15 @@ export const VersionTreeNode = ({ node, level }: VersionTreeNodeProps) => {
         }
     };
 
+    const handleContextMenu = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (node.value.isWorkingCopy) {
+            return;
+        }
+        contextMenuStore.open(e.clientX, e.clientY, node.value);
+    };
+
     const v = node.value;
 
     return (
@@ -29,6 +39,7 @@ export const VersionTreeNode = ({ node, level }: VersionTreeNodeProps) => {
             <div 
                 className={`tree-version-item ${v.isWorkingCopy ? 'tree-version-working' : ''} ${v.isInitial ? 'tree-version-initial' : ''}`}
                 style={{ paddingLeft: `${10 + level * 20}px` }}
+                onContextMenu={handleContextMenu}
             >
                 <div className="tree-toggle-wrapper">
                     {hasChildren ? (

@@ -2,9 +2,11 @@ import { useState, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { versionsStore } from '@/store/VersionsStore';
 import { toVersionDateFormat } from '@/utils/UtilFunctions';
-import { VersionTreeNode } from './VersionTreeNode'; // Импортируем новый компонент
+import { VersionTreeNode } from './VersionTreeNode';
 import type { TreeNode } from '@/utils/Tree';
 import type { Version } from '@/model/SchemaTypes';
+import { contextMenuStore } from '@/store/VersionContextMenuStore';
+import { VersionContextMenu } from './VersionContextMenu';
 import './css/VersionSidebar.css';
 
 interface VersionsSidebarProps {
@@ -96,6 +98,13 @@ export const VersionsSidebar = observer(({isOpen, changeVisibleCallback}: Versio
         return { roots };
     }, [mode, versions]);
 
+	const handleListContextMenu = (e: React.MouseEvent, version: Version) => {
+        e.preventDefault();
+		if (version.isWorkingCopy) 
+			return;
+        contextMenuStore.open(e.clientX, e.clientY, version);
+    };
+
     return (
         <aside className={`versions-sidebar ${isOpen ? 'open' : ''}`}>
             <div className="sidebar-toggle" onClick={() => changeVisibleCallback(!isOpen)}>
@@ -119,6 +128,7 @@ export const VersionsSidebar = observer(({isOpen, changeVisibleCallback}: Versio
                             <div 
                                 key={v.versionId} 
                                 className={`list-version-item ${v.isWorkingCopy ? 'list-version-working' : ''} ${v.isInitial ? 'list-version-initial' : ''}`}
+								onContextMenu={(e) => handleListContextMenu(e, v)}
                             >
                                 <span className="list-version-name">{v.tag ?? 'Рабочая версия'}</span>
                                 {v.versionedAt && (
@@ -133,6 +143,8 @@ export const VersionsSidebar = observer(({isOpen, changeVisibleCallback}: Versio
                     )}
                 </div>
             </div>
+
+			<VersionContextMenu />
         </aside>
     )
 });

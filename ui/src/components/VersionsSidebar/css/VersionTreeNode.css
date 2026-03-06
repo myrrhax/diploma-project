@@ -16,17 +16,15 @@
   background-color: var(--bg-color, #f5f5f5);
 }
 
-/* Индикатор рабочей копии */
 .tree-version-working {
   border-left: 3px solid blue;
-  background-color: rgba(173, 255, 47, 0.1); /* Слегка зеленоватый фон */
+  background-color: rgba(173, 255, 47, 0.1);
 }
 
 .tree-version-working:hover {
   background-color: rgba(173, 255, 47, 0.3);
 }
 
-/* Кнопки +/- */
 .tree-toggle-wrapper {
   width: 24px;
   display: flex;
@@ -69,7 +67,6 @@
   display: inline-block;
 }
 
-/* Текстовая информация */
 .tree-version-info {
   display: flex;
   flex-direction: column;
