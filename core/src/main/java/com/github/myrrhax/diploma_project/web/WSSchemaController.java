@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.web;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.event.SchemaChangedEvent;
 import com.github.myrrhax.diploma_project.model.dto.SaveVersionDto;
@@ -8,6 +9,7 @@ import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.AuthorityCheckService;
 import com.github.myrrhax.diploma_project.service.SchemaService;
 import com.github.myrrhax.diploma_project.service.VersionService;
+import com.github.myrrhax.diploma_project.util.ViewMarkers;
 import com.github.myrrhax.shared.model.AuthorityType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +51,7 @@ public class WSSchemaController {
     }
 
     @MessageMapping("/schema/{id}/saveVersion")
+    @JsonView(ViewMarkers.Stateful.class)
     public void saveVersion(@DestinationVariable("id") UUID schemaId,
                             @Payload @Valid SaveVersionDto dto,
                             Authentication authentication) {
