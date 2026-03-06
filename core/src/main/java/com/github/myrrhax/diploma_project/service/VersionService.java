@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,15 +79,14 @@ public class VersionService {
         return versionMapper.toVersionDTO(newVersion);
     }
 
-    // ToDo добавить кэширование
     @Cacheable(value = "versionById", key = "#id")
     @Transactional(readOnly = true)
-    public Optional<VersionDTO> findById(long id) {
+    public VersionDTO findById(long id) {
         return versionRepository.findById(id)
-                .map(versionMapper::toVersionDTO);
+                .map(versionMapper::toVersionDTO)
+                .orElseThrow(() -> new ApplicationException("Version is not found", HttpStatus.NOT_FOUND));
     }
 
-    // ToDo добавить кэширование
     @Cacheable(value = "versions", key = "#schemaId")
     @Transactional(readOnly = true)
     public List<VersionDTO> findAll(UUID schemaId) {
