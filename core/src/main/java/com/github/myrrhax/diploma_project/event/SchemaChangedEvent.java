@@ -12,9 +12,10 @@ import java.util.List;
 @Getter
 public abstract sealed class SchemaChangedEvent<T> permits SchemaChangedEvent.CommandEvent,
                                                             SchemaChangedEvent.SchemaNewVersionEvent,
-                                                            SchemaChangedEvent.SchemaVersionDeletedEvent {
+                                                            SchemaChangedEvent.SchemaVersionDeletedEvent,
+                                                            SchemaChangedEvent.HeadChangedEvent {
     private final EventType eventType;
-    private final T type;
+    private final T payload;
 
     public static final class CommandEvent extends SchemaChangedEvent<MetadataCommandProcessResult> {
         public CommandEvent(MetadataCommandProcessResult payload) {
@@ -28,5 +29,9 @@ public abstract sealed class SchemaChangedEvent<T> permits SchemaChangedEvent.Co
 
     public static final class SchemaVersionDeletedEvent extends SchemaChangedEvent<List<VersionDTO>> {
         public SchemaVersionDeletedEvent(List<VersionDTO> payload) { super(EventType.SCHEMA_VERSION_DELETED, payload); }
+    }
+
+    public static final class HeadChangedEvent extends SchemaChangedEvent<VersionDTO> {
+        public HeadChangedEvent(VersionDTO payload) { super(EventType.SCHEMA_HEAD_CHANGED,payload); }
     }
 }

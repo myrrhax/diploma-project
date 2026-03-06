@@ -2,6 +2,7 @@ import { schemaSocketService } from "@/api/SchemaSocketService";
 import { versionsApi } from "@/api/VersionsApiService";
 import type { Version } from "@/model/SchemaTypes";
 import { makeAutoObservable } from "mobx";
+import { erStore } from "./ERStore";
 
 class VersionsStore {
     isLoading: boolean = false;
@@ -48,6 +49,16 @@ class VersionsStore {
         console.log('Deleting version: ', version)
         this.isLoading = true;
         schemaSocketService.deleteVersion(version);
+        this.isLoading = false;
+    }
+
+    changeHead(toVersion: Version) {
+        if (!this.currentVersion) {
+            console.error('No current version');
+            return;
+        }
+        this.isLoading = true;
+        schemaSocketService.changeHead(this.currentVersion, toVersion);
         this.isLoading = false;
     }
 

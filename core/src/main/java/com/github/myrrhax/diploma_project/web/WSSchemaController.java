@@ -3,6 +3,7 @@ package com.github.myrrhax.diploma_project.web;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.event.SchemaChangedEvent;
+import com.github.myrrhax.diploma_project.model.dto.ChangeHeadVersionDto;
 import com.github.myrrhax.diploma_project.model.dto.DeleteVersionDto;
 import com.github.myrrhax.diploma_project.model.dto.SaveVersionDto;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
@@ -82,5 +83,21 @@ public class WSSchemaController {
 
         messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
                 new SchemaChangedEvent.SchemaVersionDeletedEvent(versions));
+    }
+
+    @MessageMapping("/schema/{id}/changeHead")
+    @JsonView(ViewMarkers.Stateful.class)
+    public void changeHead(@DestinationVariable("id") UUID schemaId,
+                              @Payload @Valid ChangeHeadVersionDto dto,
+                              Authentication authentication) {
+        TokenUser tokenUser = (TokenUser) authentication.getPrincipal();
+        if (tokenUser == null || !checkService.hasAuthority(
+                tokenUser.getToken().userId(), schemaId, AuthorityType.CHANGE_HEAD.name())) {
+            throw new AccessDeniedException("User can't delete version");
+        }
+        VersionDTO updatedVersion = versionService.changeHead(schemaId, dto.currentVersionId(), dto.toVersionId());
+
+        messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
+                new SchemaChangedEvent.HeadChangedEvent(updatedVersion));
     }
 }

@@ -85,9 +85,7 @@ public class VersionService {
     @Cacheable(value = "versionById", key = "#id")
     @Transactional(readOnly = true)
     public VersionDTO findById(long id) {
-        return versionRepository.findById(id)
-                .map(versionMapper::toVersionDTO)
-                .orElseThrow(() -> new ApplicationException(ErrorMessageKey.VERSION_NOT_FOUND.getKey()));
+        return versionMapper.toVersionDTO(findVersion(id));
     }
 
     @Cacheable(value = "versions", key = "#schemaId")
@@ -108,8 +106,7 @@ public class VersionService {
         log.info("Deleting version by id: {} for schema {}", id, schemaId);
         // acquire lock
         schemeRepository.findByIdLocking(schemaId);
-        VersionEntity version = versionRepository.findById(id)
-                .orElseThrow(() -> new ApplicationException(ErrorMessageKey.VERSION_NOT_FOUND.getKey()));
+        VersionEntity version = findVersion(id);
 
         if (version.getIsWorkingCopy()) {
             throw new ApplicationException(ErrorMessageKey.VERSION_CANT_DELETE_WORKING_COPY.getKey());
@@ -123,5 +120,36 @@ public class VersionService {
         versionRepository.deleteById(id);
 
         return findAll(schemaId);
+    }
+
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "versions", key = "#schemaId"),
+            @CacheEvict(value = "versionById", key = "#id")
+    })
+    public VersionDTO changeHead(UUID schemaId, Long id, Long toVersion) {
+        log.info("Changing head of version {} to {} for schema {}", id, toVersion, schemaId);
+        // acquire lock
+        schemeRepository.findByIdLocking(schemaId);
+        VersionEntity version = findVersion(id);
+
+        if (!version.getIsWorkingCopy()) {
+            throw new ApplicationException(ErrorMessageKey.VERSION_CANT_CHANGE_HEAD_ON_NON_WORKING_COPY.getKey());
+        }
+
+        VersionEntity newParent = findVersion(toVersion);
+        version.setParent(newParent);
+        version.setSchema(newParent.getSchema());
+        version.setParentId(newParent.getId());
+
+        log.info("Updating version {}", version.getId());
+        versionRepository.save(version);
+
+        return versionMapper.toVersionDTO(version);
+    }
+
+    private VersionEntity findVersion(Long id) {
+        return versionRepository.findById(id)
+                .orElseThrow(() -> new ApplicationException(ErrorMessageKey.VERSION_NOT_FOUND.getKey()));
     }
 }

@@ -131,6 +131,16 @@ class SchemaSocketService {
         })
     }
 
+    changeHead(fromVersion: Version, toVersion: Version) {
+        if (!this.client || !this.client.connected) return;
+
+        const destination = '/app/schema/' + fromVersion.schemeId + '/changeHead';
+        this.client.publish({
+            destination: destination,
+            body: JSON.stringify({ currentVersionId: fromVersion.versionId, toVersionId: toVersion.versionId })
+        })
+    }
+
     private executeSubscription(schemaId: string) {
         if (!this.client || !this.client.connected) return;
         
@@ -141,10 +151,16 @@ class SchemaSocketService {
                 const body = JSON.parse(msg.body) as SchemaChangedEvent<any>;
                 console.log('Received: ', body);
                 if (body.eventType === 'SCHEMA_UPDATE') {
-                    this.handleDifference(body);
+                    this.handleDifference(body.payload);
                 } else if (body.eventType === 'SCHEMA_NEW_VERSION' || body.eventType === 'SCHEMA_VERSION_DELETED') {
-                    versionsStore.setVersions(body.type);
-                }         
+                    versionsStore.setVersions(body.payload);
+                } else if (body.eventType === 'SCHEMA_HEAD_CHANGED') {
+                    const version = body.payload;
+                    console.log('Updating head: ', version);
+                    versionsStore.versions = [...versionsStore.versions.filter(v => v.versionId !== version.versionId), version];
+                    versionsStore.currentVersion = version;
+                    erStore.state = version.currentState;
+                }     
             }
         });
 
@@ -176,7 +192,7 @@ class SchemaSocketService {
                 if (erStore.state == null) {
                     return;
                 }
-                erStore.process(event.type);
+                erStore.process(event.payload);
             }
         });
     }

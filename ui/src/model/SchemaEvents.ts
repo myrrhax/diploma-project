@@ -4,11 +4,12 @@ import type { Version } from "./SchemaTypes";
 export type EventType = 'SCHEMA_UPDATE' 
     | 'USER_CONNECTED' 
     | 'SCHEMA_NEW_VERSION' 
-    | 'SCHEMA_VERSION_DELETED';
+    | 'SCHEMA_VERSION_DELETED'
+    | 'SCHEMA_HEAD_CHANGED';
 
 export interface SchemaChangedEvent<T> {
     eventType: EventType;
-    type: T;
+    payload: T;
 }
 
 export interface CommandEvent extends SchemaChangedEvent<MetadataCommandProcessResult> {
@@ -21,6 +22,10 @@ export interface NewVersionEvent extends SchemaChangedEvent<Version[]> {
 
 export interface VersionDeletedEvent extends SchemaChangedEvent<Version[]> {
     eventType: 'SCHEMA_VERSION_DELETED';
+}
+
+export interface HeadChangedEvent extends SchemaChangedEvent<Version> {
+    eventType: 'SCHEMA_HEAD_CHANGED';
 }
 
 export interface MetadataCommandProcessResult {

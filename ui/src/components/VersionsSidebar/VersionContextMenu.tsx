@@ -4,6 +4,7 @@ import { contextMenuStore } from '@/store/VersionContextMenuStore';
 import { versionsStore } from '@/store/VersionsStore'; 
 import { createPortal } from 'react-dom';
 import './css/VersionContextMenu.css';
+import type { Version } from '@/model/SchemaTypes';
 
 export const VersionContextMenu = observer(() => {
     const { isOpen, position, version } = contextMenuStore;
@@ -39,7 +40,7 @@ export const VersionContextMenu = observer(() => {
     };
 
     const onView = () => console.log('View:', version.versionId);
-    const onRollback = () => console.log('Rollback:', version.versionId);
+    const onRollback = () => versionsStore.changeHead(version);
     const onGenerate = (format: string) => console.log(`Generate ${format}:`, version.versionId);
     const onDiff = (format: string) => console.log(`Diff ${format}:`, version.versionId);
     const onDelete = () => versionsStore.deleteVersion(version);
@@ -55,7 +56,7 @@ export const VersionContextMenu = observer(() => {
                 Просмотреть версию
             </div>
             <div className="menu-item" onClick={() => handleAction(onRollback)}>
-                Откатиться К
+                Перейти к версии
             </div>
             
             <div className="menu-divider" />

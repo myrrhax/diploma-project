@@ -6,5 +6,6 @@ public enum AuthorityType {
     SNAPSHOT_VERSION,
     DELETE_VERSIONS,
     INVITE_USERS,
+    CHANGE_HEAD,
     ALL                 // Max
 }
