@@ -16,6 +16,7 @@ class SchemaApiService extends AbstractApiService {
             });
 
             if (response.status === 200) {
+                console.log('Fetched: ', response.data)
                 schemaStore.setSchemas(response.data);
             }
 

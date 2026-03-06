@@ -26,7 +26,7 @@ public class VersionController {
 
     @GetMapping("/schema/{id}")
     @JsonView(ViewMarkers.Basic.class)
-    @PreAuthorize("@authorityCheckService.hasAccess(#tokenUser.token.userId, #id)")
+    @PreAuthorize("@authorityCheckService.hasAccess(#tokenUser.token.userId, #schemaId)")
     public List<VersionDTO> getAll(@PathVariable("id") UUID schemaId,
                                                    @AuthenticationPrincipal TokenUser tokenUser) {
         return versionService.findAll(schemaId);
@@ -34,7 +34,6 @@ public class VersionController {
 
     @GetMapping("/{id}")
     @JsonView(ViewMarkers.Stateful.class)
-    @PreAuthorize("@authorityCheckService.hasAccess(#tokenUser.token.userId, #id)")
     public VersionDTO getById(@PathVariable("id") Long id,
                                @AuthenticationPrincipal TokenUser tokenUser) {
         return versionService.findById(id);

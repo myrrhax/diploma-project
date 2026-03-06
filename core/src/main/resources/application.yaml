@@ -52,5 +52,9 @@ app:
       versionById:
         ttl: 15m
 
+  jackson:
+    mapper:
+      default-view-inclusion: true
+
 server:
   port: 8000

@@ -8,11 +8,7 @@ import { ERDiagram } from '@/components/er/ERDiagram';
 import './css/SchemaEditorPage.css';
 import { schemaSocketService } from '@/api/SchemaSocketService';
 import { ErrorToasts } from '@/components/ErrorToast/ErrorToast';
-
-const FAKE_VERSIONS = [
-    { id: 1, name: 'v1.0 - Initial', date: '12.02.2026' },
-    { id: 2, name: 'v1.1 - Added Logic', date: '13.02.2026' },
-];
+import { versionsStore } from '@/store/VersionsStore';
 
 const FAKE_USERS = [
     { id: '1', email: 'admin@test.com', isConfirmed: true },
@@ -24,6 +20,8 @@ export const SchemaEditorPage = observer(() => {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [isUsersOpen, setUsersOpen] = useState(true);
     const { schema, state, isLoading } = erStore;
+
+    if (!id) return;
 
     useEffect(() => {
         if (!id) return;
@@ -44,6 +42,16 @@ export const SchemaEditorPage = observer(() => {
             erStore.setSchema(null);
         };
     }, [id]);
+
+    const toggleSidebar = async () => {
+        if (!id)
+            return;
+        const toggle = !isSidebarOpen;
+        setSidebarOpen(toggle);
+        if (toggle) {
+            await versionsStore.setSchema(id);
+        }
+    }
     
     return (
         <div className="schema_page__container">
@@ -56,7 +64,7 @@ export const SchemaEditorPage = observer(() => {
                         <div className="header_left">
                             <button 
                                 className="btn_sidebar_toggle" 
-                                onClick={() => setSidebarOpen(!isSidebarOpen)}
+                                onClick={() => toggleSidebar()}
                             >
                                 ☰
                             </button>
@@ -76,8 +84,7 @@ export const SchemaEditorPage = observer(() => {
                     <div className="schema_page__workspace">
                         <VersionsSidebar 
                             isOpen={isSidebarOpen} 
-                            versions={FAKE_VERSIONS} 
-                            changeVisibleCallback={setSidebarOpen} 
+                            changeVisibleCallback={toggleSidebar} 
                         />
 
                         <main className="schema_canvas_area">

@@ -15,6 +15,7 @@ export interface Version {
     currentState: VersionState,
     isInitial: boolean,
     isWorkingCopy: boolean 
+    versionedAt: Date | null;
 };
 
 

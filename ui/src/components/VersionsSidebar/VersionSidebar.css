@@ -52,6 +52,8 @@
   border-bottom: 1px solid var(--border-color);
   cursor: pointer;
   transition: background-color 0.2s;
+  border-bottom-style: 1px solid black;
+  transition: background-color 0.4s;
 }
 
 .version-item:hover {
@@ -61,10 +63,14 @@
 .version-name {
   display: block;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .version-date {
   font-size: 12px;
   color: var(--text-secondary);
+}
+
+.version-working:hover {
+    background-color: greenyellow;
 }
