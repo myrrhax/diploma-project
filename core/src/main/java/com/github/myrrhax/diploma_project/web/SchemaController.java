@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.web;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.github.myrrhax.diploma_project.model.dto.CreateSchemeDTO;
 import com.github.myrrhax.diploma_project.model.dto.DiscardUserDTO;
 import com.github.myrrhax.diploma_project.model.dto.GrantUserDTO;
@@ -8,6 +9,7 @@ import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.AuthorityService;
 import com.github.myrrhax.diploma_project.service.SchemaService;
+import com.github.myrrhax.diploma_project.util.ViewMarkers;
 import com.github.myrrhax.shared.model.AuthorityType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -43,6 +45,7 @@ public class SchemaController {
     }
 
     @GetMapping
+    @JsonView(ViewMarkers.Basic.class)
     public ResponseEntity<List<SchemeDTO>> findSchemas(@RequestParam(value = "takeParticipation", defaultValue = "true") boolean takeParticipation,
                                                        @RequestParam(value = "query", required = false) String query,
                                                        @AuthenticationPrincipal TokenUser tokenUser) {
@@ -55,6 +58,7 @@ public class SchemaController {
 
     @GetMapping("/{id}")
     @PreAuthorize("@authorityCheckService.hasAccess(#tokenUser.token.userId, #id)")
+    @JsonView(ViewMarkers.Stateful.class)
     public ResponseEntity<SchemeDTO> getScheme(@PathVariable UUID id,
                                                @AuthenticationPrincipal TokenUser tokenUser) {
         return ResponseEntity
@@ -71,6 +75,7 @@ public class SchemaController {
                 .build();
     }
 
+    // ToDo вынести в отдельный контроллер
     @PostMapping("/grant")
     @PreAuthorize("@authorityCheckService.hasAuthority(#tokenUser.token.userId, #dto.schemeId, 'ALL')")
     public ResponseEntity<Void> grantUser(@RequestBody GrantUserDTO dto,

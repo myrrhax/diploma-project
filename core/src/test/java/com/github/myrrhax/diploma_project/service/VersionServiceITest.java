@@ -6,20 +6,26 @@ import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
+import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
 import com.github.myrrhax.diploma_project.model.enums.JwtAuthority;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
+import com.github.myrrhax.diploma_project.repository.VersionRepository;
 import com.github.myrrhax.diploma_project.security.TokenFactory;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class VersionServiceITest extends AbstractIntegrationTest {
     public static final String SCHEMA_NAME = "DEFAULT_SCHEMA";
@@ -29,6 +35,7 @@ public class VersionServiceITest extends AbstractIntegrationTest {
     public static final String DESCRIPTION_COL_1 = "description_col1";
     public static final String TABLE_2_NAME = "table2";
     public static final String DESCRIPTION_TABLE_2 = "description_table2";
+    public static final String TAG_V_1 = "TAG_V1";
 
     @Autowired
     private UserRepository userRepository;
@@ -40,6 +47,11 @@ public class VersionServiceITest extends AbstractIntegrationTest {
     private SchemeRepository schemeRepository;
     @Autowired
     private JsonSchemaStateMapper jsonSchemaStateMapper;
+    @Autowired
+    private VersionRepository versionRepository;
+
+    @Autowired
+    private VersionService serviceUnderTest;
 
     private TokenUser tokenUser;
     private UUID uuid;
@@ -116,9 +128,33 @@ public class VersionServiceITest extends AbstractIntegrationTest {
         return state;
     }
 
-    private VersionEntity getCurrentVersion() {
+    public VersionEntity getCurrentVersion() {
         return schemeRepository.findById(uuid).orElseThrow()
                 .getCurrentVersion();
+    }
+
+    @Test
+    @DisplayName("Save version test")
+    public void givenSchema_whenSave_thenNewVersionWasGeneratedAndOldHasHashSum() {
+        // given
+        VersionEntity version = getCurrentVersion();
+        long versionId = version.getId();
+
+        // when
+        serviceUnderTest.saveVersion(uuid, TAG_V_1);
+        // then
+        VersionEntity afterSave = getCurrentVersion();
+        long afterSaveId = afterSave.getId();
+        VersionEntity oldVersion = versionRepository.findById(versionId).orElseThrow();
+
+        SchemeEntity scheme = schemeRepository.findById(uuid).orElseThrow();
+
+        assertThat(versionId).isNotEqualTo(afterSaveId);
+        assertThat(oldVersion.getIsWorkingCopy()).isFalse();
+        assertThat(oldVersion.getHashSum()).isNotBlank();
+
+        assertThat(afterSave.getIsWorkingCopy()).isTrue();
+        assertThat(scheme.getCurrentVersion().getId()).isEqualTo(afterSaveId);
     }
 
 }

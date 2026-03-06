@@ -73,4 +73,10 @@ public class VersionService {
 
         return versionMapper.toVersionDTO(newVersion);
     }
+
+    @Transactional
+    public Optional<VersionDTO> findById(long id) {
+        return versionRepository.findById(id)
+                .map(versionMapper::toVersionDTO);
+    }
 }
