@@ -1,4 +1,4 @@
-import { useState, version } from 'react';
+import { useState, useEffect } from 'react';
 import { toVersionDateFormat } from '@/utils/UtilFunctions';
 import type { TreeNode } from '@/utils/Tree';
 import type { Version } from '@/model/SchemaTypes';
@@ -22,6 +22,12 @@ export const VersionTreeNode = ({ node, level }: VersionTreeNodeProps) => {
             setIsExpanded(!isExpanded);
         }
     };
+
+    useEffect(() => {
+        if (isForcedOpen || node.visible) {
+            setIsExpanded(true);
+        }
+    }, [isForcedOpen, node.visible]);
 
     const handleContextMenu = (e: React.MouseEvent) => {
         e.preventDefault();

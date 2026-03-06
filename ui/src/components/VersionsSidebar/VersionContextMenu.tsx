@@ -42,6 +42,7 @@ export const VersionContextMenu = observer(() => {
     const onRollback = () => console.log('Rollback:', version.versionId);
     const onGenerate = (format: string) => console.log(`Generate ${format}:`, version.versionId);
     const onDiff = (format: string) => console.log(`Diff ${format}:`, version.versionId);
+    const onDelete = () => versionsStore.deleteVersion(version);
 
     return createPortal(
         <div 
@@ -94,7 +95,7 @@ export const VersionContextMenu = observer(() => {
 
             <div className="menu-divider" />
 
-            <div className="menu-item item-danger" onClick={() => versionsStore.deleteVersion(version)}>
+            <div className="menu-item item-danger" onClick={() => handleAction(onDelete)}>
                 Удалить версию
             </div>
         </div>,

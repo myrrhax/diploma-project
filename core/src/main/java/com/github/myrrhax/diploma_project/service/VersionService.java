@@ -71,10 +71,11 @@ public class VersionService {
                 .isWorkingCopy(true)
                 .parent(currentVersion)
                 .build();
-        versionRepository.save(newVersion);
+        VersionEntity savedVersion = versionRepository.save(newVersion);
+        savedVersion.setParentId(currentVersion.getId());
         log.info("New version was created for schema with id: {}", schemaId);
 
-        schema.setCurrentVersion(newVersion);
+        schema.setCurrentVersion(savedVersion);
         schemeRepository.save(schema);
         log.info("New version was set to schema with id: {}", schemaId);
 

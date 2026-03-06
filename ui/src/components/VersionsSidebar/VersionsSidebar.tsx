@@ -18,7 +18,7 @@ type DISPLAY_MODE = 'tree' | 'list';
 
 export const VersionsSidebar = observer(({isOpen, changeVisibleCallback}: VersionsSidebarProps) => {
     const { isLoading, versions } = versionsStore;
-    const [mode, setMode] = useState<DISPLAY_MODE>('tree');
+    const [mode, setMode] = useState<DISPLAY_MODE>('list');
 
     const sortedVersions = useMemo(() => {
         if (mode !== 'list' || !versions || versions.length === 0)  {
