@@ -33,9 +33,9 @@ public class VersionController {
     }
 
     @GetMapping("/{id}")
-    @JsonView(ViewMarkers.Basic.class)
+    @JsonView(ViewMarkers.Stateful.class)
     @PreAuthorize("@authorityCheckService.hasAccess(#tokenUser.token.userId, #id)")
-    public VersionDTO getAll(@PathVariable("id") Long id,
+    public VersionDTO getById(@PathVariable("id") Long id,
                                @AuthenticationPrincipal TokenUser tokenUser) {
         return versionService.findById(id);
     }
