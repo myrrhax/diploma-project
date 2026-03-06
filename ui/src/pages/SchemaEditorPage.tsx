@@ -97,6 +97,7 @@ export const SchemaEditorPage = observer(() => {
                     <div className="schema_page__workspace">
                         <VersionsSidebar 
                             isOpen={isSidebarOpen} 
+                            
                             changeVisibleCallback={toggleSidebar} 
                         />
 

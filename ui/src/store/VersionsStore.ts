@@ -45,7 +45,9 @@ class VersionsStore {
             return;
         }
         this.isLoading = true;
-        this.versions = await versionsApi.loadVersions(this.schemaId);
+        const fromApi = await versionsApi.loadVersions(this.schemaId);
+        this.versions = fromApi;
+        console.log('Fetched versions: ', fromApi);
         this.currentVersion = this.versions.find(v => v.isWorkingCopy) ?? null;
         this.isLoading = false;
     }

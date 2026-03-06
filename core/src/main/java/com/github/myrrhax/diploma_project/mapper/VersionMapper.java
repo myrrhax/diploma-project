@@ -11,8 +11,8 @@ import org.mapstruct.Mapping;
 public interface VersionMapper {
     @Mapping(target = "versionId", source = "entity.id")
     @Mapping(target = "schemeId", source = "entity.scheme.id")
-    @Mapping(target = "isInitial", source = "entity.isInitial")
-    @Mapping(target = "isWorkingCopy", source = "entity.isWorkingCopy")
+    @Mapping(target = "initial", source = "entity.isInitial")
+    @Mapping(target = "workingCopy", source = "entity.isWorkingCopy")
     @Mapping(target = "currentState", source = "entity.schema", qualifiedByName = "toMetadata")
     VersionDTO toVersionDTO(VersionEntity entity);
 }

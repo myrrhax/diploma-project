@@ -1,0 +1,114 @@
+.versions-sidebar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 380px; /* Увеличенная ширина */
+  background: var(--card-bg, #ffffff);
+  border-right: 1px solid var(--border-color, #ccc);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 20;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.versions-sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar-toggle {
+  position: absolute;
+  right: -24px;
+  top: 20px;
+  width: 24px;
+  height: 40px;
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #ccc);
+  border-left: none;
+  border-radius: 0 4px 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary, #666);
+  box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+}
+
+.sidebar-content {
+  padding: 20px 0; /* Убрал боковые паддинги, чтобы элементы прилегали к краям */
+  overflow-y: auto;
+  height: 100%;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px 16px 20px;
+  border-bottom: 1px solid var(--border-color, #ccc);
+  margin-bottom: 10px;
+}
+
+.sidebar-header h3 {
+  font-size: 16px;
+  margin: 0;
+  color: var(--text-main, #333);
+}
+
+.mode-switchers button {
+  background: none;
+  border: 1px solid var(--border-color, #ccc);
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.mode-switchers button:first-child {
+  border-radius: 4px 0 0 4px;
+  border-right: none;
+}
+
+.mode-switchers button:last-child {
+  border-radius: 0 4px 4px 0;
+}
+
+.mode-switchers button.active {
+  background: #eee;
+  font-weight: bold;
+}
+
+.loading-state {
+  padding: 0 20px;
+}
+
+.list-version-item {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border-color, #ccc);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.list-version-item:hover {
+  background-color: var(--bg-color, #f5f5f5);
+}
+
+.list-version-name {
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.list-version-date {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+}
+
+.list-version-working {
+  border-left: 3px solid blue;
+  margin-left: 25px;
+}
+
+.list-version-working:hover {
+  background-color: rgba(173, 255, 47, 0.3);
+}

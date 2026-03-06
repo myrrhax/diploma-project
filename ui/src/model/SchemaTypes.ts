@@ -16,6 +16,7 @@ export interface Version {
     isInitial: boolean,
     isWorkingCopy: boolean 
     versionedAt: Date | null;
+    parentId: number;
 };
 
 

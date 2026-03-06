@@ -42,7 +42,7 @@ public class VersionEntity extends BaseEntity {
     @JoinColumn(name = "scheme_id")
     SchemeEntity scheme;
 
-    @Column(name = "parent_id")
+    @Column(name = "parent_id", insertable = false, updatable = false)
     Long parentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
