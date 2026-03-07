@@ -151,7 +151,7 @@ class SchemaSocketService {
                 const body = JSON.parse(msg.body) as SchemaChangedEvent<any>;
                 console.log('Received: ', body);
                 if (body.eventType === 'SCHEMA_UPDATE') {
-                    this.handleDifference(body.payload);
+                    erStore.process(body.payload);
                 } else if (body.eventType === 'SCHEMA_NEW_VERSION' || body.eventType === 'SCHEMA_VERSION_DELETED') {
                     versionsStore.setVersions(body.payload);
                 } else if (body.eventType === 'SCHEMA_HEAD_CHANGED') {
@@ -184,17 +184,6 @@ class SchemaSocketService {
     private handleError(error: ErrorResponse) {
         console.log('Ошибка: ' + error.message);
         errorsStore.addError(error.message);
-    }
-
-    private handleDifference(event: SchemaChangedEvent<MetadataCommandProcessResult>) {
-        runInAction(() => {
-            if (event.eventType === 'SCHEMA_UPDATE') {
-                if (erStore.state == null) {
-                    return;
-                }
-                erStore.process(event.payload);
-            }
-        });
     }
 }
 

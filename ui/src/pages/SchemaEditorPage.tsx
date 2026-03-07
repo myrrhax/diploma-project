@@ -67,7 +67,9 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
     }
 
     const onSave = async (tag: string) => {
-        await versionsStore.saveVersion(tag);
+        if (schema) {
+            await versionsStore.saveVersion(schema.id, tag);
+        }
         setIsSaveModalOpen(false);
     }
     

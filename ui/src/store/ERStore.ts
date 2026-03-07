@@ -57,8 +57,10 @@ class ERStore {
     }
 
     async process(cmd: MetadataCommandProcessResult) {
+        console.log('State: ', this.state);
         if (!this.state) return;
 
+        console.log('Processing command: ', cmd);
         if (cmd.version <= this.state.cacheVersion) {
             return; 
         }
@@ -70,6 +72,8 @@ class ERStore {
 
         this.state.cacheVersion = cmd.version;
         const diff = cmd.difference;
+
+        console.log('Processing diff', diff);
         
         Object.entries(diff.deletedColumns || {}).forEach(([tableId, colIds]) => {
             const table = this.state?.tables[tableId];

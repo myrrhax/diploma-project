@@ -31,16 +31,14 @@ class VersionsStore {
     }
 
     setVersions(versions: Version[] | null) {
+        console.log('New versions: ', versions);
         this.versions = versions ?? [];
         this.currentVersion = versions?.find(v => v.isWorkingCopy) ?? null;
     }
 
-    async saveVersion(tag: string) {
-        if (!this.schemaId) {
-            return;
-        }
+    async saveVersion(schemaId: string, tag: string) {
         this.isLoading = true;
-        schemaSocketService.saveVersion(this.schemaId, tag);
+        schemaSocketService.saveVersion(schemaId, tag);
         this.isLoading = false;
     }
 
