@@ -42,6 +42,10 @@ const router = createBrowserRouter([
                     {
                         path: '/schema/edit/:id',
                         element: <SchemaEditorPage />
+                    },
+                    {
+                        path: '/schema/:id/version/:versionId',
+                        element: <SchemaEditorPage isReadonly={true} />
                     }
                 ]
             }

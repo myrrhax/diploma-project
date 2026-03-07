@@ -21,6 +21,14 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
     const tooltipText = col.description ? col.description : col.name;
     const isEditMenuOpen = erStore.activeMenuId === col.id;
 
+    const handleModification = (action: () => void) => {
+        if (!erStore.isEditable) {
+            alert("Вы работаете с версией в режиме чтения. Изменения запрещены.");
+            return;
+        }
+        action();
+    };
+
     return (
         <div 
             key={col.id} 
@@ -30,22 +38,24 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
                 e.preventDefault();
                 e.stopPropagation();
 
-                const wrapper = e.currentTarget.closest('.er_diagram_wrapper');
-                const rect = wrapper?.getBoundingClientRect();
-                
-                if (rect) {
-                    columnModalsStore.openColumnContextMenu(
-                        e.clientX - rect.left, 
-                        e.clientY - rect.top, 
-                        table.id,
-                        col.id
-                    );
-                }
+                handleModification(() => {
+                    const wrapper = e.currentTarget.closest('.er_diagram_wrapper');
+                    const rect = wrapper?.getBoundingClientRect();
+                    
+                    if (rect) {
+                        columnModalsStore.openColumnContextMenu(
+                            e.clientX - rect.left, 
+                            e.clientY - rect.top, 
+                            table.id,
+                            col.id
+                        );
+                    }
+                });
             }}
         >
             <div 
                 className={`er_port port_left ${isTarget ? 'port_target_active' : ''}`}
-                onClick={(e) => referenceStore.handlePortClick('left', table.id, col.id, e.clientX, e.clientY)}
+                onClick={(e) => handleModification(() => referenceStore.handlePortClick('left', table.id, col.id, e.clientX, e.clientY))}
                 title="Input (Target)"
             >
                 {isTarget && <span className="port_badge badge_left">{tgtIdx + 1}</span>}
@@ -70,7 +80,7 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
             
             <div 
                 className={`er_port port_right ${isSource ? 'port_source_active' : ''}`}
-                onClick={(e) => referenceStore.handlePortClick('right', table.id, col.id, e.clientX, e.clientY)}
+                onClick={(e) => handleModification(() => referenceStore.handlePortClick('right', table.id, col.id, e.clientX, e.clientY))}
                 title="Output (Source)"
             >
                 {isSource && <span className="port_badge badge_right">{srcIdx + 1}</span>}

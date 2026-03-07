@@ -40,6 +40,16 @@ class SchemaApiService extends AbstractApiService {
         }
     }
 
+    async findReadonlyWithVersion(versionId: number): Promise<Schema> {
+        try {
+            const response = await $api.get<Schema>('/schema/readonly-version/' + versionId);
+            return response.data;
+        } catch (e: any) {
+            this.processApiError(e);
+            throw e;
+        }
+    }
+
     async createSchema(name: string): Promise<Schema | ErrorResponse> {
         try {
             const response = await $api.post<Schema | ErrorResponse>('/schema', {

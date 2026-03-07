@@ -106,4 +106,6 @@ public abstract class SchemaService {
     public abstract SchemeDTO getScheme(UUID schemeId);
 
     public abstract void deleteScheme(UUID schemeId);
+
+    public abstract SchemeDTO findReadonlyWithVersion(long id);
 }

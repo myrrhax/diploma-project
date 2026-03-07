@@ -16,25 +16,36 @@ const FAKE_USERS = [
     { id: '2', email: 'designer_1@test.com', isConfirmed: true },
 ];
 
-export const SchemaEditorPage = observer(() => {
-    const { id } = useParams<{ id: string }>();
+interface SchemaEditorPageProps {
+    isReadonly?: boolean
+}
+
+export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPageProps) => {
+    const { id, versionId } = useParams<{ id: string, versionId?: string }>();
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [isUsersOpen, setUsersOpen] = useState(true);
     const { schema, state, isLoading } = erStore;
 
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
-    if (!id) return;
+    const isEditable = !isReadonly && schema?.currentVersion?.isWorkingCopy === true;
+
+    if (!id) return null;
 
     useEffect(() => {
-        if (!id) return;
-
         let isMounted = true;
         const initEditor = async () => {
-            schemaSocketService.connect();
-            await erStore.loadSchema(id);
-            if (isMounted && !erStore.isAccessDenied && erStore.state) {
-                schemaSocketService.joinSchema(id);
+            if (isReadonly && versionId) {
+                const parsedVersionId = Number(versionId);
+                if (!isNaN(parsedVersionId)) {
+                    await erStore.loadSchemaWithVersion(parsedVersionId);
+                }
+            } else {
+                schemaSocketService.connect();
+                await erStore.loadSchema(id);
+                if (isMounted && !erStore.isAccessDenied && erStore.state) {
+                    schemaSocketService.joinSchema(id);
+                }
             }
         };
 
@@ -44,11 +55,10 @@ export const SchemaEditorPage = observer(() => {
             schemaSocketService.leaveSchema();
             erStore.setSchema(null);
         };
-    }, [id]);
+    }, [id, isReadonly, versionId]);
 
     const toggleSidebar = async () => {
-        if (!id)
-            return;
+        if (!id) return;
         const toggle = !isSidebarOpen;
         setSidebarOpen(toggle);
         if (toggle) {
@@ -64,52 +74,60 @@ export const SchemaEditorPage = observer(() => {
     return (
         <div className="schema_page__container">
             <ErrorToasts />
-            <SaveVersionModal
-                isOpen={isSaveModalOpen}
-                onSave={onSave}
-                onClose={() => setIsSaveModalOpen(false)} 
-            />
+            {isEditable && (
+                <SaveVersionModal
+                    isOpen={isSaveModalOpen}
+                    onSave={onSave}
+                    onClose={() => setIsSaveModalOpen(false)} 
+                />
+            )}
             {isLoading ? (
                 <div>Загрузка...</div>
             ) : state != null ? (
                 <>
                     <header className="schema_page__header">
                         <div className="header_left">
-                            <button 
-                                className="btn_sidebar_toggle" 
-                                onClick={() => toggleSidebar()}
-                            >
-                                ☰
-                            </button>
+                            {isReadonly ? null : (
+                                <button 
+                                    className="btn_sidebar_toggle" 
+                                    onClick={() => toggleSidebar()}
+                                >
+                                    ☰
+                                </button>
+                            )}
                             <h2 className="schema_page__name">{schema?.name}</h2>
                         </div>
-                        <div className="schema_controls">
-                            <button className="btn_secondary">История</button>
-                            <button 
-                                className="btn_primary" 
-                                onClick={() => setIsSaveModalOpen(true)}
-                            >
-                                Сохранить версию
-                            </button>
-                        </div>
+                        {isEditable && (
+                            <div className="schema_controls">
+                                <button className="btn_secondary">История</button>
+                                <button 
+                                    className="btn_primary" 
+                                    onClick={() => setIsSaveModalOpen(true)}
+                                >
+                                    Сохранить версию
+                                </button>
+                            </div>
+                        )}
                     </header>
 
                     <div className="schema_page__workspace">
-                        <VersionsSidebar 
-                            isOpen={isSidebarOpen} 
-                            
-                            changeVisibleCallback={toggleSidebar} 
-                        />
-
+                        {isReadonly ? null : (
+                            <VersionsSidebar 
+                                isOpen={isSidebarOpen} 
+                                changeVisibleCallback={toggleSidebar} 
+                            />
+                        )}
+                        
                         <main className="schema_canvas_area">
-                            {/* ИНТЕРАКТИВНЫЙ КАНВАС */}
                             <ERDiagram />
 
-                            <UsersOverlay 
-                                isUsersOpen={isUsersOpen} 
-                                users={FAKE_USERS} 
-                                closeCallback={setUsersOpen} 
-                            />
+                            {isEditable && (
+                                <UsersOverlay 
+                                    isUsersOpen={isUsersOpen} 
+                                    users={FAKE_USERS} 
+                                    closeCallback={setUsersOpen} 
+                                />
+                            )}
                         </main>
                     </div>
                 </>

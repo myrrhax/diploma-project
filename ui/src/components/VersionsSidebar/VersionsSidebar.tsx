@@ -125,7 +125,14 @@ export const VersionsSidebar = observer(({isOpen, changeVisibleCallback}: Versio
                         <div className="loading-state">Загрузка...</div>
                     ) : mode === 'list' ? (
                         sortedVersions.map(v => (
-                            <div 
+                            <div
+								onClick={() => {
+									if (v.isWorkingCopy) {
+										return;
+									}
+									const url = `/schema/${v.schemeId}/version/${v.versionId}`;
+            						window.open(url, '_blank', 'noopener,noreferrer');
+								}}
                                 key={v.versionId} 
                                 className={`list-version-item ${v.isWorkingCopy ? 'list-version-working' : ''} ${v.isInitial ? 'list-version-initial' : ''}`}
 								onContextMenu={(e) => handleListContextMenu(e, v)}

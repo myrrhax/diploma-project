@@ -61,7 +61,14 @@ export const VersionTreeNode = ({ node, level }: VersionTreeNodeProps) => {
                     )}
                 </div>
                 
-                <div className="tree-version-info">
+                <div className="tree-version-info"
+                    onClick={() => {
+                        if (v.isWorkingCopy) {
+                            return;
+                        }
+                        const url = `/schema/${v.schemeId}/version/${v.versionId}`;
+                        window.open(url, '_blank', 'noopener,noreferrer');
+                    }}>
                     <span className="tree-version-name">{v.tag ?? 'Рабочая версия'}</span>
                     {v.versionedAt && (
                         <span className="tree-version-date">

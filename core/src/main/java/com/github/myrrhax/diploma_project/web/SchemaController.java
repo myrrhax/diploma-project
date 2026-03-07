@@ -95,4 +95,11 @@ public class SchemaController {
 
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/readonly-version/{id}")
+    @JsonView(ViewMarkers.Stateful.class)
+    public ResponseEntity<SchemeDTO> findReadonlyVersion(@PathVariable Long id,
+                                                         @AuthenticationPrincipal TokenUser tokenUser) {
+        return ResponseEntity.ok(schemaService.findReadonlyWithVersion(id));
+    }
 }

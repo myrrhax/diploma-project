@@ -38,7 +38,13 @@ export const VersionContextMenu = observer(() => {
         setActiveSubMenu(null);
     };
 
-    const onView = () => console.log('View:', version.versionId);
+    const onView = () => {
+        if (version.isWorkingCopy) {
+            return;
+        }
+        const url = `/schema/${version.schemeId}/version/${version.versionId}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
+    };
     const onRollback = () => versionsStore.changeHead(version);
     const onGenerate = (format: string) => console.log(`Generate ${format}:`, version.versionId);
     const onDiff = (format: string) => console.log(`Diff ${format}:`, version.versionId);

@@ -11,6 +11,14 @@ interface TableNodeProps {
 }
 
 export const TableNode = observer(({ table }: TableNodeProps) => {
+    const handleModification = (action: () => void) => {
+        if (!erStore.isEditable) {
+            alert("Вы работаете с версией в режиме чтения. Изменения запрещены.");
+            return;
+        }
+        action();
+    };
+
     return (
         <div 
             className="er_table_card" 
@@ -25,23 +33,27 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
                 e.preventDefault();
                 e.stopPropagation();
 
-                const wrapper = e.currentTarget.closest('.er_diagram_wrapper');
-                const rect = wrapper?.getBoundingClientRect();
-                
-                if (rect) {
-                    tableModalsStore.openTableContextMenu(
-                        e.clientX - rect.left, 
-                        e.clientY - rect.top, 
-                        table.id
-                    );
-                }
+                handleModification(() => {
+                    const wrapper = e.currentTarget.closest('.er_diagram_wrapper');
+                    const rect = wrapper?.getBoundingClientRect();
+                    
+                    if (rect) {
+                        tableModalsStore.openTableContextMenu(
+                            e.clientX - rect.left, 
+                            e.clientY - rect.top, 
+                            table.id
+                        );
+                    }
+                });
             }}
         >
             <div 
                 className="er_table_header"
                 onMouseDown={(e) => {
                     e.stopPropagation();
-                    erStore.setDraggingTable(table.id);
+                    handleModification(() => {
+                        erStore.setDraggingTable(table.id);
+                    });
                 }}
                 title={table.description ?? table.name}
             >
@@ -52,15 +64,17 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
 
             <div className="er_column_list">
                 {Object.values(table.columns).map((col, _) => (
-                    <TableColumn table={table} col={col} />
+                    <TableColumn key={col.id} table={table} col={col} />
                 ))}
             </div>
 
-            <button className="er_add_col_btn" onClick={() => erStore.setActiveMenuId(table.id)}>
-                Добавить
-            </button>
+            {erStore.isEditable && (
+                <button className="er_add_col_btn" onClick={() => erStore.setActiveMenuId(table.id)}>
+                    Добавить
+                </button>
+            )}
 
-            {erStore.activeMenuId === table.id && (
+            {erStore.isEditable && erStore.activeMenuId === table.id && (
                 <AddColumnMenu 
                     tableId={ table.id }
                     onClose={(col) => {

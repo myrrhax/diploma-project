@@ -38,6 +38,10 @@ class ERStore {
         makeAutoObservable(this);
     }
 
+    get isEditable() {
+        return this.schema?.currentVersion?.isWorkingCopy === true;
+    }
+
     setSchema(schema: Schema | null) {
         this.schema = schema;
         this.state = schema?.currentVersion.currentState ?? null;
@@ -58,11 +62,8 @@ class ERStore {
         if (cmd.version <= this.state.cacheVersion) {
             return; 
         }
-        console.log('Обрабатывается новая команда');
-        console.log(cmd);
 
         if (cmd.version - this.state.cacheVersion > 1) {
-            console.warn(`[SYNC] Рассинхрон! Локальная: ${this.state.cacheVersion}, Серверная: ${cmd.version}`);
             await this.loadSchema(this.schema!!.id);
             return;
         }
@@ -70,7 +71,6 @@ class ERStore {
         this.state.cacheVersion = cmd.version;
         const diff = cmd.difference;
         
-        console.log("Difference", diff);
         Object.entries(diff.deletedColumns || {}).forEach(([tableId, colIds]) => {
             const table = this.state?.tables[tableId];
             if (table && table.columns) {
@@ -87,14 +87,12 @@ class ERStore {
 
         (diff.deletedReferences || []).forEach(refKey => {
             const keyStr = refKeyToString(refKey); 
-            console.log('Delete ' + keyStr);
             delete this.state?.references[keyStr];
         });
 
         (diff.deletedTables || []).forEach(tableId => {
             delete this.state?.tables[tableId];
         });
-
 
         (diff.upsertedTables || []).forEach(newTable => {
             if (!this.state) {
@@ -131,7 +129,6 @@ class ERStore {
             const keyStr = refKeyToString(ref.key);
             this.state.references[keyStr] = ref;
         });
-        console.log(this.state.tables);
     }
     
     setLoading(loading: boolean) {
@@ -148,7 +145,6 @@ class ERStore {
             runInAction(() => {
                 this.setSchema(freshSchema);
                 this.setLoading(false);
-                console.log(this.state?.tables);
             });
             
         } catch (error: any) {
@@ -156,17 +152,13 @@ class ERStore {
                 this.deny();
                 this.setLoading(false);
             });
-            console.error("Ошибка загрузки схемы:", this.state);
         }
     }
 
     addTable() {
-        if (!this.schema) return;
+        if (!this.isEditable || !this.schema) return;
         const worldX = (this.contextMenu.screenX - this.offsetX) / this.scale;
         const worldY = (this.contextMenu.screenY - this.offsetY) / this.scale;
-
-        console.log("X: " + worldX);
-        console.log("Y: " + worldY);
 
         const tableName = 'Table ' + Date.now();
 
@@ -182,6 +174,7 @@ class ERStore {
     }
 
     updateTable(id: string, newName: string | null, newDescription: string | null) {
+        if (!this.isEditable) return;
         const table = this.getTable(id);
         if (this.schema && table) {
             schemaSocketService.sendCommand({
@@ -195,6 +188,7 @@ class ERStore {
     }
 
     updateColumn(tableId: string, oldColumn: Column, newColumn: Column) {
+        if (!this.isEditable) return;
         const table = this.getTable(tableId);
         if (this.schema && table) {
             schemaSocketService.sendCommand({
@@ -217,11 +211,11 @@ class ERStore {
     }
 
     moveTable(id: string, dx: number, dy: number) {
+        if (!this.isEditable) return;
         const table = this.getTable(id);
         if (table) {
             table.x += dx / this.scale;
             table.y += dy / this.scale;
-            // Отправка по тику
             if (this.draggingTableId) {
                 const now = Date.now();
                 if (now - this.lastTick > this.MOVE_TICK_MS) {
@@ -233,13 +227,15 @@ class ERStore {
     }
 
     setDraggingTable(tableId: string | null) {
-        if (this.schema && this.draggingTableId && !tableId) { // Отпустил таблицу
+        if (!this.isEditable) return;
+        if (this.schema && this.draggingTableId && !tableId) { 
             this.sendCoords();
         }
         this.draggingTableId = tableId;
     }
 
     addColumn(tableId: string, column: Column) {
+        if (!this.isEditable) return;
         const table = this.getTable(tableId);
         if (this.schema && table) {
            schemaSocketService.sendCommand({
@@ -277,9 +273,7 @@ class ERStore {
     }
 
     deleteReference(refKeyStr: string) {
-        if (!this.state || !this.schema) {
-            return;
-        }
+        if (!this.isEditable || !this.state || !this.schema) return;
 
         const ref = this.state.references[refKeyStr];
         if (!ref) return;
@@ -294,8 +288,8 @@ class ERStore {
     }
 
     deleteTable(tableId: string) {
-        if (!this.schema || !this.state) return;
-
+        if (!this.isEditable || !this.schema || !this.state) return;
+        
         schemaSocketService.sendCommand({
             schemeId: this.schema.id,
             type: 'delete-table',
@@ -305,10 +299,13 @@ class ERStore {
         tableModalsStore.closeTableContextMenu();
     }
 
+    async loadSchemaWithVersion(versionId: number) {
+        const schema = await schemaApi.findReadonlyWithVersion(versionId);
+        this.setSchema(schema);
+    }
+
     deleteColumn(tableId: string, columnId: string) {
-        if (!this.schema || !this.state) {
-            return;
-        }
+        if (!this.isEditable || !this.schema || !this.state) return;
 
         schemaSocketService.sendCommand({
             type: 'delete-column',

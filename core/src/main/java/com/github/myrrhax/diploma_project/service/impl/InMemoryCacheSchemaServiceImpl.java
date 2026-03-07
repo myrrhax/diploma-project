@@ -76,4 +76,9 @@ public class InMemoryCacheSchemaServiceImpl extends SchemaService {
         schemaCacheStorage.deleteFromCache(schemeId);
         schemeRepository.deleteById(schemeId);
     }
+
+    @Override
+    public SchemeDTO findReadonlyWithVersion(long id) {
+        return null;
+    }
 }

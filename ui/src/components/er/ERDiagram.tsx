@@ -49,12 +49,7 @@ const getTrunkPath = (
         return `M ${sX} ${sY} L ${midX} ${sY} L ${midX} ${tY} L ${tX} ${tY}`;
     } else {
         const safeY = Math.max(sBottom, tBottom) + 20 + gap;
-        return `M ${sX} ${sY} 
-                L ${sX + 20} ${sY} 
-                L ${sX + 20} ${safeY} 
-                L ${tX - 20} ${safeY} 
-                L ${tX - 20} ${tY} 
-                L ${tX} ${tY}`;
+        return `M ${sX} ${sY} L ${sX + 20} ${sY} L ${sX + 20} ${safeY} L ${tX - 20} ${safeY} L ${tX - 20} ${tY} L ${tX} ${tY}`;
     }
 };
 
@@ -86,8 +81,18 @@ export const ERDiagram = observer(() => {
         columnModalsStore.closeColumnContextMenu();
     }
 
+    const handleModification = (action: () => void) => {
+        if (!erStore.isEditable) {
+            alert("Вы работаете с версией в режиме чтения. Изменения запрещены.");
+            return;
+        }
+        action();
+    };
+
     const handleOpenMenu = (screenX: number, screenY: number, relativeX: number, relativeY: number) => {
-        erStore.openContextMenu(screenX, screenY, relativeX, relativeY);
+        handleModification(() => {
+            erStore.openContextMenu(screenX, screenY, relativeX, relativeY);
+        });
     };
 
     const handleMouseDown = (e: React.MouseEvent) => {
@@ -125,15 +130,18 @@ export const ERDiagram = observer(() => {
             style={{ cursor: isPanning ? 'grabbing' : 'default' }}
             onClick={handleCloseMenu}
         >
-            <AddReferenceMenu />
-            <DeleteTableModal />
-            <DeleteColumnModal />
-            <EditTableModal />
+            {erStore.isEditable && (
+                <>
+                    <AddReferenceMenu />
+                    <DeleteTableModal />
+                    <DeleteColumnModal />
+                    <EditTableModal />
+                </>
+            )}
             
             <div className="er_viewport" style={{ transform: `translate(${erStore.offsetX}px, ${erStore.offsetY}px) scale(${erStore.scale})` }}>
                 <svg className="er_svg_layer">
                     <defs>
-                        {/* --- SOURCE МАРКЕРЫ (Начало связи, без стрелки направления) --- */}
                         <marker id="marker-source-one" overflow='visible' orient='auto-start-reverse'>
                             <line x1="-10" y1="-4" x2="-10" y2="4" stroke="#94a3b8" strokeWidth="1.2" />
                         </marker>
@@ -144,7 +152,6 @@ export const ERDiagram = observer(() => {
                             <line x1="-6" y1="2" x2="-2" y2="-2" stroke="#94a3b8" strokeWidth="1.2" />
                         </marker>
 
-                        {/* --- TARGET МАРКЕРЫ (Конец связи, со стрелкой, указывающей на таблицу) --- */}
                         <marker id="marker-target-one" overflow='visible' orient='auto-start-reverse'>
                             <line x1="-8" y1="-6" x2="-8" y2="6" stroke="#94a3b8" strokeWidth="2" />
                             <path d="M -20 -4 L -12 0 L -20 4 z" fill="#94a3b8" />
@@ -195,17 +202,18 @@ export const ERDiagram = observer(() => {
                         const handleRefContextMenu = (e: React.MouseEvent) => {
                             e.preventDefault();
                             e.stopPropagation(); 
-                            const rect = containerRef.current?.getBoundingClientRect();
-                            if (rect) {
-                                referenceStore.openRefContextMenu(
-                                    e.clientX - rect.left, 
-                                    e.clientY - rect.top, 
-                                    refKeyToString(key)
-                                );
-                            }
+                            handleModification(() => {
+                                const rect = containerRef.current?.getBoundingClientRect();
+                                if (rect) {
+                                    referenceStore.openRefContextMenu(
+                                        e.clientX - rect.left, 
+                                        e.clientY - rect.top, 
+                                        refKeyToString(key)
+                                    );
+                                }
+                            });
                         };
 
-                        // --- ОДИНОЧНАЯ СВЯЗЬ ---
                         if (key.toColumns.length === 1) {
                             const start = getPortPosition(tables[key.fromTableId], key.fromColumns[0], 'right');
                             const end = getPortPosition(tables[key.toTableId], key.toColumns[0], 'left');
@@ -214,19 +222,15 @@ export const ERDiagram = observer(() => {
                             
                             return ( 
                                 <g key={refKeyToString(key)} className="er_relation_group" style={{ cursor: 'context-menu' }} onContextMenu={handleRefContextMenu}>
-                                    {/* Хитбокс */}
                                     <path d={d} stroke="transparent" strokeWidth="15" fill="none" />
-                                    {/* Линия с маркерами на концах */}
                                     <path d={d} className="er_line" markerStart={sourceMarker} markerEnd={targetMarker} fill="none" />
                                     
-                                    {/* Подписи "1" и "M" */}
                                     <text x={start.x + sourceTextOffset} y={start.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
                                     <text x={end.x + targetTextOffset} y={end.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
                                 </g>
                             );
                         }
 
-                        // --- МНОЖЕСТВЕННАЯ СВЯЗЬ (Составной ключ) ---
                         else {
                             const sourcePoints = key.fromColumns.map(p => getPortPosition(sTable, p, 'right'));
                             const targetPoints = key.toColumns.map(p => getPortPosition(tTable, p, 'left'));
@@ -242,32 +246,25 @@ export const ERDiagram = observer(() => {
                             const sCenterY = (sMinY + sMaxY) / 2;
                             const tCenterY = (tMinY + tMaxY) / 2;
 
-                            // Ветки (от портов до магистрали) - БЕЗ маркеров
                             let branchPaths = "";
                             sourcePoints.forEach(p => { branchPaths += `M ${p.x} ${p.y} L ${sBusX} ${p.y} `; });
                             branchPaths += `M ${sBusX} ${sMinY} L ${sBusX} ${sMaxY} `;
                             targetPoints.forEach(p => { branchPaths += `M ${tBusX} ${p.y} L ${p.x} ${p.y} `; });
                             branchPaths += `M ${tBusX} ${tMinY} L ${tBusX} ${tMaxY} `;
 
-                            // Сама магистраль (соединяет две таблицы) - С маркерами
                             const trunkPath = getTrunkPath(tables, sBusX, sCenterY, tBusX, tCenterY, sTable.id, tTable.id, index);
 
                             return (
                                 <g key={refKeyToString(key)} className="er_relation_group" style={{ cursor: 'context-menu' }} onContextMenu={handleRefContextMenu}>
-                                    {/* Хитбокс для всей связи */}
                                     <path d={branchPaths + trunkPath} stroke="transparent" strokeWidth="15" fill="none" />
                                     
-                                    {/* Отрисовка веток без маркеров */}
                                     <path d={branchPaths} className="er_line" fill="none" />
                                     
-                                    {/* Отрисовка магистрали с маркерами */}
                                     <path d={trunkPath} className="er_line" markerStart={sourceMarker} markerEnd={targetMarker} fill="none" />
                                     
-                                    {/* Узелки на стыке портов и магистрали */}
                                     <circle cx={sBusX} cy={sCenterY} r="3" fill="#64748b" />
                                     <circle cx={tBusX} cy={tCenterY} r="3" fill="#64748b" />
 
-                                    {/* Подписи "1" и "M" около магистрали */}
                                     <text x={sBusX + sourceTextOffset} y={sCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
                                     <text x={tBusX + targetTextOffset} y={tCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
                                 </g>
@@ -279,13 +276,13 @@ export const ERDiagram = observer(() => {
                 {Object.values(tables).map(table => <TableNode key={table.id} table={table} />)}
             </div>
 
-            {erStore.contextMenu.visible && (
+            {erStore.isEditable && erStore.contextMenu.visible && (
                 <div className="er_ctx_menu" style={{ left: erStore.contextMenu.x, top: erStore.contextMenu.y }}>
                     <div className="er_ctx_item" onClick={() => erStore.addTable()}>Добавить таблицу</div>
                 </div>
             )}
 
-            {referenceStore.refContextMenu?.visible && (
+            {erStore.isEditable && referenceStore.refContextMenu?.visible && (
                 <div className="er_ctx_menu" style={{ left: referenceStore.refContextMenu.x, top: referenceStore.refContextMenu.y, zIndex: 1000 }}>
                     <div 
                         className="er_ctx_item" 
@@ -297,7 +294,7 @@ export const ERDiagram = observer(() => {
                 </div>
             )}
             
-            {tableModalsStore.tableContextMenu.visible && (
+            {erStore.isEditable && tableModalsStore.tableContextMenu.visible && (
                 <div className="er_ctx_menu" style={{ left: tableModalsStore.tableContextMenu.x, top: tableModalsStore.tableContextMenu.y, zIndex: 1000 }}>
                     <div 
                         className="er_ctx_item" 
@@ -322,7 +319,7 @@ export const ERDiagram = observer(() => {
                 </div>
             )}
 
-            {columnModalsStore.columnContextMenu.visible && (
+            {erStore.isEditable && columnModalsStore.columnContextMenu.visible && (
                 <div className="er_ctx_menu" style={{ left: columnModalsStore.columnContextMenu.x, top: columnModalsStore.columnContextMenu.y, zIndex: 1000 }}>
                     <div 
                         className="er_ctx_item" 
