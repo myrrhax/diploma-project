@@ -96,6 +96,7 @@ public class ParticipationService {
                 .stream()
                 .map(entry -> new ParticipationDto(
                         userMapper.toDto(entry.getKey()),
+                        schemaId,
                         entry.getValue()
                 ))
                 .toList();
@@ -108,6 +109,7 @@ public class ParticipationService {
 
         return new ParticipationDto(
                 user,
+                schemaId,
                 userAuthorities.stream().toList()
         );
     }
@@ -137,7 +139,7 @@ public class ParticipationService {
 
         authorityRepository.saveAll(authorities);
 
-        return new ParticipationDto(userMapper.toDto(user), authorityTypes);
+        return new ParticipationDto(userMapper.toDto(user), invitation.getScheme().getId(), authorityTypes);
     }
 
     private String[] buildAuthorities(List<AuthorityType> authorities) {

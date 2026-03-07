@@ -7,6 +7,7 @@ import type { TreeNode } from '@/utils/Tree';
 import type { Version } from '@/model/SchemaTypes';
 import { contextMenuStore } from '@/store/VersionContextMenuStore';
 import { VersionContextMenu } from './VersionContextMenu';
+import { OverlaySpinner } from '../SpinnerLoader/SpinnerLoader';
 import './css/VersionSidebar.css';
 
 interface VersionsSidebarProps {
@@ -122,7 +123,7 @@ export const VersionsSidebar = observer(({isOpen, changeVisibleCallback}: Versio
 
                 <div className="versions">
                     {isLoading ? (
-                        <div className="loading-state">Загрузка...</div>
+                        <OverlaySpinner text='Загрузка...' />
                     ) : mode === 'list' ? (
                         sortedVersions.map(v => (
                             <div

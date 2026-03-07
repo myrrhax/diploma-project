@@ -19,8 +19,10 @@ export const ProtectedRoute = observer(({afterConfirmationOnly = true}: Protecte
     
     let routeTo = '/login';
     if (user) {
-        routeTo = user.isConfirmed ? '/home' : '/account-confirmation';
+        routeTo = user.isConfirmed ? '/' : '/account-confirmation';
     }
+
+    console.log('REDIRECTING:', routeTo)
     
     return <Navigate to={routeTo} replace />
 });

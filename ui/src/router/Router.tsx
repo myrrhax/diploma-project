@@ -7,8 +7,38 @@ import { authStore } from "../store/AuthStore";
 import { RegisterPage } from "../pages/RegisterPage";
 import { AccountConfirmationPage } from "../pages/AccountConfirmationPage";
 import { SchemaEditorPage } from "../pages/SchemaEditorPage";
+import { observer } from "mobx-react-lite";
+import { useEffect } from "react";
+import { InvitationsPage } from "@/pages/InvitationsPage";
 
 const router = createBrowserRouter([
+    {
+        element: <Layout />,
+        path: '/',
+        children: [
+            {
+                element: <ProtectedRoute afterConfirmationOnly={true} />,
+                children: [
+                    {
+                        path: '/',
+                        element: <HomePage />
+                    },
+                    {
+                        path: '/schema/edit/:id',
+                        element: <SchemaEditorPage />
+                    },
+                    {
+                        path: '/schema/:id/version/:versionId',
+                        element: <SchemaEditorPage isReadonly={true} />
+                    },
+                    {
+                        path: '/invitations',
+                        element: <InvitationsPage />
+                    }
+                ]
+            }
+        ]
+    },
     {
         element: <NonAuthorizedRoute />,
         children: [
@@ -28,35 +58,12 @@ const router = createBrowserRouter([
             { path: '/account-confirmation', element: <AccountConfirmationPage/> }
         ]
     },
-    {
-        element: <Layout />,
-        children: [
-            {
-                path: '/',
-                element: <ProtectedRoute afterConfirmationOnly={true} />,
-                children: [
-                    {
-                        path: '/',
-                        element: <HomePage />
-                    },
-                    {
-                        path: '/schema/edit/:id',
-                        element: <SchemaEditorPage />
-                    },
-                    {
-                        path: '/schema/:id/version/:versionId',
-                        element: <SchemaEditorPage isReadonly={true} />
-                    }
-                ]
-            }
-        ]
-    }
-    
 ]);
 
-export const AppRouter = () => {
-    authStore.init();
-    return (
-        <RouterProvider router={router} />
-    )
-}
+export const AppRouter = observer(() => {    
+    useEffect(() => {
+        authStore.init();
+    }, []); 
+    
+    return <RouterProvider router={router} />;
+})

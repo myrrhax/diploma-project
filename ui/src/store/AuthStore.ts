@@ -5,7 +5,7 @@ import { authApi } from "../api/AuthApiService";
 class AuthStore {
     private readonly TOKEN_KEY = 'access_token';
 
-    isLoading: boolean = false;
+    isLoading: boolean = true;
     token: string | null = localStorage.getItem(this.TOKEN_KEY);
     user: User | null = null;
     

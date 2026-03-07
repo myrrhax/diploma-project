@@ -1,14 +1,16 @@
 import { useEffect, useState, type KeyboardEvent } from 'react';
 import { observer } from 'mobx-react-lite';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { schemaStore } from '../store/SchemaStore';
 import { schemaApi } from '../api/SchemaApiService';
 import profilePic from '@/assets/user.png'; // Оставляем как фоллбэк или дефолт
-import './css/HomePage.css';
 import { CreateSchemaModal } from '@/components/CreateSchemaModal/CreateSchemaModal';
 import { createSchemaModalStore } from '@/store/CreateShemaModalStore';
+import { OverlaySpinner } from '@/components/SpinnerLoader/SpinnerLoader';
+import './css/HomePage.css';
 
 export const HomePage = observer(() => {
+  const location = useLocation();
   const navigate = useNavigate();
   const { schemas, isLoading } = schemaStore;
   const [query, setQuery] = useState('');
@@ -17,6 +19,14 @@ export const HomePage = observer(() => {
   useEffect(() => {
     schemaApi.loadUserSchemas();
   }, []);
+
+  useEffect(() => {
+        if (location.state?.invitationError) {
+            alert(location.state.invitationError);
+            
+            navigate('.', { replace: true, state: {} });
+        }
+    }, [location, navigate]);
 
   const handleSearch = async () => {
     await schemaApi.loadUserSchemas(authorOnly, query);
@@ -81,9 +91,7 @@ export const HomePage = observer(() => {
 
         {/* Content Section */}
         {isLoading ? (
-          <div className="loader-container">
-            <div className="loader"></div>
-          </div>
+          <OverlaySpinner text='Загрузка...' />
         ) : schemas && schemas.length > 0 ? (
           <div className="schema-grid">
             {schemas.map((schema) => (

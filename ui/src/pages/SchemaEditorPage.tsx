@@ -5,11 +5,12 @@ import { erStore } from '@/store/ERStore';
 import { VersionsSidebar } from '@/components/VersionsSidebar/VersionsSidebar';
 import { UsersOverlay } from '@/components/UsersOverlay/UsersOverlay';
 import { ERDiagram } from '@/components/er/ERDiagram';
-import './css/SchemaEditorPage.css';
+import { OverlaySpinner } from '@/components/SpinnerLoader/SpinnerLoader';
 import { schemaSocketService } from '@/api/SchemaSocketService';
 import { ErrorToasts } from '@/components/ErrorToast/ErrorToast';
 import { versionsStore } from '@/store/VersionsStore';
 import { SaveVersionModal } from '@/components/SaveVersionModal/SaveVersionModal';
+import './css/SchemaEditorPage.css';
 
 const FAKE_USERS = [
     { id: '1', email: 'admin@test.com', isConfirmed: true },
@@ -84,7 +85,7 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
                 />
             )}
             {isLoading ? (
-                <div>Загрузка...</div>
+                <OverlaySpinner text='Загрузка...' />
             ) : state != null ? (
                 <>
                     <header className="schema_page__header">
