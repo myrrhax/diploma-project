@@ -3,6 +3,7 @@ package com.github.myrrhax.diploma_project.web;
 import com.github.myrrhax.diploma_project.model.dto.InviteUserDTO;
 import com.github.myrrhax.diploma_project.model.dto.ParticipationDto;
 import com.github.myrrhax.diploma_project.security.TokenUser;
+import com.github.myrrhax.diploma_project.service.AuthorityService;
 import com.github.myrrhax.diploma_project.service.ParticipationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +27,9 @@ import java.util.UUID;
 @RequestMapping("/api/participations")
 public class ParticipationController {
     private final ParticipationService participationService;
+    private final AuthorityService authorityService;
 
-    @PostMapping
+    @PostMapping("/invite")
     @PreAuthorize("@authorityCheckService.hasAuthority(#tokenUser.token.userId, #dto.schemeId, 'INVITE_USERS')")
     public ResponseEntity<Void> inviteUser(@RequestBody @Validated InviteUserDTO dto,
                                            @AuthenticationPrincipal TokenUser tokenUser) {
@@ -39,10 +41,26 @@ public class ParticipationController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/confirm/{invitationId}")
+    public ResponseEntity<ParticipationDto> confirmParticipation(@PathVariable("invitationId") UUID invitationId,
+                                                                 @AuthenticationPrincipal TokenUser tokenUser) {
+        return ResponseEntity.ok(
+                participationService.confirmParticipation(tokenUser.getToken().userId(), invitationId)
+        );
+    }
+
     @GetMapping("/schema/{id}")
     public ResponseEntity<List<ParticipationDto>> getParticipants(@PathVariable UUID id) {
         return ResponseEntity.ok(
                 participationService.getParticipants(id)
+        );
+    }
+
+    @GetMapping("/schema/{id}/user/{userId}")
+    public ResponseEntity<ParticipationDto> getParticipationInfo(@PathVariable UUID id,
+                                                                 @PathVariable UUID userId) {
+        return ResponseEntity.ok(
+                participationService.getParticipationInfo(id, userId)
         );
     }
 }

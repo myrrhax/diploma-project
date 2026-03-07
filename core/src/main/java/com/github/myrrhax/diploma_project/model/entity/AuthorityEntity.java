@@ -42,4 +42,10 @@ public class AuthorityEntity extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     AuthorityType type;
+
+    public AuthorityEntity(UserEntity user, SchemeEntity scheme, AuthorityType type) {
+        this.user = user;
+        this.scheme = scheme;
+        this.type = type;
+    }
 }

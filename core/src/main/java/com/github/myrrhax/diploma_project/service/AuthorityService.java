@@ -1,11 +1,14 @@
 package com.github.myrrhax.diploma_project.service;
 
 import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
+import com.github.myrrhax.diploma_project.model.entity.InvitationEntity;
+import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
 import com.github.myrrhax.diploma_project.repository.AuthorityRepository;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
+import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.shared.model.AuthorityType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

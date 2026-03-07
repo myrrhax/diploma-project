@@ -29,7 +29,7 @@ services:
     container_name: core
     build:
       context: ..
-      dockerfile: docker/core.Dockerfile
+      dockerfile: core/Dockerfile
     restart: unless-stopped
     env_file:
       - .env
@@ -46,7 +46,7 @@ services:
     container_name: notifications
     build:
       context: ..
-      dockerfile: docker/notifications.Dockerfile
+      dockerfile: notification-service/Dockerfile
     restart: unless-stopped
     env_file:
       - .env

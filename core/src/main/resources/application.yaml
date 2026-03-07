@@ -42,6 +42,9 @@ app:
     notification-exchange: notifications
     send-mail-key: send-mail
 
+  invitation:
+    callback-url: http://localhost:5173/invitations?confirm=%s
+
   cache:
     schema-ttl: 15m
     caches:

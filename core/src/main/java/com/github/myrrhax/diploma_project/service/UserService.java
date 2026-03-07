@@ -20,6 +20,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    // ToDo добавить кэширование
     @Transactional(readOnly = true)
     public UserDTO getUserById(UUID id) {
         return userRepository.findById(id)
