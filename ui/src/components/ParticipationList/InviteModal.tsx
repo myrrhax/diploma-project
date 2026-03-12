@@ -56,7 +56,7 @@ export const InviteModal = observer(() => {
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const validationResult = emailSchema.safeParse(email);
         
         if (!validationResult.success) {
@@ -67,10 +67,12 @@ export const InviteModal = observer(() => {
         setEmailError(null);
         
         const finalAuthorities = Array.from(new Set([...selectedAuthorities, 'READ_SCHEME' as AuthorityType]));
-        participationsStore.sendInvite(email, finalAuthorities);
+        const isSuccess = await participationsStore.sendInvite(email, finalAuthorities);
         
-        setEmail("");
-        setSelectedAuthorities([]);
+        if (isSuccess) {
+            setEmail("");
+            setSelectedAuthorities([]);
+        }
     };
 
     const handleClose = () => {

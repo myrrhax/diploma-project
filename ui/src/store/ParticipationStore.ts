@@ -2,6 +2,7 @@ import { participationApiService } from "@/api/ParticipationApiService";
 import type { AuthorityType } from "@/model/Participation";
 import { makeAutoObservable, runInAction } from "mobx";
 import type { Participation } from "@/model/Participation";
+import { errorsStore } from "./ErrorsStore";
 
 class ParticipationsStore {
     authorities: AuthorityType[] | null = null;
@@ -57,19 +58,46 @@ class ParticipationsStore {
         }
     }
 
-    async sendInvite(email: string, authorities: AuthorityType[]) {
+    async sendInvite(email: string, authorities: AuthorityType[]): Promise<boolean> {
+        if (!this.currentSchemaId) {
+            return false;
+        }
+
         try {
             this.isLoading = true;
-            await new Promise(resolve => setTimeout(resolve, 500));
+            let errorMessage;
+
+            try {
+                const error = await participationApiService.sendInvitation(this.currentSchemaId, email, authorities);
+                if (error) {
+                    errorMessage = error.message;
+                }
+
+            } catch (e: any) {
+                errorMessage = 'Ошибка на стороне сервера, попробуйте позже';
+            }
+
+            if (errorMessage) {
+                runInAction(() => {
+                    errorsStore.addError(errorMessage);
+                    this.isLoading = false;
+                });
+               
+                return false;
+            }
             
             runInAction(() => {
                 this.isLoading = false;
                 alert(`Пользователь ${email} успешно приглашен!`);
                 this.closeInviteModal();
             });
+
+            return true;
         } catch (error) {
             runInAction(() => { this.isLoading = false; });
             alert("Ошибка при отправке приглашения");
+
+            return false;
         }
     }
 
