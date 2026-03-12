@@ -53,6 +53,10 @@ public class ParticipationService {
     @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #schemeId, 'INVITE_USERS')")
     public void sendInvitation(UUID sender, UUID schemeId, String email, List<AuthorityType> authorities) {
         log.info("Sending invitation for user {} and scheme {} from user {}", email, schemeId, sender);
+        if (!authorities.contains(AuthorityType.READ_SCHEME)) {
+            throw new ApplicationException("Invitation must have read scheme authority");
+        }
+
         SchemeEntity scheme = schemeRepository.findById(schemeId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
         if (schemeRepository.containsUserWithEmailInScheme(email, schemeId)) {
