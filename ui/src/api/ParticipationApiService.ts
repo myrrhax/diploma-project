@@ -26,6 +26,17 @@ class ParticipationApiService extends AbstractApiService {
             throw e;
         }
     }
+
+    async fetchParticipations(schemaId: string): Promise<Participation[]> {
+        try {
+            const response = await $api.get<Participation[]>('/participations/schema/' + schemaId);
+
+            return response.data;
+        } catch (e: any) {
+            console.error('Error while fetching participation info', e);
+            throw e;
+        }
+    }
 }
 
 export const participationApiService = new ParticipationApiService();

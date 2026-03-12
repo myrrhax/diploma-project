@@ -12,6 +12,8 @@ import { versionsStore } from '@/store/VersionsStore';
 import { SaveVersionModal } from '@/components/SaveVersionModal/SaveVersionModal';
 import './css/SchemaEditorPage.css';
 import { wsConnectionStore } from '@/store/WsConnectionStore';
+import { ParticipationList } from '@/components/ParticipationList/ParticipationList';
+import { participationsStore } from '@/store/ParticipationStore';
 
 const FAKE_USERS = [
     { id: '1', email: 'admin@test.com', isConfirmed: true },
@@ -82,6 +84,7 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
     return (
         <div className="schema_page__container">
             <ErrorToasts />
+            <ParticipationList />
             {isEditable && (
                 <SaveVersionModal
                     isOpen={isSaveModalOpen}
@@ -107,7 +110,9 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
                         </div>
                         {isEditable && (
                             <div className="schema_controls">
-                                <button className="btn_secondary">История</button>
+                                <button onClick={() => participationsStore.openListModal(id)}>
+                                    Участники
+                                </button>
                                 <button 
                                     className="btn_primary" 
                                     onClick={() => setIsSaveModalOpen(true)}
