@@ -23,8 +23,8 @@ class AuthStore {
             if (fetchedUser) {
                 this.setUser(fetchedUser);
             }
-            this.isLoading = false;
         }
+        this.isLoading = false;
     }
 
     public setAuthToken(token: string | null) {

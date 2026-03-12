@@ -1,0 +1,78 @@
+.participation_list__overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+.participation_list__container {
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    background-color: #1e293b;
+    min-width: 400px;
+    min-height: 70%;
+    border-radius: 10px;
+}
+
+.participation_list__header {
+    position: relative;
+    width: 100%;
+}
+
+.participation_list__header > img {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 0px;
+    right: 0px;
+    cursor: pointer;
+}
+
+.participation_list__header > h3 {
+    display: block;
+    text-align: center;
+    width: 100%;
+    color: white;
+}
+
+.participation_list__content {
+    margin-top: 15px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 350px;
+    overflow-y: scroll;
+}
+
+.participation_info {
+    padding: 10px;
+    border: 1px solid white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    transition: .15s;
+    cursor: pointer;
+}
+
+.participation_info > img {
+    width: 25px;
+    height: 25px;
+}
+
+.participation_info__email {
+    color: white;
+    margin-left: 10px;
+}
+
+.participation_info:hover {
+    background-color: blueviolet;
+}

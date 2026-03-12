@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { erStore } from '@/store/ERStore';
 import { TableNode } from './TableNode';
 import { type Table } from '@/model/SchemaElements';
@@ -61,6 +61,8 @@ export const ERDiagram = observer(() => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [isPanning, setPanning] = useState(false);
     const { authorities } = participationsStore; 
+    const { tables, references } = erStore.state;
+
 
     const handleUp = () => { 
         erStore.setDraggingTable(null);
@@ -116,7 +118,9 @@ export const ERDiagram = observer(() => {
         return () => window.removeEventListener('mouseup', handleUp);
     }, []);
 
-    const { tables, references } = erStore.state;
+    const canModify = useMemo(() => {
+        return authorities?.some(au => au === 'MODIFY_SCHEME' || au === 'ALL');
+    }, [authorities]);
 
     return (
         <div 
@@ -136,7 +140,7 @@ export const ERDiagram = observer(() => {
             style={{ cursor: isPanning ? 'grabbing' : 'default' }}
             onClick={handleCloseMenu}
         >
-            {erStore.isEditable && authorities?.includes('MODIFY_SCHEME') && (
+            {erStore.isEditable && canModify && (
                 <>
                     <AddReferenceMenu />
                     <DeleteTableModal />
@@ -288,7 +292,7 @@ export const ERDiagram = observer(() => {
                 </div>
             )}
 
-            {erStore.isEditable && authorities?.includes('MODIFY_SCHEME') && referenceStore.refContextMenu?.visible && (
+            {erStore.isEditable && canModify && referenceStore.refContextMenu?.visible && (
                 <div className="er_ctx_menu" style={{ left: referenceStore.refContextMenu.x, top: referenceStore.refContextMenu.y, zIndex: 1000 }}>
                     <div 
                         className="er_ctx_item" 
@@ -300,7 +304,7 @@ export const ERDiagram = observer(() => {
                 </div>
             )}
             
-            {erStore.isEditable && authorities?.includes('MODIFY_SCHEME') && tableModalsStore.tableContextMenu.visible && (
+            {erStore.isEditable && canModify && tableModalsStore.tableContextMenu.visible && (
                 <div className="er_ctx_menu" style={{ left: tableModalsStore.tableContextMenu.x, top: tableModalsStore.tableContextMenu.y, zIndex: 1000 }}>
                     <div 
                         className="er_ctx_item" 
@@ -325,7 +329,7 @@ export const ERDiagram = observer(() => {
                 </div>
             )}
 
-            {erStore.isEditable && authorities?.includes('MODIFY_SCHEME') && columnModalsStore.columnContextMenu.visible && (
+            {erStore.isEditable && canModify && columnModalsStore.columnContextMenu.visible && (
                 <div className="er_ctx_menu" style={{ left: columnModalsStore.columnContextMenu.x, top: columnModalsStore.columnContextMenu.y, zIndex: 1000 }}>
                     <div 
                         className="er_ctx_item" 

@@ -1,0 +1,68 @@
+.participation_info_tooltip__container {
+    position: fixed;
+    background-color: #1e293b;
+    width: 300px;
+    padding: 15px;
+    z-index: 100000;
+    border-radius: 10px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    animation: fadeInSlide 0.2s ease-out forwards;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tooltip_authority_label {
+    color: white;
+}
+
+.save_btn_holder {
+    margin-top: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.save_btn {
+    padding: 10px;
+    color: white;
+    background-color: #3b82f6;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: 0.15s;
+}
+
+.save_btn:hover {
+    background-color: #307df9;
+}
+
+.tooltip_header {
+    font-size: 16px;
+    width: 100%;
+    text-align: center;
+    color: white;
+}
+
+.tooltip_header_separator {
+    height: 1px;
+    width: 100%;
+    border-top: 1px solid white;
+}
+
+.tooltip_user_creator_text {
+    color: white;
+}
+
+@keyframes fadeInSlide {
+    0% {
+        opacity: 0;
+        transform: translate(-10px, 5px);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(1, 1);
+    }
+}

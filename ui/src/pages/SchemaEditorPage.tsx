@@ -98,14 +98,6 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
                 <>
                     <header className="schema_page__header">
                         <div className="header_left">
-                            {isReadonly ? null : (
-                                <button 
-                                    className="btn_sidebar_toggle" 
-                                    onClick={() => toggleSidebar()}
-                                >
-                                    ☰
-                                </button>
-                            )}
                             <h2 className="schema_page__name">{schema?.name}</h2>
                         </div>
                         {isEditable && (

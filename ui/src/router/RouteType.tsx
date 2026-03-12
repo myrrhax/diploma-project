@@ -8,6 +8,7 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = observer(({afterConfirmationOnly = true}: ProtectedRouteProps) => {
     const { user, isAuthenticated, isLoading } = authStore;
+    
     if (isLoading) {
         return <div>Loading...</div>
     }

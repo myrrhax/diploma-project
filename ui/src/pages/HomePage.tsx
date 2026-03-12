@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { schemaStore } from '../store/SchemaStore';
 import { schemaApi } from '../api/SchemaApiService';
-import profilePic from '@/assets/user.png'; // Оставляем как фоллбэк или дефолт
+import profilePic from '@/assets/user.png';
 import { CreateSchemaModal } from '@/components/CreateSchemaModal/CreateSchemaModal';
 import { createSchemaModalStore } from '@/store/CreateShemaModalStore';
 import { OverlaySpinner } from '@/components/SpinnerLoader/SpinnerLoader';
