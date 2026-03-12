@@ -8,7 +8,6 @@ import com.github.myrrhax.diploma_project.service.ParticipationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,11 +54,11 @@ public class ParticipationController {
         );
     }
 
-    @GetMapping("/schema/{id}/user/{userId}")
-    public ResponseEntity<ParticipationDto> getParticipationInfo(@PathVariable UUID id,
-                                                                 @PathVariable UUID userId) {
+    @GetMapping("/my/{id}")
+    public ResponseEntity<ParticipationDto> getMyParticipationInfo(@PathVariable UUID id,
+                                                                   @AuthenticationPrincipal TokenUser user) {
         return ResponseEntity.ok(
-                participationService.getParticipationInfo(id, userId)
+                participationService.getParticipationInfo(id, user.getToken().userId())
         );
     }
 }

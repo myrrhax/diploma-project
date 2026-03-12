@@ -85,6 +85,10 @@ export const ERDiagram = observer(() => {
         if (!erStore.isEditable) {
             alert("Вы работаете с версией в режиме чтения. Изменения запрещены.");
             return;
+        } 
+        if (!erStore.authorities?.includes('MODIFY_SCHEME')) {
+            alert('У вас нет прав на модификацию схемы');
+            return;
         }
         action();
     };
@@ -130,7 +134,7 @@ export const ERDiagram = observer(() => {
             style={{ cursor: isPanning ? 'grabbing' : 'default' }}
             onClick={handleCloseMenu}
         >
-            {erStore.isEditable && (
+            {erStore.isEditable && erStore.authorities?.includes('MODIFY_SCHEME') && (
                 <>
                     <AddReferenceMenu />
                     <DeleteTableModal />
@@ -282,7 +286,7 @@ export const ERDiagram = observer(() => {
                 </div>
             )}
 
-            {erStore.isEditable && referenceStore.refContextMenu?.visible && (
+            {erStore.isEditable && erStore.authorities?.includes('MODIFY_SCHEME') && referenceStore.refContextMenu?.visible && (
                 <div className="er_ctx_menu" style={{ left: referenceStore.refContextMenu.x, top: referenceStore.refContextMenu.y, zIndex: 1000 }}>
                     <div 
                         className="er_ctx_item" 
@@ -294,7 +298,7 @@ export const ERDiagram = observer(() => {
                 </div>
             )}
             
-            {erStore.isEditable && tableModalsStore.tableContextMenu.visible && (
+            {erStore.isEditable && erStore.authorities?.includes('MODIFY_SCHEME') && tableModalsStore.tableContextMenu.visible && (
                 <div className="er_ctx_menu" style={{ left: tableModalsStore.tableContextMenu.x, top: tableModalsStore.tableContextMenu.y, zIndex: 1000 }}>
                     <div 
                         className="er_ctx_item" 
@@ -319,11 +323,12 @@ export const ERDiagram = observer(() => {
                 </div>
             )}
 
-            {erStore.isEditable && columnModalsStore.columnContextMenu.visible && (
+            {erStore.isEditable && erStore.authorities?.includes('MODIFY_SCHEME') && columnModalsStore.columnContextMenu.visible && (
                 <div className="er_ctx_menu" style={{ left: columnModalsStore.columnContextMenu.x, top: columnModalsStore.columnContextMenu.y, zIndex: 1000 }}>
                     <div 
                         className="er_ctx_item" 
                         onClick={() => {
+                            if (erStore)
                             erStore.setActiveMenuId(columnModalsStore.columnContextMenu.colId);
                             columnModalsStore.closeColumnContextMenu();
                         }}

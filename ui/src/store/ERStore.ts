@@ -8,6 +8,8 @@ import { schemaApi } from "@/api/SchemaApiService";
 import { schemaSocketService } from "@/api/SchemaSocketService";
 import { referenceStore } from "./ReferenceStore";
 import { tableModalsStore } from "./TableModalsStore";
+import { participationApiService } from "@/api/ParticipationApiService";
+import type { AuthorityType } from "@/model/Participation";
 
 class ERStore {
     readonly TABLE_WIDTH = 220;
@@ -19,6 +21,7 @@ class ERStore {
     schemaId: string | null = null;
     schema: Schema | null = null;
     state: VersionState | null = null;
+    authorities: AuthorityType[] | null = null;
     currentVersion: number | null = null;
 
     isAccessDenied: boolean | null = null;
@@ -146,9 +149,12 @@ class ERStore {
         
         try {
             const freshSchema = await schemaApi.fetchSchemaById(schemaId);
+            const participationInfo = await participationApiService.loadParticipationInfo(schemaId);
+            console.log('USER AUTHORITIES', participationInfo.authorities);
             runInAction(() => {
                 this.setSchema(freshSchema);
                 this.setLoading(false);
+                this.authorities = participationInfo.authorities;
             });
             
         } catch (error: any) {
