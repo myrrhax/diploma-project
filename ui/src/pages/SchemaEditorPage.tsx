@@ -11,6 +11,7 @@ import { ErrorToasts } from '@/components/ErrorToast/ErrorToast';
 import { versionsStore } from '@/store/VersionsStore';
 import { SaveVersionModal } from '@/components/SaveVersionModal/SaveVersionModal';
 import './css/SchemaEditorPage.css';
+import { wsConnectionStore } from '@/store/WsConnectionStore';
 
 const FAKE_USERS = [
     { id: '1', email: 'admin@test.com', isConfirmed: true },
@@ -32,6 +33,8 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
     const isEditable = !isReadonly && schema?.currentVersion?.isWorkingCopy === true;
 
     if (!id) return null;
+
+    const { isConnected } = wsConnectionStore;
 
     useEffect(() => {
         let isMounted = true;
@@ -73,6 +76,8 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
         }
         setIsSaveModalOpen(false);
     }
+
+    
     
     return (
         <div className="schema_page__container">
@@ -84,7 +89,7 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
                     onClose={() => setIsSaveModalOpen(false)} 
                 />
             )}
-            {isLoading ? (
+            {isLoading || !isConnected ? (
                 <OverlaySpinner text='Загрузка...' />
             ) : state != null ? (
                 <>

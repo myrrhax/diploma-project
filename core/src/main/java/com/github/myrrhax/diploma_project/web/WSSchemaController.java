@@ -7,10 +7,12 @@ import com.github.myrrhax.diploma_project.model.dto.ChangeHeadVersionDto;
 import com.github.myrrhax.diploma_project.model.dto.DeleteVersionDto;
 import com.github.myrrhax.diploma_project.model.dto.SaveVersionDto;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
+import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.AuthorityCheckService;
 import com.github.myrrhax.diploma_project.service.SchemaService;
 import com.github.myrrhax.diploma_project.service.VersionService;
 import com.github.myrrhax.diploma_project.util.ViewMarkers;
+import com.github.myrrhax.shared.model.AuthorityType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,8 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 
@@ -36,7 +40,13 @@ public class WSSchemaController {
 
     @MessageMapping("/schema/{id}")
     public void processCommand(@DestinationVariable("id") UUID schemaId,
-                               @Payload @Valid MetadataCommand command) {
+                               @Payload @Valid MetadataCommand command,
+                               Authentication authentication) {
+        TokenUser tokenUser = (TokenUser) authentication.getPrincipal();
+        if (tokenUser == null || !checkService.hasAuthority(
+                tokenUser.getToken().userId(), schemaId, AuthorityType.MODIFY_SCHEME.name())) {
+            throw new AccessDeniedException("User can't modify schemas");
+        }
         var processingResult = schemaService.process(command);
 
         messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
@@ -46,7 +56,13 @@ public class WSSchemaController {
     @MessageMapping("/schema/{id}/saveVersion")
     @JsonView(ViewMarkers.Basic.class)
     public void saveVersion(@DestinationVariable("id") UUID schemaId,
-                            @Payload @Valid SaveVersionDto dto) {
+                            @Payload @Valid SaveVersionDto dto,
+                            Authentication authentication) {
+        TokenUser tokenUser = (TokenUser) authentication.getPrincipal();
+        if (tokenUser == null || !checkService.hasAuthority(
+                tokenUser.getToken().userId(), schemaId, AuthorityType.SNAPSHOT_VERSION.name())) {
+            throw new AccessDeniedException("User can't save version");
+        }
         List<VersionDTO> newVersion = versionService.saveVersion(schemaId, dto.tag());
 
         messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
@@ -56,7 +72,13 @@ public class WSSchemaController {
     @MessageMapping("/schema/{id}/deleteVersion")
     @JsonView(ViewMarkers.Basic.class)
     public void deleteVersion(@DestinationVariable("id") UUID schemaId,
-                              @Payload @Valid DeleteVersionDto dto) {
+                            @Payload @Valid DeleteVersionDto dto,
+                            Authentication authentication) {
+        TokenUser tokenUser = (TokenUser) authentication.getPrincipal();
+        if (tokenUser == null || !checkService.hasAuthority(
+                tokenUser.getToken().userId(), schemaId, AuthorityType.DELETE_VERSIONS.name())) {
+            throw new AccessDeniedException("User can't delete version");
+        }
         List<VersionDTO> versions = versionService.deleteVersion(schemaId, dto.versionId());
 
         messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
@@ -66,7 +88,13 @@ public class WSSchemaController {
     @MessageMapping("/schema/{id}/changeHead")
     @JsonView(ViewMarkers.Stateful.class)
     public void changeHead(@DestinationVariable("id") UUID schemaId,
-                           @Payload @Valid ChangeHeadVersionDto dto) {
+                              @Payload @Valid ChangeHeadVersionDto dto,
+                              Authentication authentication) {
+        TokenUser tokenUser = (TokenUser) authentication.getPrincipal();
+        if (tokenUser == null || !checkService.hasAuthority(
+                tokenUser.getToken().userId(), schemaId, AuthorityType.CHANGE_HEAD.name())) {
+            throw new AccessDeniedException("User can't delete version");
+        }
         VersionDTO updatedVersion = versionService.changeHead(schemaId, dto.currentVersionId(), dto.toVersionId());
 
         messagingTemplate.convertAndSend("/topic/schema/" + schemaId,

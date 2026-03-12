@@ -34,7 +34,6 @@ public class VersionService {
 
     @Transactional
     @CacheEvict(value = "versions", key = "#schemaId")
-    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #schemaId, 'SNAPSHOT_VERSION')")
     public List<VersionDTO> saveVersion(UUID schemaId, String tag) {
         log.info("Processing save version for schema {} wit tag {}", schemaId, tag);
         SchemeEntity schema = schemeRepository.findByIdLocking(schemaId)
@@ -105,7 +104,6 @@ public class VersionService {
             @CacheEvict(value = "versions", key = "#schemaId"),
             @CacheEvict(value = "versionById", key = "#id")
     })
-    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #schemaId, 'DELETE_VERSIONS')")
     public List<VersionDTO> deleteVersion(UUID schemaId, Long id) {
         log.info("Deleting version by id: {} for schema {}", id, schemaId);
         // acquire lock
@@ -131,7 +129,6 @@ public class VersionService {
             @CacheEvict(value = "versions", key = "#schemaId"),
             @CacheEvict(value = "versionById", key = "#id")
     })
-    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #schemaId, 'CHANGE_HEAD')")
     public VersionDTO changeHead(UUID schemaId, Long id, Long toVersion) {
         log.info("Changing head of version {} to {} for schema {}", id, toVersion, schemaId);
         // acquire lock

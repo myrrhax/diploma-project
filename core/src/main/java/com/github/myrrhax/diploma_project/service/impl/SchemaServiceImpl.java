@@ -46,7 +46,6 @@ public class SchemaServiceImpl extends SchemaService {
 
     @Override
     @Transactional
-    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #command.schemeId, 'MODIFY_SCHEME')")
     public MetadataCommandProcessResult process(MetadataCommand command) {
         // ToDo сереализовать команду
         log.info("Processing command for schema {}", command.getSchemeId());

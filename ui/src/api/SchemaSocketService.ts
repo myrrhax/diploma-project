@@ -4,12 +4,12 @@ import { runInAction } from "mobx";
 import { authStore } from "@/store/AuthStore";
 import { erStore } from "@/store/ERStore";
 import type { SchemaChangedEvent } from "@/model/SchemaEvents"; 
-import type { MetadataCommandProcessResult } from "@/model/SchemaEvents";
 import type { MetadataCommand } from "@/model/SchemaCommands";
 import type ErrorResponse from "@/model/ErrorResponse";
 import { errorsStore } from "@/store/ErrorsStore";
 import { versionsStore } from "@/store/VersionsStore";
 import type { Version } from "@/model/SchemaTypes";
+import { wsConnectionStore } from "@/store/WsConnectionStore";
 
 const WS_ENDPOINT = 'http://localhost:8000/ws';
 
@@ -40,6 +40,9 @@ class SchemaSocketService {
                     this.executeSubscription(this.activeSchemaId);
                     this.executeErrorsQueueSubscription();
                 }
+                runInAction(() => {
+                    wsConnectionStore.isConnected = true;
+                });
             },
             onStompError: (frame) => {
                 const errorMessage = frame.headers['message'];
@@ -52,9 +55,24 @@ class SchemaSocketService {
                         erStore.deny();
                     });
                 }
+            },            
+            onWebSocketClose: (event) => {
+                console.warn('[WS] Физическое соединение закрыто:', event);
+                runInAction(() => {
+                    wsConnectionStore.isConnected = false;
+                });
             },
             onWebSocketError: (event) => {
                 console.error('[WS] Ошибка физического соединения (SockJS):', event);
+                runInAction(() => {
+                    wsConnectionStore.isConnected = false;
+                });
+            },
+            onDisconnect: (_) => {
+                console.log('[WS] Штатное отключение (Disconnect)');
+                runInAction(() => {
+                    wsConnectionStore.isConnected = false;
+                });
             }
         });
 
