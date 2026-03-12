@@ -3,14 +3,15 @@ import { observer } from "mobx-react-lite";
 import './css/ParticipationList.css';
 import closeIcon from '@/assets/close.svg';
 import profilePic from '@/assets/user.png';
-import { useRef, useState, type MouseEvent } from "react";
+import { useMemo, useRef, useState, type MouseEvent } from "react";
 import type { Participation } from "@/model/Participation";
 import { ParticipationInfoTooltip } from "./ParticipationInfoTooltip";
 
 const BLUR_TIMEOUT_MS = 500;
 
 export const ParticipationList = observer(() => {
-    const { participations, isListModalOpen } = participationsStore;
+    const { participations, isListModalOpen, authorities } = participationsStore;
+
     const [hoveredUser, setHoveredUser] = useState<Participation | null>(null);
     const [top, setTop] = useState<number | null>(null);
     const [left, setLeft] = useState<number | null>(null);
@@ -18,10 +19,17 @@ export const ParticipationList = observer(() => {
     const timeoutRef = useRef<number | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
 
+    const canInvite = useMemo(() => {
+        if (!authorities) {
+            return false;
+        }
+        return authorities.some(au => au === 'INVITE_USERS' || au === 'ALL');
+    }, [authorities]);
+
     if (!isListModalOpen) {
         return;
     }
-
+    
     const changeHoveredUser = (p: Participation, e: MouseEvent<HTMLDivElement>) => {
         if (timeoutRef.current) {
             onBlurCancel();
@@ -83,6 +91,17 @@ export const ParticipationList = observer(() => {
                         </div>
                     ))}
                 </div>
+                
+                {canInvite ? (
+                    <div className="invite_btn_holder">
+                        <div className="invite_btn"
+                            onClick={() => participationsStore.openInviteModal()}
+                        >
+                            Пригласить пользователя
+                        </div>
+                    </div>
+                ) : null}
+                
             </div>
                 {hoveredUser ? (
                     <ParticipationInfoTooltip 

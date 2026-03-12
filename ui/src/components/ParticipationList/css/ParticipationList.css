@@ -76,3 +76,25 @@
 .participation_info:hover {
     background-color: blueviolet;
 }
+
+.invite_btn_holder {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.invite_btn {
+    padding: 10px;
+    color: white;
+    background-color: #3b82f6;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 7px;
+    transition: 0.15s;
+    width: 65%;
+    text-align: center;
+}
+
+.invite_btn:hover {
+    background-color: #1c71fb;
+}

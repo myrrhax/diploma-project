@@ -94,7 +94,7 @@ export const ParticipationInfoTooltip = observer(({left, top, participation, can
 
             {canUpdate ? (
                 <div className="save_btn_holder">
-                    <button className="save_btn">Обновить права</button>
+                    <div onClick={() => alert('Права обновлены!')} className="save_btn">Обновить права</div>
                 </div>
             ) : null}
         </div>,

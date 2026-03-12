@@ -1,0 +1,135 @@
+.invite_modal__overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.invite_modal__container {
+    background-color: #1e293b;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.invite_modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #334155;
+}
+
+.invite_modal__header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.invite_modal__header img {
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+}
+
+.invite_modal__body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.invite_modal__field_group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.invite_modal__label {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.invite_modal__input {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #475569;
+    background-color: #0f172a;
+    color: white;
+    outline: none;
+    font-family: inherit;
+}
+
+.invite_modal__input:focus {
+    border-color: #3b82f6;
+}
+
+.invite_modal__input--error {
+    border-color: #ef4444;
+}
+
+.invite_modal__error_text {
+    color: #ef4444;
+    font-size: 12px;
+}
+
+.invite_modal__empty_text {
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.invite_modal__checkbox_list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.invite_modal__checkbox_item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.invite_modal__checkbox_label {
+    font-size: 14px;
+}
+
+.invite_modal__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.invite_modal__btn_cancel {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #475569;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.invite_modal__btn_submit {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    background-color: #3b82f6;
+    color: white;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.invite_modal__btn_submit:disabled {
+    background-color: #64748b;
+    cursor: not-allowed;
+}

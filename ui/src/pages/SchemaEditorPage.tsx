@@ -14,6 +14,7 @@ import './css/SchemaEditorPage.css';
 import { wsConnectionStore } from '@/store/WsConnectionStore';
 import { ParticipationList } from '@/components/ParticipationList/ParticipationList';
 import { participationsStore } from '@/store/ParticipationStore';
+import { InviteModal } from '@/components/ParticipationList/InviteModal';
 
 const FAKE_USERS = [
     { id: '1', email: 'admin@test.com', isConfirmed: true },
@@ -60,6 +61,7 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
             isMounted = false;
             schemaSocketService.leaveSchema();
             erStore.setSchema(null);
+            participationsStore.clear();
         };
     }, [id, isReadonly, versionId]);
 
@@ -78,13 +80,12 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
         }
         setIsSaveModalOpen(false);
     }
-
-    
     
     return (
         <div className="schema_page__container">
             <ErrorToasts />
             <ParticipationList />
+            <InviteModal />
             {isEditable && (
                 <SaveVersionModal
                     isOpen={isSaveModalOpen}

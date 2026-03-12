@@ -24,6 +24,16 @@ class ParticipationsStore {
         });
     }
 
+    openInviteModal() {
+        this.isListModalOpen = false;
+        this.isInviteModalOpen = true;
+    }
+
+    closeInviteModal() {
+        this.isListModalOpen = true;
+        this.isInviteModalOpen = false;
+    }
+
     openListModal(schemaId: string) {
         this.currentSchemaId = schemaId;
         this.isListModalOpen = true;
@@ -47,17 +57,20 @@ class ParticipationsStore {
         }
     }
 
-    openInviteModal(schemaId: string) {
-        this.currentSchemaId = schemaId;
-        this.isInviteModalOpen = true;
-    }
-
-    closeInviteModal() {
-        this.isInviteModalOpen = false;
-    }
-
     async sendInvite(email: string, authorities: AuthorityType[]) {
-        
+        try {
+            this.isLoading = true;
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            runInAction(() => {
+                this.isLoading = false;
+                alert(`Пользователь ${email} успешно приглашен!`);
+                this.closeInviteModal();
+            });
+        } catch (error) {
+            runInAction(() => { this.isLoading = false; });
+            alert("Ошибка при отправке приглашения");
+        }
     }
 
     clear() {
