@@ -16,14 +16,21 @@ import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.repository.VersionRepository;
+import com.github.myrrhax.diploma_project.security.Token;
 import com.github.myrrhax.diploma_project.security.TokenFactory;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import java.util.List;
 import java.util.Random;
@@ -72,6 +79,24 @@ public class VersionServiceITest extends AbstractIntegrationTest {
 
         var token = tokenFactory.refreshToken(entity.getId(), entity.getEmail(), List.of(JwtAuthority.ROLE_USER.name()));
         tokenUser = tokenFactory.fromToken(token);
+
+    }
+
+    @BeforeEach
+    public void setupContext() {
+        SecurityContext ctx = SecurityContextHolder.createEmptyContext();
+
+        Authentication authentication = new PreAuthenticatedAuthenticationToken(tokenUser, "Bearer",
+                List.of(new SimpleGrantedAuthority(JwtAuthority.ROLE_USER.toString())));
+        ctx.setAuthentication(authentication);
+
+        SecurityContextHolder.setContext(ctx);
+    }
+
+    @AfterAll
+    public void deleteAdminUser() {
+        userRepository.deleteAll();
+        SecurityContextHolder.clearContext();
     }
 
     @BeforeEach

@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +46,7 @@ public class SchemaServiceImpl extends SchemaService {
 
     @Override
     @Transactional
+    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #command.schemeId, 'MODIFY_SCHEME')")
     public MetadataCommandProcessResult process(MetadataCommand command) {
         // ToDo сереализовать команду
         log.info("Processing command for schema {}", command.getSchemeId());
@@ -67,6 +69,7 @@ public class SchemaServiceImpl extends SchemaService {
 
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("@authorityCheckService.hasAccess(principal.token.userId, #schemeId)")
     public SchemeDTO getScheme(UUID schemeId) {
         return schemeRepository.findById(schemeId)
                     .map(schemaMapper::toDto)
@@ -75,6 +78,7 @@ public class SchemaServiceImpl extends SchemaService {
 
     @Override
     @Transactional
+    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #schemeId, 'ALL')")
     public void deleteScheme(UUID schemeId) {
         if (!schemeRepository.existsById(schemeId)) {
             throw new SchemaNotFoundException(schemeId);

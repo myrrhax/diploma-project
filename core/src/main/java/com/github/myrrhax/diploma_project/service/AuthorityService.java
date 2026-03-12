@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +45,7 @@ public class AuthorityService {
     }
 
     @CacheEvict(value = "authorities", key = "{#userId, #schemeId}")
+    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #schemeId, 'ALL')")
     public void grantUser(UUID userId, UUID schemeId, List<AuthorityType> types) {
         if (getAuthorities(userId, schemeId).isEmpty()) {
             throw new ApplicationException("Can't grant user authorities, invite user instead", HttpStatus.BAD_REQUEST);
@@ -70,6 +72,7 @@ public class AuthorityService {
     }
 
     @CacheEvict(value = "authorities", key = "{#userId, #schemeId}")
+    @PreAuthorize("@authorityCheckService.hasAuthority(#principal.token.userId, #schemeId, 'ALL')")
     public void discardUser(UUID userId, UUID schemeId, Set<AuthorityType> types) {
         if (types.contains(AuthorityType.READ_SCHEME)) {
             throw new ApplicationException("Can't discard READ_SCHEME authority from user, kick user instead",

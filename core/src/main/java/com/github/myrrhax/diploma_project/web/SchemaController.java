@@ -14,7 +14,6 @@ import com.github.myrrhax.shared.model.AuthorityType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -57,18 +56,14 @@ public class SchemaController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("@authorityCheckService.hasAccess(#tokenUser.token.userId, #id)")
     @JsonView(ViewMarkers.Stateful.class)
-    public ResponseEntity<SchemeDTO> getScheme(@PathVariable UUID id,
-                                               @AuthenticationPrincipal TokenUser tokenUser) {
+    public ResponseEntity<SchemeDTO> getScheme(@PathVariable UUID id) {
         return ResponseEntity
                 .ok(this.schemaService.getScheme(id));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("@authorityCheckService.hasAuthority(#tokenUser.token.userId, #id, 'ALL')")
-    public ResponseEntity<Void> deleteScheme(@PathVariable UUID id,
-                                             @AuthenticationPrincipal TokenUser tokenUser) {
+    public ResponseEntity<Void> deleteScheme(@PathVariable UUID id) {
         this.schemaService.deleteScheme(id);
 
         return ResponseEntity.noContent()
@@ -77,9 +72,7 @@ public class SchemaController {
 
     // ToDo вынести в отдельный контроллер
     @PostMapping("/grant")
-    @PreAuthorize("@authorityCheckService.hasAuthority(#tokenUser.token.userId, #dto.schemeId, 'ALL')")
-    public ResponseEntity<Void> grantUser(@RequestBody GrantUserDTO dto,
-                                          @AuthenticationPrincipal TokenUser tokenUser) {
+    public ResponseEntity<Void> grantUser(@RequestBody GrantUserDTO dto) {
         if (dto.authorities().contains(AuthorityType.ALL))
             throw new ApplicationException("Creator can't grant full access", HttpStatus.BAD_REQUEST);
 
@@ -88,18 +81,15 @@ public class SchemaController {
     }
 
     @PostMapping("/discard")
-    @PreAuthorize("@authorityCheckService.hasAuthority(#tokenUser.token.userId, #dto.schemeId, 'ALL')")
-    public ResponseEntity<Void> discardUser(@RequestBody DiscardUserDTO dto,
-                                            @AuthenticationPrincipal TokenUser tokenUser) {
-        authorityService.discardUser(tokenUser.getToken().userId(), dto.schemeId(), dto.types());
+    public ResponseEntity<Void> discardUser(@RequestBody DiscardUserDTO dto) {
+        authorityService.discardUser(dto.userId(), dto.schemeId(), dto.types());
 
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/readonly-version/{id}")
     @JsonView(ViewMarkers.Stateful.class)
-    public ResponseEntity<SchemeDTO> findReadonlyVersion(@PathVariable Long id,
-                                                         @AuthenticationPrincipal TokenUser tokenUser) {
+    public ResponseEntity<SchemeDTO> findReadonlyVersion(@PathVariable Long id) {
         return ResponseEntity.ok(schemaService.findReadonlyWithVersion(id));
     }
 }
