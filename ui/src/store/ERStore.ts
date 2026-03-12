@@ -31,7 +31,6 @@ class ERStore {
     offsetX = 0;
     offsetY = 0;
 
-    lastTick: number = Date.now();
     draggingTableId: string | null = null;
 
     contextMenu = { visible: false, x: 0, y: 0, screenX: 0, screenY: 0 };
@@ -226,13 +225,6 @@ class ERStore {
         if (table) {
             table.x += dx / this.scale;
             table.y += dy / this.scale;
-            if (this.draggingTableId) {
-                const now = Date.now();
-                if (now - this.lastTick > this.MOVE_TICK_MS) {
-                    this.sendCoords();
-                }
-                this.lastTick = now;
-            }
         }
     }
 
