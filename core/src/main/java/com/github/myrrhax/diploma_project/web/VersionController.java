@@ -26,9 +26,7 @@ public class VersionController {
 
     @GetMapping("/schema/{id}")
     @JsonView(ViewMarkers.Basic.class)
-    @PreAuthorize("@authorityCheckService.hasAccess(#tokenUser.token.userId, #schemaId)")
-    public List<VersionDTO> getAll(@PathVariable("id") UUID schemaId,
-                                                   @AuthenticationPrincipal TokenUser tokenUser) {
+    public List<VersionDTO> getAll(@PathVariable("id") UUID schemaId) {
         log.info("Fetching schema versions for schema with id {}", schemaId);
 
         return versionService.findAll(schemaId);

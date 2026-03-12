@@ -30,7 +30,6 @@ public class ParticipationController {
     private final AuthorityService authorityService;
 
     @PostMapping("/invite")
-    @PreAuthorize("@authorityCheckService.hasAuthority(#tokenUser.token.userId, #dto.schemeId, 'INVITE_USERS')")
     public ResponseEntity<Void> inviteUser(@RequestBody @Validated InviteUserDTO dto,
                                            @AuthenticationPrincipal TokenUser tokenUser) {
         participationService.sendInvitation(tokenUser.getToken().userId(),

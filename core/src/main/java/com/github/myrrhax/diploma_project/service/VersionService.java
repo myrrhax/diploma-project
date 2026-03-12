@@ -92,6 +92,7 @@ public class VersionService {
 
     @Cacheable(value = "versions", key = "#schemaId")
     @Transactional(readOnly = true)
+    @PreAuthorize("@authorityCheckService.hasAccess(principal.token.userId, #schemaId)")
     public List<VersionDTO> findAll(UUID schemaId) {
         log.info("Fetching all versions for schema {}", schemaId);
         return versionRepository.findAllBySchemeId(schemaId).stream()
