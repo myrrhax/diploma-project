@@ -11,4 +11,6 @@ public interface InvitationRepository extends JpaRepository<InvitationEntity, UU
     @Override
     @EntityGraph(attributePaths = { "scheme" })
     Optional<InvitationEntity> findById(UUID id);
+
+    boolean existsByReceiverEmailAndSchemeId(String email, UUID schemeId);
 }

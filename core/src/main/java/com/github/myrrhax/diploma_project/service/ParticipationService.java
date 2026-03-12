@@ -62,6 +62,10 @@ public class ParticipationService {
         if (schemeRepository.containsUserWithEmailInScheme(email, schemeId)) {
             throw new ApplicationException("User already participating in scheme " + schemeId, HttpStatus.BAD_REQUEST);
         }
+        if (invitationRepository.existsByReceiverEmailAndSchemeId(email, schemeId)) {
+            throw new ApplicationException("Invitation is already sent to user " + email, HttpStatus.BAD_REQUEST);
+        }
+
         UserEntity initiator = userRepository.findById(sender).get();
         String[] parsedAuthorities = buildAuthorities(authorities);
         log.info("Applying authorities [{}]", String.join(",", parsedAuthorities));
