@@ -83,7 +83,7 @@ public class SchemaController {
         if (dto.authorities().contains(AuthorityType.ALL))
             throw new ApplicationException("Creator can't grant full access", HttpStatus.BAD_REQUEST);
 
-        authorityService.grantUser(tokenUser.getToken().userId(), dto.schemeId(), dto.authorities());
+        authorityService.grantUser(dto.userId(), dto.schemeId(), dto.authorities());
         return ResponseEntity.ok().build();
     }
 
