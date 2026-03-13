@@ -70,23 +70,6 @@ public class SchemaController {
                 .build();
     }
 
-    // ToDo вынести в отдельный контроллер
-    @PostMapping("/grant")
-    public ResponseEntity<Void> grantUser(@RequestBody GrantUserDTO dto) {
-        if (dto.authorities().contains(AuthorityType.ALL))
-            throw new ApplicationException("Creator can't grant full access", HttpStatus.BAD_REQUEST);
-
-        authorityService.grantUser(dto.userId(), dto.schemeId(), dto.authorities());
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/discard")
-    public ResponseEntity<Void> discardUser(@RequestBody DiscardUserDTO dto) {
-        authorityService.discardUser(dto.userId(), dto.schemeId(), dto.types());
-
-        return ResponseEntity.ok().build();
-    }
-
     @GetMapping("/readonly-version/{id}")
     @JsonView(ViewMarkers.Stateful.class)
     public ResponseEntity<SchemeDTO> findReadonlyVersion(@PathVariable Long id) {

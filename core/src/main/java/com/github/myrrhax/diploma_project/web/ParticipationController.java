@@ -1,12 +1,16 @@
 package com.github.myrrhax.diploma_project.web;
 
+import com.github.myrrhax.diploma_project.model.dto.GrantUserDTO;
 import com.github.myrrhax.diploma_project.model.dto.InviteUserDTO;
 import com.github.myrrhax.diploma_project.model.dto.ParticipationDto;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.AuthorityService;
 import com.github.myrrhax.diploma_project.service.ParticipationService;
+import com.github.myrrhax.shared.model.AuthorityType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -60,5 +64,14 @@ public class ParticipationController {
         return ResponseEntity.ok(
                 participationService.getParticipationInfo(id, user.getToken().userId())
         );
+    }
+
+    @PostMapping("/grant")
+    public ResponseEntity<Void> grantUser(@RequestBody GrantUserDTO dto) {
+        if (dto.authorities().contains(AuthorityType.ALL))
+            throw new ApplicationException("Creator can't grant full access", HttpStatus.BAD_REQUEST);
+
+        authorityService.grantUser(dto.userId(), dto.schemeId(), dto.authorities());
+        return ResponseEntity.ok().build();
     }
 }

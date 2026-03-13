@@ -57,6 +57,12 @@ public class AuthorityService {
         var scheme = schemeRepository.findById(schemeId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
         var user = userRepository.findById(userId).orElseThrow();
+
+        log.info("Removing old authorities from database");
+
+        authorityRepository.deleteAllForUserAndScheme(schemeId, user.getId());
+        authorityRepository.flush();
+
         log.info("Applying authorities {} for user {} and scheme {}", types, userId, schemeId);
 
         List<AuthorityEntity> authorities = new LinkedList<>();

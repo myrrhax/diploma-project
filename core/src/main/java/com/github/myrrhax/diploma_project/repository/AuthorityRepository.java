@@ -3,6 +3,7 @@ package com.github.myrrhax.diploma_project.repository;
 import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -14,4 +15,8 @@ public interface AuthorityRepository extends JpaRepository<AuthorityEntity, Long
     Set<AuthorityEntity> findAllAuthoritiesForUserAndScheme(UUID userId, UUID schemeId);
     @EntityGraph(attributePaths = { "user" })
     List<AuthorityEntity> findAllBySchemeId(UUID schemaId);
+
+    @Modifying
+    @Query("delete from AuthorityEntity au where au.scheme.id = :schemeId and au.user.id = :userId")
+    void deleteAllForUserAndScheme(UUID schemeId, UUID userId);
 }
