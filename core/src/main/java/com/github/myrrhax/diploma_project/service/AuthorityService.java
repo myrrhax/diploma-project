@@ -58,6 +58,10 @@ public class AuthorityService {
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
         var user = userRepository.findById(userId).orElseThrow();
 
+        if (scheme.getCreator().getId().equals(user.getId())) {
+            throw new ApplicationException("Can't change creator access", HttpStatus.BAD_REQUEST);
+        }
+
         log.info("Removing old authorities from database");
 
         authorityRepository.deleteAllForUserAndScheme(schemeId, user.getId());
