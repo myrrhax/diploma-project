@@ -28,8 +28,9 @@ export const ParticipationInfoTooltip = observer(({left, top, participation, can
     const [canUpdate, setCanUpdate] = useState(false);
 
     const currentUserAuthoritySet = useMemo(() => {
-        return new Set(newUserAuthorities);
-    }, [newUserAuthorities]);
+        console.debug('Current user authorities update');
+        return new Set(participation.authorities);
+    }, [participation.authorities]);
 
     const isOwner = useMemo(() => {
         return new Set(participation.authorities).has('ALL');
@@ -81,7 +82,7 @@ export const ParticipationInfoTooltip = observer(({left, top, participation, can
                         <label className="tooltip_authority_container" key={au} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '4px' }}>
                             <input type="checkbox"
                                 disabled={!canChangeAuthorities || au === 'READ_SCHEME'}
-                                checked={currentUserAuthoritySet.has(au)}
+                                checked={newUserAuthorities.includes(au)}
                                 onChange={(e: ChangeEvent<HTMLInputElement>) => handleAuthorityChange(au, e.target.checked)}
                             />
                             <span className="tooltip_authority_label">
