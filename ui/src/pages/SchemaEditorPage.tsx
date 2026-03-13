@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useParams } from 'react-router-dom';
 import { erStore } from '@/store/ERStore';
@@ -31,11 +31,18 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
     const [isUsersOpen, setUsersOpen] = useState(true);
     const { schema, state, isLoading } = erStore;
     const { isConnected } = wsConnectionStore;
+    const { authorities } = participationsStore;
 
 
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
-    const isEditable = !isReadonly && schema?.currentVersion?.isWorkingCopy === true;
+    const isEditable = useMemo(() => {
+        return !isReadonly && schema?.currentVersion?.isWorkingCopy;
+    }, [isReadonly, schema]);
+
+    const canVersionate = useMemo(() => {
+        return !isReadonly && schema?.currentVersion?.isWorkingCopy && authorities?.some(au => au === 'ALL' || au === 'VERSION');
+    }, [isReadonly, schema, authorities]);
 
     if (!id) return null;
 
@@ -101,19 +108,19 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
                         <div className="header_left">
                             <h2 className="schema_page__name">{schema?.name}</h2>
                         </div>
-                        {isEditable && (
                             <div className="schema_controls">
-                                <button onClick={() => participationsStore.openListModal(id)}>
+                                <button className='btn_primary' onClick={() => participationsStore.openListModal(id)}>
                                     Участники
                                 </button>
-                                <button 
-                                    className="btn_primary" 
-                                    onClick={() => setIsSaveModalOpen(true)}
-                                >
-                                    Сохранить версию
-                                </button>
+                                {canVersionate ? (
+                                    <button 
+                                        className="btn_primary" 
+                                        onClick={() => setIsSaveModalOpen(true)}
+                                    >
+                                        Сохранить версию
+                                    </button>
+                                ) : null}
                             </div>
-                        )}
                     </header>
 
                     <div className="schema_page__workspace">

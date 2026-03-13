@@ -90,7 +90,7 @@ export const ERDiagram = observer(() => {
             alert("Вы работаете с версией в режиме чтения. Изменения запрещены.");
             return;
         } 
-        if (!authorities?.includes('MODIFY_SCHEME')) {
+        if (!authorities?.some(au => au === 'MODIFY_SCHEME' || au === 'ALL')) {
             return;
         }
         action();
