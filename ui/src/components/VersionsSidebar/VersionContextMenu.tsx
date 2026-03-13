@@ -1,14 +1,20 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { contextMenuStore } from '@/store/VersionContextMenuStore';
 import { versionsStore } from '@/store/VersionsStore'; 
 import { createPortal } from 'react-dom';
 import './css/VersionContextMenu.css';
+import { participationsStore } from '@/store/ParticipationStore';
 
 export const VersionContextMenu = observer(() => {
     const { isOpen, position, version } = contextMenuStore;
     const menuRef = useRef<HTMLDivElement>(null);
     const [activeSubMenu, setActiveSubMenu] = useState<'generate' | 'diff' | null>(null);
+    const { authorities } = participationsStore;
+
+    const canVersion = useMemo(() => {
+        return authorities?.some(au => au === 'ALL' || au === 'VERSION') ?? false;
+    }, [authorities]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -45,10 +51,18 @@ export const VersionContextMenu = observer(() => {
         const url = `/schema/${version.schemeId}/version/${version.versionId}`;
         window.open(url, '_blank', 'noopener,noreferrer');
     };
-    const onRollback = () => versionsStore.changeHead(version);
+    const onRollback = () => {
+        if (canVersion) {
+            versionsStore.changeHead(version);
+        }
+    }
     const onGenerate = (format: string) => console.log(`Generate ${format}:`, version.versionId);
     const onDiff = (format: string) => console.log(`Diff ${format}:`, version.versionId);
-    const onDelete = () => versionsStore.deleteVersion(version);
+    const onDelete = () => {
+        if (canVersion) {
+            versionsStore.deleteVersion(version);
+        }
+    }
 
     return createPortal(
         <div 
@@ -57,15 +71,21 @@ export const VersionContextMenu = observer(() => {
             style={{ top: position.y, left: position.x }}
             onContextMenu={(e) => e.preventDefault()} 
         >
-            <div className="menu-item" onClick={() => handleAction(onView)}>
-                Просмотреть версию
-            </div>
-            <div className="menu-item" onClick={() => handleAction(onRollback)}>
-                Перейти к версии
-            </div>
-            
-            <div className="menu-divider" />
+            {canVersion ? (
+                <>
+                    <div className="menu-item" onClick={() => handleAction(onView)}>
+                        Просмотреть версию
+                    </div>
+                    <div className="menu-item" onClick={() => handleAction(onRollback)}>
+                        Перейти к версии
+                    </div>
+                    <div className="menu-item item-danger" onClick={() => handleAction(onDelete)}>
+                        Удалить версию
+                    </div>
 
+                    <div className="menu-divider" />
+                </>
+            ) : null}
             <div 
                 className="menu-item has-submenu"
                 onMouseEnter={() => setActiveSubMenu('generate')}
@@ -97,12 +117,6 @@ export const VersionContextMenu = observer(() => {
                         <div className="menu-item" onClick={() => handleAction(() => onDiff('Liquibase'))}>Liquibase</div>
                     </div>
                 )}
-            </div>
-
-            <div className="menu-divider" />
-
-            <div className="menu-item item-danger" onClick={() => handleAction(onDelete)}>
-                Удалить версию
             </div>
         </div>,
         document.body
