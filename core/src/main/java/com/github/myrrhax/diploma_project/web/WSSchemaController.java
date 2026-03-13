@@ -93,7 +93,7 @@ public class WSSchemaController {
         TokenUser tokenUser = (TokenUser) authentication.getPrincipal();
         if (tokenUser == null || !checkService.hasAuthority(
                 tokenUser.getToken().userId(), schemaId, AuthorityType.CHANGE_HEAD.name())) {
-            throw new AccessDeniedException("User can't delete version");
+            throw new AccessDeniedException("User can't change version");
         }
         VersionDTO updatedVersion = versionService.changeHead(schemaId, dto.currentVersionId(), dto.toVersionId());
 

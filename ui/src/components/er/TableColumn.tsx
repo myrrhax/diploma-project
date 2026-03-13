@@ -9,9 +9,10 @@ import { columnModalsStore } from "@/store/ColumnModalsStore";
 interface TableColumnProps {
     col: Column;
     table: Table;
+    canModify: boolean;
 }
 
-export const TableColumn = observer(({ col, table }: TableColumnProps) => {
+export const TableColumn = observer(({ canModify, col, table }: TableColumnProps) => {
     const srcIdx = referenceStore.sourceCols.indexOf(col.id);
     const tgtIdx = referenceStore.targetCols.indexOf(col.id);
     const isSource = srcIdx !== -1;
@@ -22,8 +23,8 @@ export const TableColumn = observer(({ col, table }: TableColumnProps) => {
     const isEditMenuOpen = erStore.activeMenuId === col.id;
 
     const handleModification = (action: () => void) => {
-        if (!erStore.isEditable) {
-            alert("Вы работаете с версией в режиме чтения. Изменения запрещены.");
+        if (!canModify) {
+            alert("Вы не можете изменять схему.");
             return;
         }
         action();

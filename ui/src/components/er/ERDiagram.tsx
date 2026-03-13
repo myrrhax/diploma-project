@@ -13,6 +13,7 @@ import { columnModalsStore } from '@/store/ColumnModalsStore';
 import { DeleteColumnModal } from './DeleteColumnModal';
 import { EditTableModal } from './EditTableModal';
 import { participationsStore } from '@/store/ParticipationStore';
+import { OverlaySpinner } from '../SpinnerLoader/SpinnerLoader';
 
 const getPortPosition = (table: Table, colId: string, side: 'left' | 'right') => {
     const column = table.columns[colId];
@@ -56,13 +57,12 @@ const getTrunkPath = (
 
 export const ERDiagram = observer(() => {
     if (!erStore.state) {
-        return (<div>Загрузка</div>);
+        return (<OverlaySpinner text='Загрузка схемы...' />);
     }
     const containerRef = useRef<HTMLDivElement>(null);
     const [isPanning, setPanning] = useState(false);
     const { authorities } = participationsStore; 
     const { tables, references } = erStore.state;
-
 
     const handleUp = () => { 
         erStore.setDraggingTable(null);
@@ -91,7 +91,6 @@ export const ERDiagram = observer(() => {
             return;
         } 
         if (!authorities?.includes('MODIFY_SCHEME')) {
-            alert('У вас нет прав на модификацию схемы');
             return;
         }
         action();

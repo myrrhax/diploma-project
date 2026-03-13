@@ -33,7 +33,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SchemaController {
     private final SchemaService schemaService;
-    private final AuthorityService authorityService;
 
     @PostMapping
     public ResponseEntity<SchemeDTO> createScheme(@RequestBody @Validated CreateSchemeDTO createSchemeDTO,

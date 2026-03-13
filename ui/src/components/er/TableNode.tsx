@@ -5,15 +5,24 @@ import { AddColumnMenu } from './AddColumnMenu';
 import { TableColumn } from './TableColumn';
 import './css/TableNode.css';
 import { tableModalsStore } from '@/store/TableModalsStore';
+import { participationsStore } from '@/store/ParticipationStore';
+import { useMemo } from 'react';
 
 interface TableNodeProps {
     table: Table;
 }
 
 export const TableNode = observer(({ table }: TableNodeProps) => {
+    const { authorities } = participationsStore;
+    const { isEditable } = erStore;
+
+    const canModify = useMemo(() => {
+        return (authorities?.some(au => au === 'ALL' || au === 'MODIFY_SCHEME') && isEditable) ?? false;
+    }, [authorities, isEditable]);
+
     const handleModification = (action: () => void) => {
-        if (!erStore.isEditable) {
-            alert("Вы работаете с версией в режиме чтения. Изменения запрещены.");
+        if (!canModify) {
+            alert("Вы не можете изменять схему.");
             return;
         }
         action();
@@ -64,17 +73,17 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
 
             <div className="er_column_list">
                 {Object.values(table.columns).map((col, _) => (
-                    <TableColumn key={col.id} table={table} col={col} />
+                    <TableColumn canModify={canModify} key={col.id} table={table} col={col} />
                 ))}
             </div>
 
-            {erStore.isEditable && (
+            {canModify && (
                 <button className="er_add_col_btn" onClick={() => erStore.setActiveMenuId(table.id)}>
                     Добавить
                 </button>
             )}
 
-            {erStore.isEditable && erStore.activeMenuId === table.id && (
+            {canModify && erStore.activeMenuId === table.id && (
                 <AddColumnMenu 
                     tableId={ table.id }
                     onClose={(col) => {

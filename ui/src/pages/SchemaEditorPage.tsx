@@ -30,14 +30,14 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [isUsersOpen, setUsersOpen] = useState(true);
     const { schema, state, isLoading } = erStore;
+    const { isConnected } = wsConnectionStore;
+
 
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
     const isEditable = !isReadonly && schema?.currentVersion?.isWorkingCopy === true;
 
     if (!id) return null;
-
-    const { isConnected } = wsConnectionStore;
 
     useEffect(() => {
         let isMounted = true;
@@ -93,7 +93,7 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
                     onClose={() => setIsSaveModalOpen(false)} 
                 />
             )}
-            {isLoading || !isConnected ? (
+            {isLoading || (isEditable && !isConnected) ? (
                 <OverlaySpinner text='Загрузка...' />
             ) : state != null ? (
                 <>
