@@ -66,7 +66,15 @@ public class ParticipationService {
             throw new ApplicationException("Invitation is already sent to user " + email, HttpStatus.BAD_REQUEST);
         }
 
-        UserEntity initiator = userRepository.findById(sender).get();
+        UserEntity initiator = userRepository.findById(sender).orElseThrow();
+        Set<AuthorityType> initiatorAuthorities = authorityService.getAuthorities(initiator.getId(), schemeId);
+
+        if (!initiatorAuthorities.contains(AuthorityType.ALL)
+                && initiatorAuthorities.size() < authorities.size()
+                || authorities.stream()
+                    .anyMatch(au -> !initiatorAuthorities.contains(au))) {
+            throw new ApplicationException("User can't grant more authorities than he have", HttpStatus.FORBIDDEN);
+        }
         String[] parsedAuthorities = buildAuthorities(authorities);
         log.info("Applying authorities [{}]", String.join(",", parsedAuthorities));
 
