@@ -33,6 +33,22 @@ class ParticipationApiService extends AbstractApiService {
         }
     }
 
+    async grant(schemeId: string, userId: string, authorities: AuthorityType[]): Promise<ErrorResponse | null> {
+        try {
+            await $api.post('/participations/grant', {
+                userId,
+                schemeId,
+                authorities
+            });
+
+            return null;
+        } catch (e: any) {
+            console.error('Failed to grant');
+
+            return this.processApiError(e);
+        }
+    }
+
     async loadParticipationInfo(schemaId: string): Promise<Participation> {
         try {
             const response = await $api.get<Participation>('/participations/my/' + schemaId);

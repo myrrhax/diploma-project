@@ -61,6 +61,13 @@ export const ParticipationInfoTooltip = observer(({left, top, participation, can
         setNewUserAuthorities(updatedAuthorities);
     };
 
+    const handleUpdateAuthorities = async () => {
+        if (participationsStore.isLoading) {
+            return;
+        }
+        await participationsStore.grantUser(participation, newUserAuthorities);
+    }
+
     return createPortal(
         <div className="participation_info_tooltip__container" 
             style={{ top, left }}
@@ -95,7 +102,13 @@ export const ParticipationInfoTooltip = observer(({left, top, participation, can
 
             {canUpdate ? (
                 <div className="save_btn_holder">
-                    <div onClick={() => alert('Права обновлены!')} className="save_btn">Обновить права</div>
+                    <button
+                        disabled={participationsStore.isLoading} 
+                        onClick={handleUpdateAuthorities} 
+                        className="save_btn"
+                    >
+                        { participationsStore.isLoading ? 'Обновление...' : 'Обновить права' } 
+                    </button>
                 </div>
             ) : null}
         </div>,

@@ -5,6 +5,8 @@ import type { Participation } from "@/model/Participation";
 import { errorsStore } from "./ErrorsStore";
 
 class ParticipationsStore {
+    readonly SERVER_ERROR_MESSAGE = 'Ошибка на стороне сервера, попробуйте позже';
+
     authorities: AuthorityType[] | null = null;
     participations: Participation[] = [];
     
@@ -58,6 +60,40 @@ class ParticipationsStore {
         }
     }
 
+    async grantUser(participation: Participation, newAuthorities: AuthorityType[]) {
+        if (!this.currentSchemaId) {
+            return;
+        }
+
+        this.isLoading = true;
+        let errorMessage;
+        try {
+            const error = await participationApiService.grant(this.currentSchemaId,
+                participation.user.id,
+                newAuthorities
+            );
+            if (error) {
+                errorMessage = error.message;
+            }
+        } catch (e: any) {
+            errorMessage = this.SERVER_ERROR_MESSAGE;
+        }
+
+        if (errorMessage) {
+            runInAction(() => {
+                errorsStore.addError(errorMessage);
+                this.isLoading = false;
+            });
+
+            return;
+        }
+
+        runInAction(() => {
+            this.isLoading = false;
+            this.closeListModal();
+        });
+    }
+
     async sendInvite(email: string, authorities: AuthorityType[]): Promise<boolean> {
         if (!this.currentSchemaId) {
             return false;
@@ -72,9 +108,8 @@ class ParticipationsStore {
                 if (error) {
                     errorMessage = error.message;
                 }
-
             } catch (e: any) {
-                errorMessage = 'Ошибка на стороне сервера, попробуйте позже';
+                errorMessage = this.SERVER_ERROR_MESSAGE;
             }
 
             if (errorMessage) {
