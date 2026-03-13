@@ -6,5 +6,4 @@ export interface Participation {
     authorities: AuthorityType[];
 }
 
-export type AuthorityType = 'READ_SCHEME' | 'MODIFY_SCHEME' | 'SNAPSHOT_VERSION' | 'DELETE_VERSIONS'
-    | 'INVITE_USERS' | 'CHANGE_HEAD' | 'ALL';
+export type AuthorityType = 'READ_SCHEME' | 'MODIFY_SCHEME' | 'INVITE_USERS' | 'VERSION' | 'ALL';

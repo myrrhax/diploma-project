@@ -63,7 +63,7 @@ public class VersionService {
         currentVersion.setHashSum(hashSum);
         currentVersion.setVersionedAt(LocalDateTime.now());
         versionRepository.save(currentVersion);
-        log.info("Old schema version was versionated for schema with id: {}", schemaId);
+        log.info("Old schema version was changed for schema with id: {}", schemaId);
 
         VersionEntity newVersion = VersionEntity.builder()
                 .scheme(currentVersion.getScheme())

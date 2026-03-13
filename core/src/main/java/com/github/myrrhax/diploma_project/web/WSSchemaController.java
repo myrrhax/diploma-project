@@ -60,7 +60,7 @@ public class WSSchemaController {
                             Authentication authentication) {
         TokenUser tokenUser = (TokenUser) authentication.getPrincipal();
         if (tokenUser == null || !checkService.hasAuthority(
-                tokenUser.getToken().userId(), schemaId, AuthorityType.SNAPSHOT_VERSION.name())) {
+                tokenUser.getToken().userId(), schemaId, AuthorityType.VERSION.name())) {
             throw new AccessDeniedException("User can't save version");
         }
         List<VersionDTO> newVersion = versionService.saveVersion(schemaId, dto.tag());
@@ -76,7 +76,7 @@ public class WSSchemaController {
                             Authentication authentication) {
         TokenUser tokenUser = (TokenUser) authentication.getPrincipal();
         if (tokenUser == null || !checkService.hasAuthority(
-                tokenUser.getToken().userId(), schemaId, AuthorityType.DELETE_VERSIONS.name())) {
+                tokenUser.getToken().userId(), schemaId, AuthorityType.VERSION.name())) {
             throw new AccessDeniedException("User can't delete version");
         }
         List<VersionDTO> versions = versionService.deleteVersion(schemaId, dto.versionId());
@@ -92,7 +92,7 @@ public class WSSchemaController {
                               Authentication authentication) {
         TokenUser tokenUser = (TokenUser) authentication.getPrincipal();
         if (tokenUser == null || !checkService.hasAuthority(
-                tokenUser.getToken().userId(), schemaId, AuthorityType.CHANGE_HEAD.name())) {
+                tokenUser.getToken().userId(), schemaId, AuthorityType.VERSION.name())) {
             throw new AccessDeniedException("User can't change version");
         }
         VersionDTO updatedVersion = versionService.changeHead(schemaId, dto.currentVersionId(), dto.toVersionId());

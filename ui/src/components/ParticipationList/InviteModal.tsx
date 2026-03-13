@@ -9,17 +9,13 @@ import './css/InviteModal.css';
 const emailSchema = z.string().email("Введите корректный email адрес");
 
 const assignableAuthorities: AuthorityType[] = [
-    'SNAPSHOT_VERSION', 
-    'CHANGE_HEAD', 
-    'DELETE_VERSIONS', 
+    'VERSION', 
     'MODIFY_SCHEME',
     'INVITE_USERS'
 ];
 
 const authorityLabels: Partial<Record<AuthorityType, string>> = {
-    'SNAPSHOT_VERSION': 'Создание новых версий',
-    'CHANGE_HEAD': 'Изменение текущей версии',
-    'DELETE_VERSIONS': 'Удаление версий',
+    'VERSION': 'Версионирование',
     'MODIFY_SCHEME': 'Изменение схемы',
     'INVITE_USERS': 'Приглашать пользователей'
 };

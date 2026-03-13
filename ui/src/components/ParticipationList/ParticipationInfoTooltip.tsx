@@ -13,12 +13,10 @@ interface ParticipationInfoTooltipProps {
     onLeave: () => void;
 }
 
-const changeableAuthorities: AuthorityType[] = ['READ_SCHEME', 'SNAPSHOT_VERSION', 'CHANGE_HEAD', 'DELETE_VERSIONS', 'INVITE_USERS', 'MODIFY_SCHEME'];
+const changeableAuthorities: AuthorityType[] = ['READ_SCHEME', 'VERSION', 'INVITE_USERS', 'MODIFY_SCHEME'];
 const authorityLabels: Partial<Record<AuthorityType, string>> = {
     'READ_SCHEME': 'Просматривать схему',
-    'SNAPSHOT_VERSION': 'Создание новых версий',
-    'CHANGE_HEAD': 'Изменение текущей версии',
-    'DELETE_VERSIONS': 'Удаление версий',
+    'VERSION': 'Версионирование',
     'INVITE_USERS': 'Приглашение пользователей',
     'MODIFY_SCHEME': 'Изменение схемы',
 };

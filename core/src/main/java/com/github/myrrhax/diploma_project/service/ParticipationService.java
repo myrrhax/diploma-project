@@ -70,9 +70,9 @@ public class ParticipationService {
         Set<AuthorityType> initiatorAuthorities = authorityService.getAuthorities(initiator.getId(), schemeId);
 
         if (!initiatorAuthorities.contains(AuthorityType.ALL)
-                && initiatorAuthorities.size() < authorities.size()
-                || authorities.stream()
-                    .anyMatch(au -> !initiatorAuthorities.contains(au))) {
+                && (initiatorAuthorities.size() < authorities.size()
+                    || authorities.stream()
+                        .anyMatch(au -> !initiatorAuthorities.contains(au)))) {
             throw new ApplicationException("User can't grant more authorities than he have", HttpStatus.FORBIDDEN);
         }
         String[] parsedAuthorities = buildAuthorities(authorities);
