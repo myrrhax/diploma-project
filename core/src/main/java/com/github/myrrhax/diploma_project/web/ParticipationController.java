@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +34,7 @@ public class ParticipationController {
     private final AuthorityService authorityService;
 
     @PostMapping("/invite")
+    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #dto.schemeId, 'INVITE_USERS')")
     public ResponseEntity<Void> inviteUser(@RequestBody @Validated InviteUserDTO dto,
                                            @AuthenticationPrincipal TokenUser tokenUser) {
         participationService.sendInvitation(tokenUser.getToken().userId(),
@@ -52,6 +54,7 @@ public class ParticipationController {
     }
 
     @GetMapping("/schema/{id}")
+    @PreAuthorize("@authorityCheckService.hasAccess(principal.token.userId, #id)")
     public ResponseEntity<List<ParticipationDto>> getParticipants(@PathVariable UUID id) {
         return ResponseEntity.ok(
                 participationService.getParticipants(id)
@@ -67,6 +70,7 @@ public class ParticipationController {
     }
 
     @PostMapping("/grant")
+    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #dto.schemeId, 'ALL')")
     public ResponseEntity<Void> grantUser(@RequestBody GrantUserDTO dto) {
         if (dto.authorities().contains(AuthorityType.ALL))
             throw new ApplicationException("Creator can't grant full access", HttpStatus.BAD_REQUEST);

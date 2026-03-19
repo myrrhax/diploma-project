@@ -7,6 +7,7 @@ import com.github.myrrhax.diploma_project.service.VersionService;
 import com.github.myrrhax.diploma_project.util.ViewMarkers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +27,7 @@ public class VersionController {
 
     @GetMapping("/schema/{id}")
     @JsonView(ViewMarkers.Basic.class)
+    @PreAuthorize("@authorityCheckService.hasAccess(principal.token.userId, #schemaId)")
     public List<VersionDTO> getAll(@PathVariable("id") UUID schemaId) {
         log.info("Fetching schema versions for schema with id {}", schemaId);
 

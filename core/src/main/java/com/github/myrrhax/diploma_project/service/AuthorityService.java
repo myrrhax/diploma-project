@@ -45,7 +45,6 @@ public class AuthorityService {
     }
 
     @CacheEvict(value = "authorities", key = "{#userId, #schemeId}")
-    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #schemeId, 'ALL')")
     public void grantUser(UUID userId, UUID schemeId, List<AuthorityType> types) {
         if (getAuthorities(userId, schemeId).isEmpty()) {
             throw new ApplicationException("error.authorities.cant_grant", HttpStatus.BAD_REQUEST);
@@ -82,7 +81,6 @@ public class AuthorityService {
     }
 
     @CacheEvict(value = "authorities", key = "{#userId, #schemeId}")
-    @PreAuthorize("@authorityCheckService.hasAuthority(#principal.token.userId, #schemeId, 'ALL')")
     public void discardUser(UUID userId, UUID schemeId, Set<AuthorityType> types) {
         if (types.contains(AuthorityType.READ_SCHEME)) {
             throw new ApplicationException("error.authorities.cant-discard-read-authority",

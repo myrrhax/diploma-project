@@ -50,7 +50,6 @@ public class ParticipationService {
     @Value("${app.invitation.callback-url}")
     private String invitationCallbackUrlTemplate;
 
-    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #schemeId, 'INVITE_USERS')")
     public void sendInvitation(UUID sender, UUID schemeId, String email, List<AuthorityType> authorities) {
         log.info("Sending invitation for user {} and scheme {} from user {}", email, schemeId, sender);
         if (!authorities.contains(AuthorityType.READ_SCHEME)) {
@@ -103,7 +102,6 @@ public class ParticipationService {
 
     // ToDo кэшировать
     @Transactional(readOnly = true)
-    @PreAuthorize("@authorityCheckService.hasAccess(principal.token.userId, #schemaId)")
     public List<ParticipationDto> getParticipants(UUID schemaId) {
         List<AuthorityEntity> authorities = authorityRepository.findAllBySchemeId(schemaId);
 

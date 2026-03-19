@@ -68,7 +68,6 @@ public class SchemaServiceImpl extends SchemaService {
 
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("@authorityCheckService.hasAccess(principal.token.userId, #schemeId)")
     public SchemeDTO getScheme(UUID schemeId) {
         return schemeRepository.findById(schemeId)
                     .map(schemaMapper::toDto)
@@ -77,7 +76,6 @@ public class SchemaServiceImpl extends SchemaService {
 
     @Override
     @Transactional
-    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #schemeId, 'ALL')")
     public void deleteScheme(UUID schemeId) {
         if (!schemeRepository.existsById(schemeId)) {
             throw new SchemaNotFoundException(schemeId);
