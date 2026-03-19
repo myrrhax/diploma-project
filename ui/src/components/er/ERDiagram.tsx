@@ -64,6 +64,23 @@ export const ERDiagram = observer(() => {
     const { authorities } = participationsStore; 
     const { tables, references } = erStore.state;
 
+    useEffect(() => {
+        if (!containerRef.current) return;
+        
+        const resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                erStore.setViewportSize(entry.contentRect.width, entry.contentRect.height);
+                
+                if (erStore.state && !erStore.isCentered) {
+                    erStore.centerView();
+                }
+            }
+        });
+        
+        resizeObserver.observe(containerRef.current);
+        return () => resizeObserver.disconnect();
+    }, [erStore.state]); 
+
     const handleUp = () => { 
         erStore.setDraggingTable(null);
         setPanning(false); 
@@ -125,7 +142,7 @@ export const ERDiagram = observer(() => {
         <div 
             className="er_diagram_wrapper" 
             ref={containerRef}
-            onWheel={(e) => erStore.scale = Math.max(0.3, Math.min(2, erStore.scale + e.deltaY * -0.001))}
+            onWheel={(e) => erStore.zoom(e.deltaY)} 
             onMouseMove={handleMouseMove}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}

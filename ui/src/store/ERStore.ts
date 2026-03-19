@@ -29,6 +29,10 @@ class ERStore {
     offsetX = 0;
     offsetY = 0;
 
+    viewportWidth = 0;
+    viewportHeight = 0;
+    isCentered = false;
+
     draggingTableId: string | null = null;
 
     contextMenu = { visible: false, x: 0, y: 0, screenX: 0, screenY: 0 };
@@ -51,9 +55,79 @@ class ERStore {
         this.activeMenuId = id;
     }
 
+    setViewportSize(width: number, height: number) {
+        this.viewportWidth = width;
+        this.viewportHeight = height;
+    }
+
+    get tablesBoundingBox() {
+        if (!this.state || !this.state.tables || Object.keys(this.state.tables).length === 0) {
+            return { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity };
+        }
+        
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const table of Object.values(this.state.tables)) {
+            if (table.x < minX) minX = table.x;
+            if (table.x + this.TABLE_WIDTH > maxX) maxX = table.x + this.TABLE_WIDTH;
+            
+            const h = this.getTableHeight(table.id);
+            if (table.y < minY) minY = table.y;
+            if (table.y + h > maxY) maxY = table.y + h;
+        }
+        return { minX, maxX, minY, maxY };
+    }
+
+    centerView() {
+        if (this.viewportWidth === 0 || this.viewportHeight === 0) return;
+        
+        const { minX, maxX, minY, maxY } = this.tablesBoundingBox;
+        
+        if (minX === Infinity) {
+            this.offsetX = this.viewportWidth / 2;
+            this.offsetY = this.viewportHeight / 2;
+            this.isCentered = true;
+            return;
+        }
+
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+
+        this.offsetX = (this.viewportWidth / 2) - (centerX * this.scale);
+        this.offsetY = (this.viewportHeight / 2) - (centerY * this.scale);
+        this.constrainPan(); 
+        this.isCentered = true;
+    }
+
+    constrainPan() {
+        const PADDING = 1500;
+        const { minX, maxX, minY, maxY } = this.tablesBoundingBox;
+        
+        if (minX === Infinity) return; 
+
+        let minOffsetX = this.viewportWidth - (maxX + PADDING) * this.scale;
+        let maxOffsetX = -(minX - PADDING) * this.scale;
+        
+        let minOffsetY = this.viewportHeight - (maxY + PADDING) * this.scale;
+        let maxOffsetY = -(minY - PADDING) * this.scale;
+
+        if (minOffsetX > maxOffsetX) [minOffsetX, maxOffsetX] = [maxOffsetX, minOffsetX];
+        if (minOffsetY > maxOffsetY) [minOffsetY, maxOffsetY] = [maxOffsetY, minOffsetY];
+
+        if (this.offsetX < minOffsetX) this.offsetX = minOffsetX;
+        if (this.offsetX > maxOffsetX) this.offsetX = maxOffsetX;
+        if (this.offsetY < minOffsetY) this.offsetY = minOffsetY;
+        if (this.offsetY > maxOffsetY) this.offsetY = maxOffsetY;
+    }
+
     setPan(dx: number, dy: number) {
         this.offsetX += dx;
         this.offsetY += dy;
+        this.constrainPan();
+    }
+
+    zoom(deltaY: number) {
+        this.scale = Math.max(0.3, Math.min(2, this.scale + deltaY * -0.001));
+        this.constrainPan();
     }
 
     async process(cmd: MetadataCommandProcessResult) {
@@ -143,6 +217,7 @@ class ERStore {
         this.schemaId = schemaId;
         this.setLoading(true);
         this.allow();
+        this.isCentered = false; 
         
         try {
             const freshSchema = await schemaApi.fetchSchemaById(schemaId);
@@ -299,6 +374,7 @@ class ERStore {
     }
 
     async loadSchemaWithVersion(versionId: number) {
+        this.isCentered = false; 
         const schema = await schemaApi.findReadonlyWithVersion(versionId);
         this.setSchema(schema);
     }
