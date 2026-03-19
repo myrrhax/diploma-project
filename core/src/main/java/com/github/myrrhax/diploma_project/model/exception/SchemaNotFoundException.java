@@ -11,8 +11,4 @@ public class SchemaNotFoundException extends ApplicationException {
     public SchemaNotFoundException(UUID id) {
         super(MESSAGE, STATUS, id);
     }
-
-    public SchemaNotFoundException(UUID id, Throwable cause) {
-        super(MESSAGE, cause, STATUS, id);
-    }
 }

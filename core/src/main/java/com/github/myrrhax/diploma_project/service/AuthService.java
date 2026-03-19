@@ -142,7 +142,7 @@ public class AuthService implements UserDetailsService {
             throw new AccountIsAlreadyConfirmedException(user.getEmail());
         }
         if (!Objects.equals(code, user.getConfirmation().getFirst().getCode()) ||
-            user.getConfirmation().getFirst().getExpiresAt().isBefore(LocalDateTime.now())) {
+            user.getConfirmation().getFirst().isExpired()) {
             throw new ApplicationException("error.user.invalid_confirmation_code", HttpStatus.BAD_REQUEST);
         }
         user.setIsConfirmed(true);

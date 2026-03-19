@@ -7,7 +7,6 @@ import com.github.myrrhax.diploma_project.service.VersionService;
 import com.github.myrrhax.diploma_project.util.ViewMarkers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,10 +33,10 @@ public class VersionController {
         return versionService.findAll(schemaId);
     }
 
+    // ToDo добавить проверку прав
     @GetMapping("/{id}")
     @JsonView(ViewMarkers.Stateful.class)
-    public VersionDTO getById(@PathVariable("id") Long id,
-                               @AuthenticationPrincipal TokenUser tokenUser) {
+    public VersionDTO getById(@PathVariable("id") Long id) {
         log.info("Fetching version with id {}", id);
 
         return versionService.findById(id);
