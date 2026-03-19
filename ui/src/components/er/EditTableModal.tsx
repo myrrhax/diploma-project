@@ -4,6 +4,8 @@ import { tableModalsStore } from '@/store/TableModalsStore';
 import { erStore } from '@/store/ERStore';
 import './css/EditTableModal.css';
 
+const VALID_NAME_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/
+
 export const EditTableModal = observer(() => {
     const { isEditOpen, tableIdToEdit } = tableModalsStore;
     const table = tableIdToEdit ? erStore.getTable(tableIdToEdit) : null;
@@ -60,7 +62,12 @@ export const EditTableModal = observer(() => {
                             type="text" 
                             className="er_edit_modal_input" 
                             value={name} 
-                            onChange={e => setName(e.target.value)} 
+                            onChange={e => {
+                                const newValue = e.target.value;
+                                if (newValue === '' || VALID_NAME_PATTERN.test(newValue)) {
+                                    setName(e.target.value);
+                                }
+                            }} 
                             placeholder="Например, users"
                             autoFocus
                         />

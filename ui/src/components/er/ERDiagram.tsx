@@ -3,7 +3,6 @@ import { erStore } from '@/store/ERStore';
 import { TableNode } from './TableNode';
 import { type Table } from '@/model/SchemaElements';
 import { refKeyToString } from '@/utils/UtilFunctions';
-import './css/ERDiagram.css';   
 import { observer } from 'mobx-react-lite';
 import { AddReferenceMenu } from './AddReferenceMenu';
 import { referenceStore } from '@/store/ReferenceStore';
@@ -14,6 +13,7 @@ import { DeleteColumnModal } from './DeleteColumnModal';
 import { EditTableModal } from './EditTableModal';
 import { participationsStore } from '@/store/ParticipationStore';
 import { OverlaySpinner } from '../SpinnerLoader/SpinnerLoader';
+import './css/ERDiagram.css';   
 
 const getPortPosition = (table: Table, colId: string, side: 'left' | 'right') => {
     const column = table.columns[colId];

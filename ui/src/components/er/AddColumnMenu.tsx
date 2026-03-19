@@ -17,6 +17,8 @@ interface AddColumnMenuProps {
     oldColumn?: Column | null;
 }
 
+const VALID_NAME_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/
+
 export const AddColumnMenu = observer(({ onClose, onCancel, oldColumn, tableId }: AddColumnMenuProps) => {
     const { state } = erStore;
     const table = state?.tables[tableId];
@@ -175,7 +177,13 @@ export const AddColumnMenu = observer(({ onClose, onCancel, oldColumn, tableId }
             </h4>
 
             <div className='er_add_column_menu'>
-                <input className='col_input' placeholder="Имя колонки" value={name} onChange={e => setName(e.target.value)} />
+                <input className='col_input' placeholder="Имя колонки" value={name} onChange={e => {
+                    const newValue = e.target.value;
+
+                    if (newValue === '' || VALID_NAME_PATTERN.test(newValue)) {
+                        setName(newValue);
+                    }
+                }} />
 
                 <select className='col_type_select' value={type} onChange={e => setType(e.target.value as ColumnType)}>
                     {ALL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}

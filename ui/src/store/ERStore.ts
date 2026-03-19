@@ -166,7 +166,7 @@ class ERStore {
         const worldX = (this.contextMenu.screenX - this.offsetX) / this.scale;
         const worldY = (this.contextMenu.screenY - this.offsetY) / this.scale;
 
-        const tableName = 'Table ' + Date.now();
+        const tableName = 'Table_' + Date.now();
 
         schemaSocketService.sendCommand({ 
             schemeId: this.schema.id,
