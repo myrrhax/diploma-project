@@ -14,7 +14,7 @@ export const HomePage = observer(() => {
   const navigate = useNavigate();
   const { schemas, isLoading } = schemaStore;
   const [query, setQuery] = useState('');
-  const [authorOnly, setAuthorOnly] = useState(false);
+  const [authorOnly, setAuthorOnly] = useState(true);
 
   useEffect(() => {
     schemaApi.loadUserSchemas();
@@ -47,14 +47,12 @@ export const HomePage = observer(() => {
       <CreateSchemaModal />
 
       <div className="home-container">
-        {/* Header Section */}
         <div className="dashboard-header">
           <div className="title-section">
             <h1>Мои схемы</h1>
             <p className="subtitle">Управляйте своими проектами и схемами</p>
           </div>
           
-          {/* Controls: Search & Filter */}
           <div className="controls-section">
             <div className="search-bar">
               <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -75,7 +73,7 @@ export const HomePage = observer(() => {
                 onChange={(e) => setAuthorOnly(e.target.checked)} 
               />
               <span className="toggle-slider"></span>
-              <span className="toggle-label">Только мои</span>
+              <span className="toggle-label">Принимаю участие</span>
             </label>
           </div>
         </div>
@@ -89,7 +87,6 @@ export const HomePage = observer(() => {
         </div>
         
 
-        {/* Content Section */}
         {isLoading ? (
           <OverlaySpinner text='Загрузка...' />
         ) : schemas && schemas.length > 0 ? (
@@ -101,7 +98,6 @@ export const HomePage = observer(() => {
                 onClick={() => openSchemaEditor(schema.id)}
               >
                 <div className="card-preview">
-                  {/* Плейсхолдер для превью схемы. Можно заменить на скриншот если есть */}
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="schema-icon"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
                 </div>
                 <div className="card-content">
@@ -113,7 +109,6 @@ export const HomePage = observer(() => {
                          {schema.creator.email}
                        </span>
                     </div>
-                    {/* Можно добавить дату создания, если есть в API */}
                   </div>
                 </div>
               </div>
