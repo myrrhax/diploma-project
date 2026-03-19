@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 public record ConfirmMailDTO(
-        @NotNull
-        @Pattern(regexp = "^\\d{6}$")
+        @NotNull(message = "{error.validation.null-value}")
+        @Pattern(regexp = "^\\d{6}$", message = "{error.validation.invalid-code-format}")
         String confirmationCode
 ) { }
