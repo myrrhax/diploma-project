@@ -3,13 +3,18 @@ import SockJs from 'sockjs-client';
 import { runInAction } from "mobx";
 import { authStore } from "@/store/AuthStore";
 import { erStore } from "@/store/ERStore";
-import type { SchemaChangedEvent } from "@/model/SchemaEvents"; 
-import type { MetadataCommand } from "@/model/SchemaCommands";
-import type ErrorResponse from "@/model/ErrorResponse";
 import { errorsStore } from "@/store/ErrorsStore";
 import { versionsStore } from "@/store/VersionsStore";
-import type { Version } from "@/model/SchemaTypes";
 import { wsConnectionStore } from "@/store/WsConnectionStore";
+import { participationsStore } from "@/store/ParticipationStore";
+import type { 
+    SchemaChangedEvent, 
+    ConnectionChangedPayload 
+} from "@/model/SchemaEvents"; 
+import type { MetadataCommand } from "@/model/SchemaCommands";
+import type ErrorResponse from "@/model/ErrorResponse";
+import type { Version } from "@/model/SchemaTypes";
+import type { User } from "@/model/User";
 
 const WS_ENDPOINT = 'http://localhost:8000/ws';
 
@@ -21,6 +26,10 @@ class SchemaSocketService {
     private subscription: StompSubscription | null = null;
     private activeSchemaId: string | null = null;
     private errorSubscription: StompSubscription | null = null;
+    
+    // Подписки для отслеживания присутствия
+    private schemaConnectionsSubscription: StompSubscription | null = null;
+    private schemaConnectionsQueue: StompSubscription | null = null;
 
     connect() {
         if (this.client) return;
@@ -34,12 +43,16 @@ class SchemaSocketService {
             onConnect: () => {
                 console.log('[WS] Успешно подключено к серверу');
                 const oldSchemaId = this.activeSchemaId;
+                
                 this.leaveSchema();
+                
                 if (oldSchemaId) {
                     this.activeSchemaId = oldSchemaId;
                     this.executeSubscription(this.activeSchemaId);
                     this.executeErrorsQueueSubscription();
+                    this.executeTopicSubscriptions(this.activeSchemaId);
                 }
+                
                 runInAction(() => {
                     wsConnectionStore.isConnected = true;
                 });
@@ -47,6 +60,7 @@ class SchemaSocketService {
             onStompError: (frame) => {
                 const errorMessage = frame.headers['message'];
                 console.error('[WS] Ошибка брокера:', errorMessage);
+                
                 const msgLower = errorMessage.toLowerCase();
                 if (msgLower.includes(this.ACCESS_DENIED_EXCEPTION) || msgLower.includes(this.INVALID_TOKEN_EXCEPTION)) {
                     this.client?.deactivate();
@@ -87,6 +101,7 @@ class SchemaSocketService {
 
         if (this.client && this.client.connected) {
             this.executeSubscription(schemaId);
+            this.executeTopicSubscriptions(schemaId);
         }
         
         if (this.client && this.client.connected && !this.errorSubscription) {
@@ -114,7 +129,21 @@ class SchemaSocketService {
             this.subscription = null;
             console.log(`[WS] Отписались от схемы: ${this.activeSchemaId}`);
         }
+        
+        if (this.schemaConnectionsSubscription) {
+            this.schemaConnectionsSubscription.unsubscribe();
+            this.schemaConnectionsSubscription = null;
+            console.log(`[WS] Отписались от топика подключений`);
+        }
+        
+        if (this.schemaConnectionsQueue) {
+            this.schemaConnectionsQueue.unsubscribe();
+            this.schemaConnectionsQueue = null;
+            console.log(`[WS] Отписались от очереди пользователей`);
+        }
+
         this.activeSchemaId = null;
+        
         if (this.errorSubscription) {
             this.errorSubscription.unsubscribe();
             this.errorSubscription = null;
@@ -146,7 +175,7 @@ class SchemaSocketService {
         this.client.publish({
             destination: destination,
             body: JSON.stringify({ versionId: version.versionId })
-        })
+        });
     }
 
     changeHead(fromVersion: Version, toVersion: Version) {
@@ -155,8 +184,50 @@ class SchemaSocketService {
         const destination = '/app/schema/' + fromVersion.schemeId + '/changeHead';
         this.client.publish({
             destination: destination,
-            body: JSON.stringify({ currentVersionId: fromVersion.versionId, toVersionId: toVersion.versionId })
-        })
+            body: JSON.stringify({ 
+                currentVersionId: fromVersion.versionId, 
+                toVersionId: toVersion.versionId 
+            })
+        });
+    }
+
+    private executeTopicSubscriptions(schemaId: string) {
+        if (!this.client || !this.client.connected) return;        
+        const userQueue = `/user/queue/schema-connections/${schemaId}/users`;
+        
+        this.schemaConnectionsQueue = this.client.subscribe(userQueue, (msg) => {
+            if (msg.body) {
+                const currentUsers = JSON.parse(msg.body) as User[];
+                console.log('[WS] Получен начальный список пользователей:', currentUsers);
+                
+                runInAction(() => {
+                    participationsStore.setOnlineUsers(currentUsers);
+                });
+            }
+        });
+        console.log(`[WS] Подписаны на приватную очередь: ${userQueue}`);
+
+        const topic = `/topic/schema-connections/${schemaId}`;
+        
+        this.schemaConnectionsSubscription = this.client.subscribe(topic, (msg) => {
+            if (msg.body) {
+                const body = JSON.parse(msg.body) as SchemaChangedEvent<ConnectionChangedPayload>;
+                
+                if (body.eventType === 'CONNECTION_CHANGED') {
+                    const payload = body.payload;
+                    console.log(`[WS] Изменение статуса пользователя:`, payload);
+                    
+                    runInAction(() => {
+                        if (payload.type === 'CONNECTED') {
+                            participationsStore.addUser(payload.user);
+                        } else if (payload.type === 'DISCONNECTED') {
+                            participationsStore.removeUser(payload.user);
+                        }
+                    });
+                }
+            }
+        });
+        console.log(`[WS] Подписаны на топик подключений: ${topic}`);
     }
 
     private executeSubscription(schemaId: string) {
@@ -168,6 +239,7 @@ class SchemaSocketService {
             if (msg.body) {
                 const body = JSON.parse(msg.body) as SchemaChangedEvent<any>;
                 console.log('Received: ', body);
+                
                 if (body.eventType === 'SCHEMA_UPDATE') {
                     erStore.process(body.payload);
                 } else if (body.eventType === 'SCHEMA_NEW_VERSION' || body.eventType === 'SCHEMA_VERSION_DELETED') {
@@ -175,33 +247,41 @@ class SchemaSocketService {
                 } else if (body.eventType === 'SCHEMA_HEAD_CHANGED') {
                     const version = body.payload;
                     console.log('Updating head: ', version);
-                    versionsStore.versions = [...versionsStore.versions.filter(v => v.versionId !== version.versionId), version];
-                    versionsStore.currentVersion = version;
-                    erStore.state = version.currentState;
-                }     
+                    
+                    runInAction(() => {
+                        versionsStore.versions = [...versionsStore.versions.filter(v => v.versionId !== version.versionId), version];
+                        versionsStore.currentVersion = version;
+                        erStore.state = version.currentState;
+                    });
+                }    
             }
         });
 
-        console.log(`[WS] Подписаны на топик: ${topic}`);
+        console.log(`[WS] Подписаны на топик схемы: ${topic}`);
     }
 
     private executeErrorsQueueSubscription() {
         if (!this.client || this.errorSubscription) {
             return;
         }
+        
         const queue = '/user/queue/errors';
+        
         this.errorSubscription = this.client.subscribe(queue, (msg) => {
-            const body = JSON.parse(msg.body) as ErrorResponse;
-            if (body) {
+            if (msg.body) {
+                const body = JSON.parse(msg.body) as ErrorResponse;
                 this.handleError(body); 
             }
         });
-        console.log('[WS] Подписка на Error Queue')
+        
+        console.log('[WS] Подписка на Error Queue');
     }
 
     private handleError(error: ErrorResponse) {
         console.log('Ошибка: ' + error.message);
-        errorsStore.addError(error.message);
+        runInAction(() => {
+            errorsStore.addError(error.message);
+        });
     }
 }
 

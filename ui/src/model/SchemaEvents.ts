@@ -1,11 +1,15 @@
 import type { Table, Reference, Column, Index, ReferenceKey } from "./SchemaElements";
 import type { Version } from "./SchemaTypes";
+import type { User } from "./User";
 
 export type EventType = 'SCHEMA_UPDATE' 
     | 'USER_CONNECTED' 
     | 'SCHEMA_NEW_VERSION' 
     | 'SCHEMA_VERSION_DELETED'
-    | 'SCHEMA_HEAD_CHANGED';
+    | 'SCHEMA_HEAD_CHANGED'
+    | 'CONNECTION_CHANGED';
+
+export type ConnectionChangeType = 'CONNECTED' | 'DISCONNECTED';
 
 export interface SchemaChangedEvent<T> {
     eventType: EventType;
@@ -26,6 +30,16 @@ export interface VersionDeletedEvent extends SchemaChangedEvent<Version[]> {
 
 export interface HeadChangedEvent extends SchemaChangedEvent<Version> {
     eventType: 'SCHEMA_HEAD_CHANGED';
+}
+
+export interface ConnectionChangedEvent extends SchemaChangedEvent<ConnectionChangedPayload> {
+    eventType: 'CONNECTION_CHANGED';
+}
+
+export interface ConnectionChangedPayload {
+    schemaId: string;
+    user: User;
+    type: ConnectionChangeType;
 }
 
 export interface MetadataCommandProcessResult {

@@ -1,6 +1,7 @@
 import type { User } from "@/model/User";
 import profilePic from '@/assets/user.png';
 import './UsersOverlay.css'
+import { observer } from "mobx-react-lite";
 
 interface UsersOverlayProps {
     isUsersOpen: boolean;
@@ -8,7 +9,7 @@ interface UsersOverlayProps {
     closeCallback: ((arg: boolean) => void);
 }
 
-export const UsersOverlay = ({isUsersOpen, users, closeCallback}: UsersOverlayProps) => {
+export const UsersOverlay = observer(({isUsersOpen, users, closeCallback}: UsersOverlayProps) => {
     return (
         <aside className={`users-overlay ${!isUsersOpen ? 'collapsed' : ''}`}>
             <div className="users-header" onClick={() => closeCallback(!isUsersOpen)}>
@@ -32,4 +33,4 @@ export const UsersOverlay = ({isUsersOpen, users, closeCallback}: UsersOverlayPr
             )}  
         </aside>
     )
-}
+})

@@ -45,7 +45,6 @@ export const AccountConfirmationPage = () => {
         if (savedDeadline) {
             const parsedDeadline = parseInt(savedDeadline, 10);
             const now = Date.now();
-            // ИСПРАВЛЕНО: было (now - parsedDeadline)
             const remaining = Math.round((parsedDeadline - now) / 1000);
 
             if (remaining > 0) {

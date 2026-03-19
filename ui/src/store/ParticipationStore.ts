@@ -3,6 +3,7 @@ import type { AuthorityType } from "@/model/Participation";
 import { makeAutoObservable, runInAction } from "mobx";
 import type { Participation } from "@/model/Participation";
 import { errorsStore } from "./ErrorsStore";
+import type { User } from "@/model/User";
 
 class ParticipationsStore {
     readonly SERVER_ERROR_MESSAGE = 'Ошибка на стороне сервера, попробуйте позже';
@@ -15,6 +16,7 @@ class ParticipationsStore {
     
     isInviteModalOpen: boolean = false;
     isLoading: boolean = false;
+    onlineUsers: User[] = [];
 
     constructor() {
         makeAutoObservable(this);
@@ -25,6 +27,18 @@ class ParticipationsStore {
         runInAction(() => {
             this.authorities = participationInfo.authorities;
         });
+    }
+
+    setOnlineUsers(users: User[]) {
+        this.onlineUsers = users;
+    }
+
+    removeUser(user: User) {
+        this.onlineUsers = this.onlineUsers.filter(u => u.id !== user.id);
+    }
+
+    addUser(user: User) {
+        this.onlineUsers = [...this.onlineUsers.filter(u => u.id !== user.id), user];
     }
 
     openInviteModal() {
@@ -142,6 +156,7 @@ class ParticipationsStore {
         this.currentSchemaId = null;
         this.isListModalOpen = false;
         this.isInviteModalOpen = false;
+        this.onlineUsers = [];
     }
 }
 

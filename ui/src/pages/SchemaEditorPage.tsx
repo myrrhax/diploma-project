@@ -16,11 +16,6 @@ import { ParticipationList } from '@/components/ParticipationList/ParticipationL
 import { participationsStore } from '@/store/ParticipationStore';
 import { InviteModal } from '@/components/ParticipationList/InviteModal';
 
-const FAKE_USERS = [
-    { id: '1', email: 'admin@test.com', isConfirmed: true },
-    { id: '2', email: 'designer_1@test.com', isConfirmed: true },
-];
-
 interface SchemaEditorPageProps {
     isReadonly?: boolean
 }
@@ -31,8 +26,7 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
     const [isUsersOpen, setUsersOpen] = useState(true);
     const { schema, state, isLoading } = erStore;
     const { isConnected } = wsConnectionStore;
-    const { authorities } = participationsStore;
-
+    const { authorities, onlineUsers } = participationsStore;
 
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
@@ -66,7 +60,7 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
         initEditor();
         return () => {
             isMounted = false;
-            schemaSocketService.leaveSchema();
+            schemaSocketService.disconnect();
             erStore.setSchema(null);
             participationsStore.clear();
         };
@@ -137,7 +131,7 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
                             {isEditable && (
                                 <UsersOverlay 
                                     isUsersOpen={isUsersOpen} 
-                                    users={FAKE_USERS} 
+                                    users={onlineUsers} 
                                     closeCallback={setUsersOpen} 
                                 />
                             )}
