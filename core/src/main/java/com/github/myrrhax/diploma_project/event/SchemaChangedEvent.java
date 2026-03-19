@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.event;
 
+import com.github.myrrhax.diploma_project.model.dto.ConnectionChangedPayload;
 import com.github.myrrhax.diploma_project.model.dto.MetadataCommandProcessResult;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.model.enums.EventType;
@@ -11,9 +12,10 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 public abstract sealed class SchemaChangedEvent<T> permits SchemaChangedEvent.CommandEvent,
-                                                            SchemaChangedEvent.SchemaNewVersionEvent,
-                                                            SchemaChangedEvent.SchemaVersionDeletedEvent,
-                                                            SchemaChangedEvent.HeadChangedEvent {
+                                                           SchemaChangedEvent.SchemaNewVersionEvent,
+                                                           SchemaChangedEvent.SchemaVersionDeletedEvent,
+                                                           SchemaChangedEvent.HeadChangedEvent,
+                                                           SchemaChangedEvent.ConnectionChangedEvent {
     private final EventType eventType;
     private final T payload;
 
@@ -33,5 +35,11 @@ public abstract sealed class SchemaChangedEvent<T> permits SchemaChangedEvent.Co
 
     public static final class HeadChangedEvent extends SchemaChangedEvent<VersionDTO> {
         public HeadChangedEvent(VersionDTO payload) { super(EventType.SCHEMA_HEAD_CHANGED,payload); }
+    }
+
+    public static final class ConnectionChangedEvent extends SchemaChangedEvent<ConnectionChangedPayload> {
+        public ConnectionChangedEvent(ConnectionChangedPayload payload) {
+            super(EventType.CONNECTION_CHANGED, payload);
+        }
     }
 }

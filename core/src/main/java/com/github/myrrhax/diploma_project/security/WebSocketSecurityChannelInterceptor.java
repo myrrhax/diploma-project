@@ -1,6 +1,9 @@
 package com.github.myrrhax.diploma_project.security;
 
+import com.github.myrrhax.diploma_project.model.dto.UserDTO;
 import com.github.myrrhax.diploma_project.service.AuthorityCheckService;
+import com.github.myrrhax.diploma_project.service.SchemaSessionManagerService;
+import com.github.myrrhax.diploma_project.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
@@ -14,6 +17,7 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.AntPathMatcher;
 
 import java.util.Map;
@@ -25,12 +29,16 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class WebSocketSecurityChannelInterceptor implements ChannelInterceptor {
     private static final String SCHEMA_SUBSCRIPTION_TOPIC_PATTERN = "/topic/schema/{id}";
+    private static final String SCHEMA_CONNECTIONS_TOPIC_PATTERN = "/topic/schema-connections/{id}";
     private final TokenAuthenticationDetailsService tokenDetailsService;
     private final AuthorityCheckService authorityCheckService;
+    private final SchemaSessionManagerService schemaSessionManagerService;
+    private final UserService userService;
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
+    @Transactional(readOnly = true)
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
         if (accessor != null && accessor.getCommand() != null) {
@@ -63,30 +71,58 @@ public class WebSocketSecurityChannelInterceptor implements ChannelInterceptor {
         if (Objects.isNull(destination) || destination.isBlank()) {
             return;
         }
+        String matchedPattern = null;
 
         if (pathMatcher.match(SCHEMA_SUBSCRIPTION_TOPIC_PATTERN, destination)) {
-            Map<String, String> variables = pathMatcher.extractUriTemplateVariables(SCHEMA_SUBSCRIPTION_TOPIC_PATTERN, destination);
+            matchedPattern = SCHEMA_SUBSCRIPTION_TOPIC_PATTERN;
+        } else if (pathMatcher.match(SCHEMA_CONNECTIONS_TOPIC_PATTERN, destination)) {
+            matchedPattern = SCHEMA_CONNECTIONS_TOPIC_PATTERN;
+        }
+
+        if (matchedPattern != null) {
+            Map<String, String> variables = pathMatcher.extractUriTemplateVariables(matchedPattern,
+                    Objects.requireNonNull(accessor.getDestination()));
             String schemaId = variables.get("id");
+            UUID parsedSchemaId;
+
             try {
-                UUID parsedId = UUID.fromString(schemaId);
-                PreAuthenticatedAuthenticationToken token = (PreAuthenticatedAuthenticationToken) accessor.getUser();
-                if (token == null) {
-                    log.error("Unable to parse user auth data");
-                    throw new MessageDeliveryException("Invalid token");
-                }
-
-                TokenUser tokenUser = (TokenUser) token.getPrincipal();
-                if (tokenUser == null) {
-                    throw new MessageDeliveryException("Invalid token");
-                }
-
-                if (!authorityCheckService.hasAccess(tokenUser.getToken().userId(), parsedId)) {
-                    throw new MessageDeliveryException("Access denied");
-                }
+                parsedSchemaId = UUID.fromString(schemaId);
             } catch (IllegalArgumentException e) {
-                log.error("Failed to parse scheme id");
-                throw new MessageDeliveryException("Failed to parse scheme id");
+                throw new MessageDeliveryException("Invalid schema id " + schemaId);
             }
+            PreAuthenticatedAuthenticationToken token = (PreAuthenticatedAuthenticationToken) accessor.getUser();
+
+            if (token == null) {
+                log.error("Failed to extract user from accessor");
+                throw new MessageDeliveryException("Failed to extract user from accessor");
+            }
+
+            TokenUser tokenUser = (TokenUser) token.getPrincipal();
+            if (tokenUser == null) {
+                throw new MessageDeliveryException("Invalid token");
+            }
+
+            if (matchedPattern.equals(SCHEMA_SUBSCRIPTION_TOPIC_PATTERN)) {
+                handleSchemaEventsSubscription(parsedSchemaId, tokenUser.getToken().userId(), accessor.getSessionId());
+            } else {
+                handleSchemaConnectionsSubscription(parsedSchemaId, accessor.getSessionId());
+            }
+        }
+    }
+
+    private void handleSchemaConnectionsSubscription(UUID schemaId, String sessionId) {
+        if (!schemaSessionManagerService.isConnected(sessionId, schemaId)) {
+            throw new MessageDeliveryException("User is not connected to schema events topic");
+        }
+    }
+
+    private void handleSchemaEventsSubscription(UUID schemaId, UUID userId, String sessionId) {
+        if (!authorityCheckService.hasAccess(userId, schemaId)) {
+            throw new MessageDeliveryException("Access denied");
+        }
+
+        if (!schemaSessionManagerService.tryAddUser(schemaId, sessionId, userId)) {
+            throw new MessageDeliveryException("Too many online users in scheme");
         }
     }
 }
