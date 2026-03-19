@@ -48,10 +48,10 @@ public class AuthorityService {
     @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #schemeId, 'ALL')")
     public void grantUser(UUID userId, UUID schemeId, List<AuthorityType> types) {
         if (getAuthorities(userId, schemeId).isEmpty()) {
-            throw new ApplicationException("Can't grant user authorities, invite user instead", HttpStatus.BAD_REQUEST);
+            throw new ApplicationException("error.authorities.cant_grant", HttpStatus.BAD_REQUEST);
         }
         if (types.contains(AuthorityType.ALL)) {
-            throw new ApplicationException("Can't grant user full access", HttpStatus.BAD_REQUEST);
+            throw new ApplicationException("error.authorities.cant-grant-full-access", HttpStatus.BAD_REQUEST);
         }
 
         var scheme = schemeRepository.findById(schemeId)
@@ -59,7 +59,7 @@ public class AuthorityService {
         var user = userRepository.findById(userId).orElseThrow();
 
         if (scheme.getCreator().getId().equals(user.getId())) {
-            throw new ApplicationException("Can't change creator access", HttpStatus.BAD_REQUEST);
+            throw new ApplicationException("error.authorities.cant-change-creator-full-access", HttpStatus.BAD_REQUEST);
         }
 
         log.info("Removing old authorities from database");
@@ -85,7 +85,7 @@ public class AuthorityService {
     @PreAuthorize("@authorityCheckService.hasAuthority(#principal.token.userId, #schemeId, 'ALL')")
     public void discardUser(UUID userId, UUID schemeId, Set<AuthorityType> types) {
         if (types.contains(AuthorityType.READ_SCHEME)) {
-            throw new ApplicationException("Can't discard READ_SCHEME authority from user, kick user instead",
+            throw new ApplicationException("error.authorities.cant-discard-read-authority",
                     HttpStatus.BAD_REQUEST);
         }
         if (!schemeRepository.existsById(schemeId)) {
