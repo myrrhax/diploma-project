@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Collections;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -26,11 +27,14 @@ public class GlobalExceptionHandler {
     private final MessageSource messageSource;
 
     @ExceptionHandler(ApplicationException.class)
-    public ResponseEntity<ErrorResponseDTO> handle(ApplicationException ex) {
-        log.error("An application error occurred while processing the request: {}", ex.getMessage());
+    public ResponseEntity<ErrorResponseDTO> handle(ApplicationException ex, Locale locale) {
+        String error = messageSource.getMessage(ex.getMessage(),
+                Optional.ofNullable(ex.getArgs()).orElse(new Object[0]),
+                locale);
+        log.error("An application error occurred while processing the request: {}", error);
 
         return ResponseEntity.status(ex.getStatus())
-                .body(new ErrorResponseDTO(ex.getMessage(), null));
+                .body(new ErrorResponseDTO(error, null));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
