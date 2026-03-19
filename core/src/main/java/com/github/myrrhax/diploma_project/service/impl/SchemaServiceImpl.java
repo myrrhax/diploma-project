@@ -92,7 +92,7 @@ public class SchemaServiceImpl extends SchemaService {
         VersionEntity version = versionRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException(ErrorMessageKey.VERSION_NOT_FOUND.getKey(), HttpStatus.NOT_FOUND));
         if (version.getIsWorkingCopy()) {
-            throw new ApplicationException("User can't read non readonly schema version");
+            throw new ApplicationException(ErrorMessageKey.VERSION_NON_READONLY_READ.getKey(), HttpStatus.BAD_REQUEST);
         }
         SchemeEntity scheme = version.getScheme();
 

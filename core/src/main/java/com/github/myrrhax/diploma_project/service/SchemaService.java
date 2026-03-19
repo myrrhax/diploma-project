@@ -50,8 +50,9 @@ public abstract class SchemaService {
 
         if (schemeRepository.existsByNameAndCreator_Id(name, userId)) {
             throw new ApplicationException(
-                    "Schema %s for user with id %s is already exists".formatted(name, userId),
-                    HttpStatus.CONFLICT
+                    "error.schema.duplicate",
+                    HttpStatus.CONFLICT,
+                    name
             );
         }
 

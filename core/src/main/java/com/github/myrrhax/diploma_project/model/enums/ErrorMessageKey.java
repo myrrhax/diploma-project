@@ -26,6 +26,7 @@ public enum ErrorMessageKey {
     VERSION_TAG_DUPLICATE("error.versions.tag.duplicate"),
     VERSION_NOT_FOUND("error.version.notfound"),
     VERSION_CANT_DELETE_WORKING_COPY("error.version.cant-delete-working-copy"),
+    VERSION_NON_READONLY_READ("error.version.non-readonly-read"),
     VERSION_CANT_CHANGE_HEAD_ON_NON_WORKING_COPY("error.version.cant-change-head-on-non-working-copy"),;
 
     private final String key;
