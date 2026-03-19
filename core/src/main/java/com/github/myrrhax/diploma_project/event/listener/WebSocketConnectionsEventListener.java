@@ -1,6 +1,6 @@
 package com.github.myrrhax.diploma_project.event.listener;
 
-import com.github.myrrhax.diploma_project.event.SchemaChangedEvent;
+import com.github.myrrhax.diploma_project.event.ServerEvent;
 import com.github.myrrhax.diploma_project.model.dto.ConnectionChangedPayload;
 import com.github.myrrhax.diploma_project.model.dto.UserDTO;
 import com.github.myrrhax.diploma_project.security.TokenUser;
@@ -47,7 +47,7 @@ public class WebSocketConnectionsEventListener {
             UUID parsedSchemaId = UUID.fromString(schemaId);
 
             messagingTemplate.convertAndSend(destination,
-                    new SchemaChangedEvent.ConnectionChangedEvent(new ConnectionChangedPayload(parsedSchemaId,
+                    new ServerEvent.ConnectionChangedEvent(new ConnectionChangedPayload(parsedSchemaId,
                             user,
                             ConnectionChangedPayload.ConnectionChangeType.CONNECTED)));
             List<UserDTO> currentUsers = sessionManager.getConnectedUsers(parsedSchemaId);
@@ -85,7 +85,7 @@ public class WebSocketConnectionsEventListener {
 
         if (sessionManager.tryRemoveUser(sessionId)) {
             messagingTemplate.convertAndSend(TOPIC_PREFIX + schemaId,
-                new SchemaChangedEvent.ConnectionChangedEvent(
+                new ServerEvent.ConnectionChangedEvent(
                     new ConnectionChangedPayload(schemaId, user, ConnectionChangedPayload.ConnectionChangeType.DISCONNECTED)
             ));
         }

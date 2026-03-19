@@ -2,7 +2,7 @@ package com.github.myrrhax.diploma_project.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
-import com.github.myrrhax.diploma_project.event.SchemaChangedEvent;
+import com.github.myrrhax.diploma_project.event.ServerEvent;
 import com.github.myrrhax.diploma_project.model.dto.ChangeHeadVersionDto;
 import com.github.myrrhax.diploma_project.model.dto.DeleteVersionDto;
 import com.github.myrrhax.diploma_project.model.dto.SaveVersionDto;
@@ -50,7 +50,7 @@ public class WSSchemaController {
         var processingResult = schemaService.process(command);
 
         messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
-                new SchemaChangedEvent.CommandEvent(processingResult));
+                new ServerEvent.CommandEvent(processingResult));
     }
 
     @MessageMapping("/schema/{id}/saveVersion")
@@ -66,7 +66,7 @@ public class WSSchemaController {
         List<VersionDTO> newVersion = versionService.saveVersion(schemaId, dto.tag());
 
         messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
-                new SchemaChangedEvent.SchemaNewVersionEvent(newVersion));
+                new ServerEvent.SchemaNewVersionEvent(newVersion));
     }
 
     @MessageMapping("/schema/{id}/deleteVersion")
@@ -82,7 +82,7 @@ public class WSSchemaController {
         List<VersionDTO> versions = versionService.deleteVersion(schemaId, dto.versionId());
 
         messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
-                new SchemaChangedEvent.SchemaVersionDeletedEvent(versions));
+                new ServerEvent.SchemaVersionDeletedEvent(versions));
     }
 
     @MessageMapping("/schema/{id}/changeHead")
@@ -98,6 +98,6 @@ public class WSSchemaController {
         VersionDTO updatedVersion = versionService.changeHead(schemaId, dto.currentVersionId(), dto.toVersionId());
 
         messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
-                new SchemaChangedEvent.HeadChangedEvent(updatedVersion));
+                new ServerEvent.HeadChangedEvent(updatedVersion));
     }
 }
