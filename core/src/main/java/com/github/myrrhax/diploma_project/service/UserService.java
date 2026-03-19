@@ -2,6 +2,7 @@ package com.github.myrrhax.diploma_project.service;
 
 import com.github.myrrhax.diploma_project.mapper.UserMapper;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
+import com.github.myrrhax.diploma_project.model.exception.UserNotFoundException;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.model.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +26,6 @@ public class UserService {
     public UserDTO getUserById(UUID id) {
         return userRepository.findById(id)
                 .map(userMapper::toDto)
-                .orElseThrow(() -> new ApplicationException(
-                        "User with id %s is not found".formatted(id.toString()),
-                        HttpStatus.NOT_FOUND
-                ));
+                .orElseThrow(() -> new UserNotFoundException(id));
     }
 }
