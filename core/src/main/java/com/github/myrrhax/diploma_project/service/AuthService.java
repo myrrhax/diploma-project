@@ -9,6 +9,8 @@ import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.enums.JwtAuthority;
 import com.github.myrrhax.diploma_project.model.exception.AccountIsAlreadyConfirmedException;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
+import com.github.myrrhax.diploma_project.model.exception.FailedToRefreshException;
+import com.github.myrrhax.diploma_project.model.exception.UserNotFoundException;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
 import com.github.myrrhax.diploma_project.security.JwsTokenProvider;
 import com.github.myrrhax.diploma_project.security.JwtProperties;
@@ -70,10 +72,7 @@ public class AuthService implements UserDetailsService {
     public AuthResultDTO authenticate(String email, String password, HttpServletResponse response) {
         log.info("Trying to authenticate user with email: {}", email);
         UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ApplicationException(
-                        "User with email %s is not found".formatted(email),
-                        HttpStatus.NOT_FOUND
-                ));
+                .orElseThrow(() -> new UserNotFoundException(email));
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password)
         );
@@ -99,8 +98,9 @@ public class AuthService implements UserDetailsService {
     public AuthResultDTO register(String email, String password) {
         if (userRepository.existsByEmail(email)) {
             throw new ApplicationException(
-                    "User with email %s already exists".formatted(email),
-                    HttpStatus.CONFLICT
+                    "error.user.email_conflict",
+                    HttpStatus.CONFLICT,
+                    email
             );
         }
         var user = UserEntity.builder()
@@ -135,13 +135,15 @@ public class AuthService implements UserDetailsService {
 
     public AuthResultDTO confirmEmail(String code, UUID userId, HttpServletResponse response) {
         log.info("Trying to confirm email for user: {}", userId);
-        UserEntity user = userRepository.findById(userId).orElseThrow();
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
         if (user.getIsConfirmed()) {
-            throw new AccountIsAlreadyConfirmedException(userId);
+            throw new AccountIsAlreadyConfirmedException(user.getEmail());
         }
         if (!Objects.equals(code, user.getConfirmation().getCode()) ||
             user.getConfirmation().getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new ApplicationException("Invalid confirmation code", HttpStatus.BAD_REQUEST);
+            throw new ApplicationException("error.user.invalid_confirmation_code", HttpStatus.BAD_REQUEST);
         }
         user.setIsConfirmed(true);
         userRepository.saveAndFlush(user);
@@ -158,9 +160,10 @@ public class AuthService implements UserDetailsService {
     }
 
     public void resendCode(UUID userId) {
-        UserEntity user = userRepository.findById(userId).orElseThrow();
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
         if (user.getIsConfirmed()) {
-            throw new AccountIsAlreadyConfirmedException(userId);
+            throw new AccountIsAlreadyConfirmedException(user.getEmail());
         }
         updateCodeAndSendEvent(user);
     }
@@ -172,11 +175,11 @@ public class AuthService implements UserDetailsService {
             decodedRefresh = tokenProvider.decodeToken(token);
         } catch (Exception ex) {
             log.error("Unable to parse refresh token {}", ex.getMessage());
-            throw new ApplicationException("Failed to refresh token", HttpStatus.BAD_REQUEST);
+            throw new FailedToRefreshException();
         }
         if (decodedRefresh.expiresAt().isBefore(Instant.now())){
             log.error("Token is expired");
-            throw new ApplicationException("Refresh token is expired", HttpStatus.BAD_REQUEST);
+            throw new FailedToRefreshException();
         }
 
         if (decodedRefresh.authorities()
@@ -184,7 +187,7 @@ public class AuthService implements UserDetailsService {
                 .noneMatch(authority -> authority.equals(JwtAuthority.REFRESH.name()))
         ) {
             log.error("Invalid refresh token");
-            throw new ApplicationException("Invalid refresh token", HttpStatus.BAD_REQUEST);
+            throw new FailedToRefreshException();
         }
         UserEntity user =  userRepository.findById(decodedRefresh.userId()).orElseThrow();
         Tokens signedTokens = prepareTokens(decodedRefresh.subject(),
