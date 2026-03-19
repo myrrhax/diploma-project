@@ -54,16 +54,19 @@ public class ParticipationService {
     public void sendInvitation(UUID sender, UUID schemeId, String email, List<AuthorityType> authorities) {
         log.info("Sending invitation for user {} and scheme {} from user {}", email, schemeId, sender);
         if (!authorities.contains(AuthorityType.READ_SCHEME)) {
-            throw new ApplicationException("Invitation must have read scheme authority");
+            throw new ApplicationException("error.invitation.must_have_read_authority");
         }
 
         SchemeEntity scheme = schemeRepository.findById(schemeId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemeId));
         if (schemeRepository.containsUserWithEmailInScheme(email, schemeId)) {
-            throw new ApplicationException("User already participating in scheme " + schemeId, HttpStatus.BAD_REQUEST);
+            throw new ApplicationException("error.invitation.user_already_participant",
+                    HttpStatus.BAD_REQUEST,
+                    email,
+                    scheme.getName());
         }
         if (invitationRepository.existsByReceiverEmailAndSchemeId(email, schemeId)) {
-            throw new ApplicationException("Invitation is already sent to user " + email, HttpStatus.BAD_REQUEST);
+            throw new ApplicationException("error.invitation.already_sent", HttpStatus.BAD_REQUEST, email);
         }
 
         UserEntity initiator = userRepository.findById(sender).orElseThrow();
@@ -73,7 +76,7 @@ public class ParticipationService {
                 && (initiatorAuthorities.size() < authorities.size()
                     || authorities.stream()
                         .anyMatch(au -> !initiatorAuthorities.contains(au)))) {
-            throw new ApplicationException("User can't grant more authorities than he have", HttpStatus.FORBIDDEN);
+            throw new ApplicationException("error.invitation.forbidden", HttpStatus.FORBIDDEN);
         }
         String[] parsedAuthorities = buildAuthorities(authorities);
         log.info("Applying authorities [{}]", String.join(",", parsedAuthorities));
@@ -138,10 +141,10 @@ public class ParticipationService {
                 .orElseThrow(() -> new ApplicationException("Invitation not found", HttpStatus.NOT_FOUND));
 
         if (!user.getEmail().equals(invitation.getReceiverEmail())) {
-            throw new ApplicationException("Access denied for user with email " + user.getEmail(), HttpStatus.FORBIDDEN);
+            throw new ApplicationException("error.invitation.access_denied", HttpStatus.FORBIDDEN);
         }
         if (invitation.isConfirmed()) {
-            throw new ApplicationException("Invitation is already confirmed");
+            throw new ApplicationException("error.invitation.already_accepted", HttpStatus.CONFLICT);
         }
 
         invitation.setConfirmed(true);
