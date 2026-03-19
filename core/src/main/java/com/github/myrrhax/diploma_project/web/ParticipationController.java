@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.web;
 
+import com.github.myrrhax.diploma_project.event.ServerEvent;
 import com.github.myrrhax.diploma_project.model.dto.GrantUserDTO;
 import com.github.myrrhax.diploma_project.model.dto.InviteUserDTO;
 import com.github.myrrhax.diploma_project.model.dto.ParticipationDto;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -32,6 +34,7 @@ import java.util.UUID;
 public class ParticipationController {
     private final ParticipationService participationService;
     private final AuthorityService authorityService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping("/invite")
     @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #dto.schemeId, 'INVITE_USERS')")
@@ -75,7 +78,9 @@ public class ParticipationController {
         if (dto.authorities().contains(AuthorityType.ALL))
             throw new ApplicationException("Creator can't grant full access", HttpStatus.BAD_REQUEST);
 
-        authorityService.grantUser(dto.userId(), dto.schemeId(), dto.authorities());
+        ParticipationDto result = authorityService.grantUser(dto.userId(), dto.schemeId(), dto.authorities());
+        messagingTemplate.convertAndSendToUser(result.user().email(), "/queue/schema-events",
+                new ServerEvent.AuthorityChangesEvent(result));
         return ResponseEntity.ok().build();
     }
 }

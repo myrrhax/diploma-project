@@ -1,21 +1,19 @@
 package com.github.myrrhax.diploma_project.service;
 
+import com.github.myrrhax.diploma_project.mapper.UserMapper;
+import com.github.myrrhax.diploma_project.model.dto.ParticipationDto;
 import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
-import com.github.myrrhax.diploma_project.model.entity.InvitationEntity;
-import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
 import com.github.myrrhax.diploma_project.repository.AuthorityRepository;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
 import com.github.myrrhax.diploma_project.repository.UserRepository;
-import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.shared.model.AuthorityType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +31,7 @@ public class AuthorityService {
     private final AuthorityRepository authorityRepository;
     private final UserRepository userRepository;
     private final SchemeRepository schemeRepository;
+    private final UserMapper userMapper;
 
     @Transactional(readOnly = true)
     @Cacheable(value = "authorities", key = "{#userId, #schemeId}")
@@ -45,7 +44,7 @@ public class AuthorityService {
     }
 
     @CacheEvict(value = "authorities", key = "{#userId, #schemeId}")
-    public void grantUser(UUID userId, UUID schemeId, List<AuthorityType> types) {
+    public ParticipationDto grantUser(UUID userId, UUID schemeId, List<AuthorityType> types) {
         if (getAuthorities(userId, schemeId).isEmpty()) {
             throw new ApplicationException("error.authorities.cant_grant", HttpStatus.BAD_REQUEST);
         }
@@ -77,7 +76,9 @@ public class AuthorityService {
                         .build())
                 .forEach(authorities::add);
 
-        authorityRepository.saveAll(authorities);
+        authorityRepository.saveAllAndFlush(authorities);
+
+        return new ParticipationDto(userMapper.toDto(user), schemeId, types);
     }
 
     @CacheEvict(value = "authorities", key = "{#userId, #schemeId}")

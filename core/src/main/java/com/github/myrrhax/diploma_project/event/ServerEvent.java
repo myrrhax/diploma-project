@@ -3,6 +3,7 @@ package com.github.myrrhax.diploma_project.event;
 import com.github.myrrhax.diploma_project.model.dto.ConnectionChangedPayload;
 import com.github.myrrhax.diploma_project.model.dto.ErrorResponseDTO;
 import com.github.myrrhax.diploma_project.model.dto.MetadataCommandProcessResult;
+import com.github.myrrhax.diploma_project.model.dto.ParticipationDto;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.model.enums.EventType;
 import lombok.AllArgsConstructor;
@@ -17,7 +18,8 @@ public abstract sealed class ServerEvent<T> permits ServerEvent.CommandEvent,
                                                     ServerEvent.SchemaVersionDeletedEvent,
                                                     ServerEvent.HeadChangedEvent,
                                                     ServerEvent.ConnectionChangedEvent,
-                                                    ServerEvent.ErrorEvent {
+                                                    ServerEvent.ErrorEvent,
+                                                    ServerEvent.AuthorityChangesEvent {
     private final EventType eventType;
     private final T payload;
 
@@ -48,6 +50,12 @@ public abstract sealed class ServerEvent<T> permits ServerEvent.CommandEvent,
     public static final class ErrorEvent extends ServerEvent<ErrorResponseDTO> {
         public ErrorEvent(ErrorResponseDTO payload) {
             super(EventType.ERROR, payload);
+        }
+    }
+
+    public static final class AuthorityChangesEvent extends ServerEvent<ParticipationDto> {
+        public AuthorityChangesEvent(ParticipationDto payload) {
+            super(EventType.AUTHORITIES_CHANGED, payload);
         }
     }
 }

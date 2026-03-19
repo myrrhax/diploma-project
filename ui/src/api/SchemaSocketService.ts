@@ -15,6 +15,7 @@ import type { MetadataCommand } from "@/model/SchemaCommands";
 import type ErrorResponse from "@/model/ErrorResponse";
 import type { Version } from "@/model/SchemaTypes";
 import type { User } from "@/model/User";
+import type { Participation } from "@/model/Participation";
 
 const WS_ENDPOINT = 'http://localhost:8000/ws';
 
@@ -25,7 +26,7 @@ class SchemaSocketService {
     private client: Client | null = null;
     private subscription: StompSubscription | null = null;
     private activeSchemaId: string | null = null;
-    private errorSubscription: StompSubscription | null = null;
+    private userQueueSubscription: StompSubscription | null = null;
     
     private schemaConnectionsSubscription: StompSubscription | null = null;
     private schemaConnectionsQueue: StompSubscription | null = null;
@@ -104,7 +105,7 @@ class SchemaSocketService {
             this.executeTopicSubscriptions(schemaId);
         }
         
-        if (this.client && this.client.connected && !this.errorSubscription) {
+        if (this.client && this.client.connected && !this.userQueueSubscription) {
             this.executeUserQueueSubscription();   
         }
     }
@@ -144,9 +145,9 @@ class SchemaSocketService {
 
         this.activeSchemaId = null;
         
-        if (this.errorSubscription) {
-            this.errorSubscription.unsubscribe();
-            this.errorSubscription = null;
+        if (this.userQueueSubscription) {
+            this.userQueueSubscription.unsubscribe();
+            this.userQueueSubscription = null;
         }
     }
 
@@ -265,13 +266,13 @@ class SchemaSocketService {
     }
 
     private executeUserQueueSubscription() {
-        if (!this.client || this.errorSubscription) {
+        if (!this.client || this.userQueueSubscription) {
             return;
         }
         
         const queue = '/user/queue/schema-events';
         
-        this.errorSubscription = this.client.subscribe(queue, (msg) => {
+        this.userQueueSubscription = this.client.subscribe(queue, (msg) => {
             const body = JSON.parse(msg.body) as SchemaChangedEvent<any>;
             console.log('Received: ', body);
             
@@ -279,6 +280,14 @@ class SchemaSocketService {
                 const error = body.payload as ErrorResponse;
                 runInAction(() => {
                     eventsStore.addError(error.message);
+                })
+            } else if (body.eventType === 'AUTHORITIES_CHANGED') {
+                const newParticipation = body.payload as Participation;
+                runInAction(() => {
+                    if (this.activeSchemaId === newParticipation.schemaId) {
+                        eventsStore.addWarn('Ваши права были изменены');
+                        participationsStore.authorities = newParticipation.authorities;
+                    }                    
                 })
             }
         });

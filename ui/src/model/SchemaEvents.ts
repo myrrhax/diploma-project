@@ -1,3 +1,4 @@
+import type { Participation } from "./Participation";
 import type { Table, Reference, Column, Index, ReferenceKey } from "./SchemaElements";
 import type { Version } from "./SchemaTypes";
 import type { User } from "./User";
@@ -8,7 +9,8 @@ export type EventType = 'SCHEMA_UPDATE'
     | 'SCHEMA_VERSION_DELETED'
     | 'SCHEMA_HEAD_CHANGED'
     | 'CONNECTION_CHANGED'
-    | 'ERROR';
+    | 'ERROR'
+    | 'AUTHORITIES_CHANGED';
 
 export type ConnectionChangeType = 'CONNECTED' | 'DISCONNECTED';
 
@@ -35,6 +37,10 @@ export interface HeadChangedEvent extends SchemaChangedEvent<Version> {
 
 export interface ConnectionChangedEvent extends SchemaChangedEvent<ConnectionChangedPayload> {
     eventType: 'CONNECTION_CHANGED';
+}
+
+export interface AuthoritiesChangedEvent extends SchemaChangedEvent<Participation> {
+    eventType: 'AUTHORITIES_CHANGED';
 }
 
 export interface ConnectionChangedPayload {
