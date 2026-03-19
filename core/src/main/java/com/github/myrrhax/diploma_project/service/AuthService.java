@@ -141,8 +141,8 @@ public class AuthService implements UserDetailsService {
         if (user.getIsConfirmed()) {
             throw new AccountIsAlreadyConfirmedException(user.getEmail());
         }
-        if (!Objects.equals(code, user.getConfirmation().getCode()) ||
-            user.getConfirmation().getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (!Objects.equals(code, user.getConfirmation().getFirst().getCode()) ||
+            user.getConfirmation().getFirst().getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new ApplicationException("error.user.invalid_confirmation_code", HttpStatus.BAD_REQUEST);
         }
         user.setIsConfirmed(true);
@@ -221,8 +221,8 @@ public class AuthService implements UserDetailsService {
     private void updateCodeAndSendEvent(UserEntity user) {
         log.info("User with id: {} was not confirmed, updating auth code", user.getId());
         String code = generateCode();
-        user.getConfirmation().setCode(code);
-        user.getConfirmation()
+        user.getConfirmation().getFirst().setCode(code);
+        user.getConfirmation().getFirst()
                 .setExpiresAt(LocalDateTime.now().plus(confirmationCodeDuration));
         userRepository.saveAndFlush(user);
         log.info("Confirmation code was update for user {}", user.getId());

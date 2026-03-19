@@ -21,6 +21,7 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -54,11 +55,11 @@ public class UserEntity extends BaseEntity {
     @Builder.Default
     Set<SchemeEntity> schemes = new HashSet<>();
 
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "user", fetch = FetchType.LAZY)
-    ConfirmationEntity confirmation;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user", fetch = FetchType.LAZY)
+    List<ConfirmationEntity> confirmation;
 
     public void addConfirmation(ConfirmationEntity confirmation) {
-        this.setConfirmation(confirmation);
+        this.setConfirmation(List.of(confirmation));
         confirmation.setUser(this);
     }
 }
