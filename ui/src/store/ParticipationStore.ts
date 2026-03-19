@@ -2,7 +2,7 @@ import { participationApiService } from "@/api/ParticipationApiService";
 import type { AuthorityType } from "@/model/Participation";
 import { makeAutoObservable, runInAction } from "mobx";
 import type { Participation } from "@/model/Participation";
-import { errorsStore } from "./ErrorsStore";
+import { eventsStore } from "./EventsStore";
 import type { User } from "@/model/User";
 
 class ParticipationsStore {
@@ -95,7 +95,7 @@ class ParticipationsStore {
 
         if (errorMessage) {
             runInAction(() => {
-                errorsStore.addError(errorMessage);
+                eventsStore.addError(errorMessage);
                 this.isLoading = false;
             });
 
@@ -128,7 +128,7 @@ class ParticipationsStore {
 
             if (errorMessage) {
                 runInAction(() => {
-                    errorsStore.addError(errorMessage);
+                    eventsStore.addError(errorMessage);
                     this.isLoading = false;
                 });
                

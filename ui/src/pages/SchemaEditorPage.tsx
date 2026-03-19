@@ -7,7 +7,6 @@ import { UsersOverlay } from '@/components/UsersOverlay/UsersOverlay';
 import { ERDiagram } from '@/components/er/ERDiagram';
 import { OverlaySpinner } from '@/components/SpinnerLoader/SpinnerLoader';
 import { schemaSocketService } from '@/api/SchemaSocketService';
-import { ErrorToasts } from '@/components/ErrorToast/ErrorToast';
 import { versionsStore } from '@/store/VersionsStore';
 import { SaveVersionModal } from '@/components/SaveVersionModal/SaveVersionModal';
 import './css/SchemaEditorPage.css';
@@ -84,7 +83,6 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
     
     return (
         <div className="schema_page__container">
-            <ErrorToasts />
             <ParticipationList />
             <InviteModal />
             {isEditable && (

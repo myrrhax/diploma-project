@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.web;
 
+import com.github.myrrhax.diploma_project.event.ServerEvent;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.model.dto.ErrorResponseDTO;
 import jakarta.validation.ConstraintViolation;
@@ -59,11 +60,11 @@ public class GlobalExceptionHandler {
     }
 
     @MessageExceptionHandler(ApplicationException.class)
-    @SendToUser("/queue/errors")
-    public ErrorResponseDTO handleApplicationException(ApplicationException ex) {
+    @SendToUser("/queue/schema-events")
+    public ServerEvent.ErrorEvent handleApplicationException(ApplicationException ex) {
         log.error("An application error occurred while processing websocket command: {}", ex.getMessage());
         String message = messageSource.getMessage(ex.getMessage(), ex.getArgs(), Locale.getDefault());
 
-        return new ErrorResponseDTO(message, Collections.emptyMap());
+        return new ServerEvent.ErrorEvent(new ErrorResponseDTO(message, Collections.emptyMap()));
     }
 }

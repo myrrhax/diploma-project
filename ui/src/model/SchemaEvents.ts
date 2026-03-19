@@ -7,7 +7,8 @@ export type EventType = 'SCHEMA_UPDATE'
     | 'SCHEMA_NEW_VERSION' 
     | 'SCHEMA_VERSION_DELETED'
     | 'SCHEMA_HEAD_CHANGED'
-    | 'CONNECTION_CHANGED';
+    | 'CONNECTION_CHANGED'
+    | 'ERROR';
 
 export type ConnectionChangeType = 'CONNECTED' | 'DISCONNECTED';
 

@@ -3,7 +3,7 @@ import SockJs from 'sockjs-client';
 import { runInAction } from "mobx";
 import { authStore } from "@/store/AuthStore";
 import { erStore } from "@/store/ERStore";
-import { errorsStore } from "@/store/ErrorsStore";
+import { eventsStore } from "@/store/EventsStore";
 import { versionsStore } from "@/store/VersionsStore";
 import { wsConnectionStore } from "@/store/WsConnectionStore";
 import { participationsStore } from "@/store/ParticipationStore";
@@ -27,7 +27,6 @@ class SchemaSocketService {
     private activeSchemaId: string | null = null;
     private errorSubscription: StompSubscription | null = null;
     
-    // Подписки для отслеживания присутствия
     private schemaConnectionsSubscription: StompSubscription | null = null;
     private schemaConnectionsQueue: StompSubscription | null = null;
 
@@ -49,7 +48,7 @@ class SchemaSocketService {
                 if (oldSchemaId) {
                     this.activeSchemaId = oldSchemaId;
                     this.executeSubscription(this.activeSchemaId);
-                    this.executeErrorsQueueSubscription();
+                    this.executeUserQueueSubscription();
                     this.executeTopicSubscriptions(this.activeSchemaId);
                 }
                 
@@ -66,6 +65,7 @@ class SchemaSocketService {
                     this.client?.deactivate();
                     this.leaveSchema();
                     runInAction(() => {
+                        eventsStore.addError('Не удалось подключиться к доске');
                         erStore.deny();
                     });
                 }
@@ -105,7 +105,7 @@ class SchemaSocketService {
         }
         
         if (this.client && this.client.connected && !this.errorSubscription) {
-            this.executeErrorsQueueSubscription();   
+            this.executeUserQueueSubscription();   
         }
     }
 
@@ -220,8 +220,10 @@ class SchemaSocketService {
                     runInAction(() => {
                         if (payload.type === 'CONNECTED') {
                             participationsStore.addUser(payload.user);
+                            eventsStore.addInfo(`Пользователь ${payload.user.email} подключился к доске`);
                         } else if (payload.type === 'DISCONNECTED') {
                             participationsStore.removeUser(payload.user);
+                            eventsStore.addInfo(`Пользователь ${payload.user.email} отключился от доски`);
                         }
                     });
                 }
@@ -244,14 +246,16 @@ class SchemaSocketService {
                     erStore.process(body.payload);
                 } else if (body.eventType === 'SCHEMA_NEW_VERSION' || body.eventType === 'SCHEMA_VERSION_DELETED') {
                     versionsStore.setVersions(body.payload);
+                    eventsStore.addInfo('Версии схемы были обновлены');
                 } else if (body.eventType === 'SCHEMA_HEAD_CHANGED') {
-                    const version = body.payload;
+                    const version = body.payload as Version;
                     console.log('Updating head: ', version);
                     
                     runInAction(() => {
                         versionsStore.versions = [...versionsStore.versions.filter(v => v.versionId !== version.versionId), version];
                         versionsStore.currentVersion = version;
                         erStore.state = version.currentState;
+                        eventsStore.addInfo('Текущая версия схемы была изменена');
                     });
                 }    
             }
@@ -260,28 +264,26 @@ class SchemaSocketService {
         console.log(`[WS] Подписаны на топик схемы: ${topic}`);
     }
 
-    private executeErrorsQueueSubscription() {
+    private executeUserQueueSubscription() {
         if (!this.client || this.errorSubscription) {
             return;
         }
         
-        const queue = '/user/queue/errors';
+        const queue = '/user/queue/schema-events';
         
         this.errorSubscription = this.client.subscribe(queue, (msg) => {
-            if (msg.body) {
-                const body = JSON.parse(msg.body) as ErrorResponse;
-                this.handleError(body); 
+            const body = JSON.parse(msg.body) as SchemaChangedEvent<any>;
+            console.log('Received: ', body);
+            
+            if (body.eventType === 'ERROR') {
+                const error = body.payload as ErrorResponse;
+                runInAction(() => {
+                    eventsStore.addError(error.message);
+                })
             }
         });
         
         console.log('[WS] Подписка на Error Queue');
-    }
-
-    private handleError(error: ErrorResponse) {
-        console.log('Ошибка: ' + error.message);
-        runInAction(() => {
-            errorsStore.addError(error.message);
-        });
     }
 }
 

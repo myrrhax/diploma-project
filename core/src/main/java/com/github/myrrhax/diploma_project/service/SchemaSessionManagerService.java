@@ -11,6 +11,7 @@ import java.util.UUID;
 public interface SchemaSessionManagerService {
     boolean tryAddUser(UUID schemaId, String sessionId, UUID userId);
     boolean tryRemoveUser(String sessionId);
+    void removeByUserId(UUID userId);
     boolean isConnected(String sessionId, UUID schemaId);
     List<UserDTO> getConnectedUsers(UUID schemaId);
     Optional<UserDTO> getUserBySessionId(String sessionId);

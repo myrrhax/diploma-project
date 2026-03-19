@@ -14,10 +14,12 @@ import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -39,7 +41,7 @@ public class WebSocketConnectionsEventListener {
             TokenUser tokenUser = (TokenUser) tokenAuth.getPrincipal();
             UserDTO user = sessionManager.getUserBySessionId(accessor.getSessionId()).orElseThrow(() -> {
                 log.warn("User not found for sessionId {}", accessor.getSessionId());
-                sessionManager.tryRemoveUser(sessionId);
+                sessionManager.removeByUserId(tokenUser.getToken().userId());
 
                 return new RuntimeException("Failed to connect user to schema");
             });
@@ -68,26 +70,37 @@ public class WebSocketConnectionsEventListener {
     @EventListener
     public void handleSessionUnsubscribeEvent(SessionUnsubscribeEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        onDisconnect(accessor);
+    }
+
+    @EventListener
+    public void handleDisconnectEvent(SessionDisconnectEvent event) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        onDisconnect(accessor);
+    }
+
+    private void onDisconnect(StompHeaderAccessor accessor) {
         String sessionId = accessor.getSessionId();
 
-        UserDTO user = sessionManager.getUserBySessionId(accessor.getSessionId()).orElseThrow(() -> {
-            log.warn("User not found for sessionId {}", accessor.getSessionId());
-            sessionManager.tryRemoveUser(sessionId);
-
-            return new RuntimeException("Failed to send disconnect event");
-        });
-        UUID schemaId = sessionManager.getSchemaIdBySessionId(accessor.getSessionId()).orElseThrow(() -> {
-            log.warn("Schema not found for sessionId {}", accessor.getSessionId());
-            sessionManager.tryRemoveUser(sessionId);
-
-            return new RuntimeException("Failed to send disconnect event");
-        });
-
-        if (sessionManager.tryRemoveUser(sessionId)) {
-            messagingTemplate.convertAndSend(TOPIC_PREFIX + schemaId,
-                new ServerEvent.ConnectionChangedEvent(
-                    new ConnectionChangedPayload(schemaId, user, ConnectionChangedPayload.ConnectionChangeType.DISCONNECTED)
-            ));
+        if (sessionId == null) {
+            return;
         }
+
+        sessionManager.getUserBySessionId(sessionId).ifPresent(user -> {
+            sessionManager.getSchemaIdBySessionId(sessionId).ifPresent(schemaId -> {
+                if (sessionManager.tryRemoveUser(sessionId)) {
+                    log.info("Пользователь {} отключился от схемы {}", user.email(), schemaId);
+
+                    messagingTemplate.convertAndSend(TOPIC_PREFIX + schemaId,
+                            new ServerEvent.ConnectionChangedEvent(
+                                    new ConnectionChangedPayload(
+                                            schemaId,
+                                            user,
+                                            ConnectionChangedPayload.ConnectionChangeType.DISCONNECTED
+                                    )
+                            ));
+                }
+            });
+        });
     }
 }

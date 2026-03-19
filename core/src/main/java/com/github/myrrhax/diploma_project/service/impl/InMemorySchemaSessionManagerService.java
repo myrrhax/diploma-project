@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -84,6 +85,18 @@ public class InMemorySchemaSessionManagerService implements SchemaSessionManager
         }
 
         return user != null;
+    }
+
+    @Override
+    public void removeByUserId(UUID userId) {
+        List<String> userSessions = userMapping.entrySet().stream()
+                .filter((entry) -> entry.getValue().id().equals(userId))
+                .map(Map.Entry::getKey)
+                .toList();
+
+        for (String session : userSessions) {
+            tryRemoveUser(session);
+        }
     }
 
     @Override

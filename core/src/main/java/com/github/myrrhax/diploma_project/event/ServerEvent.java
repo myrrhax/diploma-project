@@ -1,6 +1,7 @@
 package com.github.myrrhax.diploma_project.event;
 
 import com.github.myrrhax.diploma_project.model.dto.ConnectionChangedPayload;
+import com.github.myrrhax.diploma_project.model.dto.ErrorResponseDTO;
 import com.github.myrrhax.diploma_project.model.dto.MetadataCommandProcessResult;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.model.enums.EventType;
@@ -15,7 +16,8 @@ public abstract sealed class ServerEvent<T> permits ServerEvent.CommandEvent,
                                                     ServerEvent.SchemaNewVersionEvent,
                                                     ServerEvent.SchemaVersionDeletedEvent,
                                                     ServerEvent.HeadChangedEvent,
-                                                    ServerEvent.ConnectionChangedEvent {
+                                                    ServerEvent.ConnectionChangedEvent,
+                                                    ServerEvent.ErrorEvent {
     private final EventType eventType;
     private final T payload;
 
@@ -40,6 +42,12 @@ public abstract sealed class ServerEvent<T> permits ServerEvent.CommandEvent,
     public static final class ConnectionChangedEvent extends ServerEvent<ConnectionChangedPayload> {
         public ConnectionChangedEvent(ConnectionChangedPayload payload) {
             super(EventType.CONNECTION_CHANGED, payload);
+        }
+    }
+
+    public static final class ErrorEvent extends ServerEvent<ErrorResponseDTO> {
+        public ErrorEvent(ErrorResponseDTO payload) {
+            super(EventType.ERROR, payload);
         }
     }
 }
