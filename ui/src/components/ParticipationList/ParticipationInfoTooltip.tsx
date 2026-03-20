@@ -106,9 +106,8 @@ export const ParticipationInfoTooltip = observer(({left, top, participation, can
                     ))
                 )}
             </div>
-
-            {canUpdate ? (
-                <div className="save_btn_holder">
+            <div className="btn_holders">
+                {canUpdate ? (
                     <button
                         disabled={participationsStore.isLoading} 
                         onClick={handleUpdateAuthorities} 
@@ -116,11 +115,9 @@ export const ParticipationInfoTooltip = observer(({left, top, participation, can
                     >
                         { participationsStore.isLoading ? 'Обновление...' : 'Обновить права' } 
                     </button>
-                </div>
-            ) : null}
+                ) : null}
 
-            { authStore.user?.id !== participation.user.id && participationsStore.authorities?.includes('ALL') ? (
-                <div className="kick_user_btn_holder">
+                { authStore.user?.id !== participation.user.id && participationsStore.authorities?.includes('ALL') ? (
                     <button
                         disabled={participationsStore.isLoading} 
                         onClick={() => handleKickUser(participation.user.id, participation.user.email)} 
@@ -128,8 +125,8 @@ export const ParticipationInfoTooltip = observer(({left, top, participation, can
                     >
                         Исключить
                     </button>
-                </div>
-            ) : null }
+                ) : null }
+            </div>
         </div>,
         document.body
     );
