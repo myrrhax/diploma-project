@@ -5,6 +5,7 @@ import com.github.myrrhax.diploma_project.model.dto.GrantUserDTO;
 import com.github.myrrhax.diploma_project.model.dto.InviteUserDTO;
 import com.github.myrrhax.diploma_project.model.dto.KickUserDto;
 import com.github.myrrhax.diploma_project.model.dto.ParticipationDto;
+import com.github.myrrhax.diploma_project.model.dto.UserDeletePayload;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.AuthorityService;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -90,7 +92,15 @@ public class ParticipationController {
     public ResponseEntity<Void> leaveSchema(@PathVariable("schemaId") UUID schemaId,
                                             @AuthenticationPrincipal TokenUser tokenUser) {
         UUID userId = tokenUser.getToken().userId();
-        participationService.deleteParticipation(userId, schemaId);
+        Optional<ParticipationDto> newLeaderInfo = participationService.deleteParticipation(userId, schemaId);
+
+        newLeaderInfo.ifPresent(result ->
+                messagingTemplate.convertAndSendToUser(result.user().email(), "/queue/schema-events",
+                    new ServerEvent.AuthorityChangesEvent(result))
+        );
+
+        messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
+                new ServerEvent.UserDeleteEvent(new UserDeletePayload(userId, schemaId)));
 
         return ResponseEntity.ok().build();
     }
@@ -98,8 +108,15 @@ public class ParticipationController {
     @PostMapping("schema/{schemaId}/kick")
     @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #schemaId, 'ALL')")
     public ResponseEntity<Void> kickUser(@PathVariable("schemaId") UUID schemaId,
-                                         @RequestBody KickUserDto dto) {
+                                         @RequestBody KickUserDto dto,
+                                         @AuthenticationPrincipal TokenUser tokenUser) {
+        if (tokenUser.getToken().userId().equals(dto.kickedUserID())) {
+            throw new ApplicationException("error.participation.user_cant_kick_himself", HttpStatus.BAD_REQUEST);
+        }
         participationService.deleteParticipation(dto.kickedUserID(), schemaId);
+
+        messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
+                new ServerEvent.UserDeleteEvent(new UserDeletePayload(dto.kickedUserID(), schemaId)));
 
         return ResponseEntity.ok().build();
     }

@@ -134,7 +134,7 @@ public class ParticipationService {
         );
     }
 
-    public void deleteParticipation(UUID userId, UUID schemaId) {
+    public Optional<ParticipationDto> deleteParticipation(UUID userId, UUID schemaId) {
         SchemeEntity scheme = schemeRepository.findById(schemaId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemaId));
         if (scheme.getCreator().getId().equals(userId)) {
@@ -142,14 +142,15 @@ public class ParticipationService {
 
             if (participations.size() == 1) {
                 schemaService.deleteScheme(schemaId);
-                return;
+                return Optional.empty();
             }
 
             Optional<ParticipationDto> newLeader = participations.stream()
                     .filter(p -> !p.user().id().equals(userId))
                     .sorted((p1, p2) -> Integer.compare(p2.authorities().size(), p1.authorities().size()))
                     .findFirst();
-            newLeader.ifPresent(leader -> {
+            if (newLeader.isPresent()) {
+                ParticipationDto leader = newLeader.get();
                 UserEntity leaderEntity = userRepository.findById(leader.user().id())
                         .orElseThrow(() -> new UserNotFoundException(leader.user().id()));
                 scheme.setCreator(leaderEntity);
@@ -160,10 +161,17 @@ public class ParticipationService {
                                 .scheme(scheme)
                                 .type(AuthorityType.ALL)
                                 .build());
-            });
+
+                ParticipationDto newUserParticipation = getParticipationInfo(schemaId, leader.user().id());
+                return Optional.of(newUserParticipation);
+            }
+
+            return Optional.empty();
         } else {
             Set<AuthorityEntity> userAuthorities = authorityRepository.findAllAuthoritiesForUserAndScheme(userId, schemaId);
             authorityRepository.deleteAll(userAuthorities);
+
+            return Optional.empty();
         }
     }
 
