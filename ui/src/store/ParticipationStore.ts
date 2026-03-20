@@ -143,7 +143,7 @@ class ParticipationsStore {
             
             runInAction(() => {
                 this.isLoading = false;
-                alert(`Пользователь ${email} успешно приглашен!`);
+                eventsStore.addInfo(`Пользователь ${email} успешно приглашен!`);
                 this.closeInviteModal();
             });
 
