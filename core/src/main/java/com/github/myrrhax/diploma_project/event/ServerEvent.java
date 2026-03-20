@@ -4,6 +4,8 @@ import com.github.myrrhax.diploma_project.model.dto.ConnectionChangedPayload;
 import com.github.myrrhax.diploma_project.model.dto.ErrorResponseDTO;
 import com.github.myrrhax.diploma_project.model.dto.MetadataCommandProcessResult;
 import com.github.myrrhax.diploma_project.model.dto.ParticipationDto;
+import com.github.myrrhax.diploma_project.model.dto.SchemaDeletedPayload;
+import com.github.myrrhax.diploma_project.model.dto.UserKickedPayload;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.model.enums.EventType;
 import lombok.AllArgsConstructor;
@@ -19,7 +21,9 @@ public abstract sealed class ServerEvent<T> permits ServerEvent.CommandEvent,
                                                     ServerEvent.HeadChangedEvent,
                                                     ServerEvent.ConnectionChangedEvent,
                                                     ServerEvent.ErrorEvent,
-                                                    ServerEvent.AuthorityChangesEvent {
+                                                    ServerEvent.AuthorityChangesEvent,
+                                                    ServerEvent.UserKickedEvent,
+                                                    ServerEvent.SchemaDeleteEvent {
     private final EventType eventType;
     private final T payload;
 
@@ -56,6 +60,18 @@ public abstract sealed class ServerEvent<T> permits ServerEvent.CommandEvent,
     public static final class AuthorityChangesEvent extends ServerEvent<ParticipationDto> {
         public AuthorityChangesEvent(ParticipationDto payload) {
             super(EventType.AUTHORITIES_CHANGED, payload);
+        }
+    }
+
+    public static final class SchemaDeleteEvent extends ServerEvent<SchemaDeletedPayload> {
+        public SchemaDeleteEvent(SchemaDeletedPayload payload) {
+            super(EventType.SCHEMA_DELETED, payload);
+        }
+    }
+
+    public static final class UserKickedEvent extends ServerEvent<UserKickedPayload> {
+        public UserKickedEvent(UserKickedPayload payload) {
+            super(EventType.USER_KICKED, payload);
         }
     }
 }
