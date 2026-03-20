@@ -33,12 +33,14 @@ public interface SchemeRepository extends JpaRepository<SchemeEntity, UUID>, Jpa
     boolean existsByNameAndCreator_Id(String name, UUID creatorId);
 
     @Query("""
-            select count(se) > 0
+        select exists(
+            select 1
             from SchemeEntity se
             join se.userAuthorities ua
             join ua.user u
             where se.id = :schemeId
                 and u.email = :email
+        )
     """)
     boolean containsUserWithEmailInScheme(String email, UUID schemeId);
 }

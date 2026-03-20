@@ -63,7 +63,7 @@ public class ParticipationService {
                     email,
                     scheme.getName());
         }
-        if (invitationRepository.existsByReceiverEmailAndSchemeId(email, schemeId)) {
+        if (invitationRepository.existsByReceiverEmailAndSchemeIdAndIsConfirmedFalse(email, schemeId)) {
             throw new ApplicationException("error.invitation.already_sent", HttpStatus.BAD_REQUEST, email);
         }
 
@@ -131,7 +131,10 @@ public class ParticipationService {
         );
     }
 
-    @Transactional
+    public void kickUser(UUID userId, UUID schemaId) {
+
+    }
+
     public ParticipationDto confirmParticipation(UUID userId, UUID invitationId) {
         UserEntity user = userRepository.findById(userId).orElseThrow();
         InvitationEntity invitation = invitationRepository.findById(invitationId)
