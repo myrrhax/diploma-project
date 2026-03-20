@@ -4,6 +4,7 @@ import { observer } from "mobx-react-lite";
 import { createPortal } from "react-dom";
 import { useEffect, useMemo, useState, type ChangeEvent, type MouseEvent } from "react";
 import { participationsStore } from "@/store/ParticipationStore";
+import { authStore } from "@/store/AuthStore";
 
 interface ParticipationInfoTooltipProps {
     participation: Participation;
@@ -66,6 +67,14 @@ export const ParticipationInfoTooltip = observer(({left, top, participation, can
         await participationsStore.grantUser(participation, newUserAuthorities);
     }
 
+    const handleKickUser = async (userId: string, email: string) => {
+        if (participationsStore.isLoading) {
+            return;
+        }
+
+        await participationsStore.kickUser(userId, email);
+    }
+
     return createPortal(
         <div className="participation_info_tooltip__container" 
             style={{ top, left }}
@@ -109,6 +118,18 @@ export const ParticipationInfoTooltip = observer(({left, top, participation, can
                     </button>
                 </div>
             ) : null}
+
+            { authStore.user?.id !== participation.user.id && participationsStore.authorities?.includes('ALL') ? (
+                <div className="kick_user_btn_holder">
+                    <button
+                        disabled={participationsStore.isLoading} 
+                        onClick={() => handleKickUser(participation.user.id, participation.user.email)} 
+                        className="kick_user_btn"
+                    >
+                        Исключить
+                    </button>
+                </div>
+            ) : null }
         </div>,
         document.body
     );

@@ -9,7 +9,8 @@ import { wsConnectionStore } from "@/store/WsConnectionStore";
 import { participationsStore } from "@/store/ParticipationStore";
 import type { 
     SchemaChangedEvent, 
-    ConnectionChangedPayload 
+    ConnectionChangedPayload, 
+    UserKickedPayload
 } from "@/model/SchemaEvents"; 
 import type { MetadataCommand } from "@/model/SchemaCommands";
 import type ErrorResponse from "@/model/ErrorResponse";
@@ -258,7 +259,13 @@ class SchemaSocketService {
                         erStore.state = version.currentState;
                         eventsStore.addInfo('Текущая версия схемы была изменена');
                     });
-                }    
+                } else if (body.eventType === 'USER_KICKED') {
+                    const payload = body.payload as UserKickedPayload;
+                    participationsStore.removeUserById(payload.userId);
+                } else if (body.eventType === 'SCHEMA_DELETED') {
+                    this.leaveSchema();
+                    window.location.href = '/';
+                }
             }
         });
 
@@ -289,7 +296,7 @@ class SchemaSocketService {
                         participationsStore.authorities = newParticipation.authorities;
                     }                    
                 })
-            }
+            } 
         });
         
         console.log('[WS] Подписка на Error Queue');

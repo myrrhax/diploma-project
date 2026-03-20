@@ -37,6 +37,10 @@ class ParticipationsStore {
         this.onlineUsers = this.onlineUsers.filter(u => u.id !== user.id);
     }
 
+    removeUserById(userId: string) {
+        this.onlineUsers = this.onlineUsers.filter(u => u.id !== userId);
+    }
+
     addUser(user: User) {
         this.onlineUsers = [...this.onlineUsers.filter(u => u.id !== user.id), user];
     }
@@ -148,6 +152,47 @@ class ParticipationsStore {
 
             return false;
         }
+    }
+
+    async kickUser(userId: string, userEmail: string) {
+        if (!this.currentSchemaId) {
+            return;
+        }
+        runInAction(() => {
+            this.isLoading = true;
+        });
+        
+        try {
+            await participationApiService.kick(this.currentSchemaId, userId);
+            eventsStore.addInfo(`Пользователь ${userEmail} был исключен`)
+        } catch(ex: any) {
+            eventsStore.addError('Не удалось исключить пользователя ' + userEmail);
+        }
+
+        runInAction(() => {
+            this.isLoading = false;
+        });
+    }
+
+    async leave() {
+        if (!this.currentSchemaId) {
+            return;
+        }
+
+        runInAction(() => {
+            this.isLoading = true;
+        });
+
+        try {
+            await participationApiService.leaveSchema(this.currentSchemaId);
+            eventsStore.addInfo('Вы покинули схему');
+            window.location.href = '/';
+            this.clear();
+        } catch (e: any) {
+            eventsStore.addError('Не удалось покинуть схему');
+        }
+
+        runInAction(() => { this.isLoading = false; });
     }
 
     clear() {

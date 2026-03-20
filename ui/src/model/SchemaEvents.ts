@@ -10,7 +10,9 @@ export type EventType = 'SCHEMA_UPDATE'
     | 'SCHEMA_HEAD_CHANGED'
     | 'CONNECTION_CHANGED'
     | 'ERROR'
-    | 'AUTHORITIES_CHANGED';
+    | 'AUTHORITIES_CHANGED'
+    | 'SCHEMA_DELETED'
+    | 'USER_KICKED';
 
 export type ConnectionChangeType = 'CONNECTED' | 'DISCONNECTED';
 
@@ -41,6 +43,23 @@ export interface ConnectionChangedEvent extends SchemaChangedEvent<ConnectionCha
 
 export interface AuthoritiesChangedEvent extends SchemaChangedEvent<Participation> {
     eventType: 'AUTHORITIES_CHANGED';
+}
+
+export interface SchemaDeletedEvent extends SchemaChangedEvent<SchemaDeletedPayload> {
+    eventType: 'SCHEMA_DELETED';
+}
+
+export interface UserKickedEvent extends SchemaChangedEvent<UserKickedPayload> {
+    eventType: 'USER_KICKED';
+}
+
+export interface SchemaDeletedPayload {
+    schemaId: string;
+}
+
+export interface UserKickedPayload {
+    userId: string;
+    schemaId: string;
 }
 
 export interface ConnectionChangedPayload {
