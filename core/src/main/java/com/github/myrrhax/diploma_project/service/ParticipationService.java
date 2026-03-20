@@ -10,6 +10,7 @@ import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.entity.UserEntity;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
+import com.github.myrrhax.diploma_project.model.exception.UserNotFoundException;
 import com.github.myrrhax.diploma_project.repository.AuthorityRepository;
 import com.github.myrrhax.diploma_project.repository.InvitationRepository;
 import com.github.myrrhax.diploma_project.repository.SchemeRepository;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -136,7 +138,29 @@ public class ParticipationService {
         SchemeEntity scheme = schemeRepository.findById(schemaId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemaId));
         if (scheme.getCreator().getId().equals(userId)) {
-            schemaService.deleteScheme(schemaId);
+            List<ParticipationDto> participations = this.getParticipants(schemaId);
+
+            if (participations.size() == 1) {
+                schemaService.deleteScheme(schemaId);
+                return;
+            }
+
+            Optional<ParticipationDto> newLeader = participations.stream()
+                    .filter(p -> !p.user().id().equals(userId))
+                    .sorted((p1, p2) -> Integer.compare(p2.authorities().size(), p1.authorities().size()))
+                    .findFirst();
+            newLeader.ifPresent(leader -> {
+                UserEntity leaderEntity = userRepository.findById(leader.user().id())
+                        .orElseThrow(() -> new UserNotFoundException(leader.user().id()));
+                scheme.setCreator(leaderEntity);
+                schemeRepository.save(scheme);
+
+                authorityRepository.save(AuthorityEntity.builder()
+                                .user(leaderEntity)
+                                .scheme(scheme)
+                                .type(AuthorityType.ALL)
+                                .build());
+            });
         } else {
             Set<AuthorityEntity> userAuthorities = authorityRepository.findAllAuthoritiesForUserAndScheme(userId, schemaId);
             authorityRepository.deleteAll(userAuthorities);
