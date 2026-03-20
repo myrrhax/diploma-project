@@ -5,7 +5,7 @@ import com.github.myrrhax.diploma_project.model.dto.ErrorResponseDTO;
 import com.github.myrrhax.diploma_project.model.dto.MetadataCommandProcessResult;
 import com.github.myrrhax.diploma_project.model.dto.ParticipationDto;
 import com.github.myrrhax.diploma_project.model.dto.SchemaDeletedPayload;
-import com.github.myrrhax.diploma_project.model.dto.UserKickedPayload;
+import com.github.myrrhax.diploma_project.model.dto.UserDeletePayload;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.model.enums.EventType;
 import lombok.AllArgsConstructor;
@@ -22,7 +22,7 @@ public abstract sealed class ServerEvent<T> permits ServerEvent.CommandEvent,
                                                     ServerEvent.ConnectionChangedEvent,
                                                     ServerEvent.ErrorEvent,
                                                     ServerEvent.AuthorityChangesEvent,
-                                                    ServerEvent.UserKickedEvent,
+        ServerEvent.UserDeleteEvent,
                                                     ServerEvent.SchemaDeleteEvent {
     private final EventType eventType;
     private final T payload;
@@ -69,8 +69,8 @@ public abstract sealed class ServerEvent<T> permits ServerEvent.CommandEvent,
         }
     }
 
-    public static final class UserKickedEvent extends ServerEvent<UserKickedPayload> {
-        public UserKickedEvent(UserKickedPayload payload) {
+    public static final class UserDeleteEvent extends ServerEvent<UserDeletePayload> {
+        public UserDeleteEvent(UserDeletePayload payload) {
             super(EventType.USER_KICKED, payload);
         }
     }
