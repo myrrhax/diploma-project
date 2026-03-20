@@ -5,6 +5,7 @@ import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
@@ -43,4 +44,9 @@ public interface SchemeRepository extends JpaRepository<SchemeEntity, UUID>, Jpa
         )
     """)
     boolean containsUserWithEmailInScheme(String email, UUID schemeId);
+
+    @Override
+    @Modifying
+    @Query("delete from SchemeEntity s where s.id = :id")
+    void deleteById(UUID id);
 }

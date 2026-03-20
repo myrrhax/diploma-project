@@ -18,8 +18,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.BatchSize;
 
-import java.security.MessageDigest;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -43,6 +43,7 @@ public class SchemeEntity extends BaseEntity {
     @JoinColumn(name = "creator_id")
     UserEntity creator;
 
+    @BatchSize(size = 50)
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "scheme")
     Set<AuthorityEntity> userAuthorities;
 
@@ -50,6 +51,7 @@ public class SchemeEntity extends BaseEntity {
     @JoinColumn(name = "current_v_id")
     VersionEntity currentVersion;
 
+    @BatchSize(size = 50)
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "scheme")
     List<VersionEntity> versions;
 }

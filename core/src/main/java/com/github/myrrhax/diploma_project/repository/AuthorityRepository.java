@@ -19,4 +19,8 @@ public interface AuthorityRepository extends JpaRepository<AuthorityEntity, Long
     @Modifying
     @Query("delete from AuthorityEntity au where au.scheme.id = :schemeId and au.user.id = :userId")
     void deleteAllForUserAndScheme(UUID schemeId, UUID userId);
+
+    @Modifying
+    @Query("delete from AuthorityEntity a where a.scheme.id = :schemeId")
+    void deleteAllBySchemeId(UUID schemeId);
 }
