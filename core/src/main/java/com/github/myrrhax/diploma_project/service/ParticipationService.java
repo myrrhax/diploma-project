@@ -140,9 +140,11 @@ public class ParticipationService {
         SchemeEntity scheme = schemeRepository.findById(schemaId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemaId));
         if (scheme.getCreator().getId().equals(userId)) {
+            log.info("Creator of schema {} trying to leave schema",  schemaId);
             List<ParticipationDto> participations = this.getParticipants(schemaId);
 
             if (participations.size() == 1) {
+                log.info("Schema {} doesn't have any more users", schemaId);
                 schemaService.deleteScheme(schemaId);
                 return Optional.empty();
             }
@@ -153,16 +155,21 @@ public class ParticipationService {
                     .findFirst();
             if (newLeader.isPresent()) {
                 ParticipationDto leader = newLeader.get();
+                log.info("New leader was found for schema {}: {}", schemaId, leader.user().email());
                 UserEntity leaderEntity = userRepository.findById(leader.user().id())
                         .orElseThrow(() -> new UserNotFoundException(leader.user().id()));
                 scheme.setCreator(leaderEntity);
                 schemeRepository.save(scheme);
-
+                log.info("Creator info was updated for user {} and schema {}", leader.user().email(), schemaId);
                 authorityRepository.save(AuthorityEntity.builder()
                                 .user(leaderEntity)
                                 .scheme(scheme)
                                 .type(AuthorityType.ALL)
                                 .build());
+                log.info("User {} was granted ALL authority for schema {}", leaderEntity.getEmail(), schemaId);
+
+                log.info("Deleting old creator authorities from schema {}", schemaId);
+                authorityRepository.deleteAllForUserAndScheme(schemaId, userId);
 
                 ParticipationDto newUserParticipation = getParticipationInfo(schemaId, leader.user().id());
                 return Optional.of(newUserParticipation);
@@ -170,8 +177,8 @@ public class ParticipationService {
 
             return Optional.empty();
         } else {
-            Set<AuthorityEntity> userAuthorities = authorityRepository.findAllAuthoritiesForUserAndScheme(userId, schemaId);
-            authorityRepository.deleteAll(userAuthorities);
+            log.info("Trying to kick user {} from schema {}", userId, schemaId);
+            authorityRepository.deleteAllForUserAndScheme(schemaId, userId);
 
             return Optional.empty();
         }

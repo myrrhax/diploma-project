@@ -173,6 +173,7 @@ class ParticipationsStore {
 
         runInAction(() => {
             this.isLoading = false;
+            this.closeListModal();
         });
     }
 
@@ -194,7 +195,10 @@ class ParticipationsStore {
             eventsStore.addError('Не удалось покинуть схему');
         }
 
-        runInAction(() => { this.isLoading = false; });
+        runInAction(() => { 
+            this.isLoading = false;
+            this.closeListModal();
+        });
     }
 
     clear() {
