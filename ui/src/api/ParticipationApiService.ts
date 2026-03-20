@@ -70,6 +70,28 @@ class ParticipationApiService extends AbstractApiService {
             throw e;
         }
     }
+
+    async leaveSchema(schemaId: string): Promise<void> {
+        try {
+            await $api.post('/participations/schema/' + schemaId + '/leave');
+        } catch (e: any) {
+            console.error('Failed to leave schema', e);
+
+            throw e;
+        }
+    }
+
+    async kick(schemaId: string, userId: string): Promise<void> {
+        try {
+            await $api.post('/participations/schema/' + schemaId + '/kick', {
+                kickedUserID: userId
+            });
+        } catch (e: any) {
+            console.error('Failed to kick user from schema', e);
+
+            throw e;
+        }
+    }
 }
 
 export const participationApiService = new ParticipationApiService();
