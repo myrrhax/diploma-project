@@ -21,6 +21,7 @@ import com.github.myrrhax.shared.payload.SchemeInvitationMailPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -134,6 +135,7 @@ public class ParticipationService {
         );
     }
 
+    @CacheEvict(value = "authorities", allEntries = true)
     public Optional<ParticipationDto> deleteParticipation(UUID userId, UUID schemaId) {
         SchemeEntity scheme = schemeRepository.findById(schemaId)
                 .orElseThrow(() -> new SchemaNotFoundException(schemaId));
@@ -175,6 +177,7 @@ public class ParticipationService {
         }
     }
 
+    @CacheEvict(value = "authorities", allEntries = true)
     public ParticipationDto confirmParticipation(UUID userId, UUID invitationId) {
         UserEntity user = userRepository.findById(userId).orElseThrow();
         InvitationEntity invitation = invitationRepository.findById(invitationId)
