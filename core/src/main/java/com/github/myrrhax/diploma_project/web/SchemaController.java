@@ -1,7 +1,9 @@
 package com.github.myrrhax.diploma_project.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.github.myrrhax.diploma_project.event.ServerEvent;
 import com.github.myrrhax.diploma_project.model.dto.CreateSchemeDTO;
+import com.github.myrrhax.diploma_project.model.dto.SchemaDeletedPayload;
 import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
 import com.github.myrrhax.diploma_project.security.TokenUser;
 import com.github.myrrhax.diploma_project.service.SchemaService;
@@ -9,6 +11,7 @@ import com.github.myrrhax.diploma_project.util.ViewMarkers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -29,6 +32,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SchemaController {
     private final SchemaService schemaService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping
     public ResponseEntity<SchemeDTO> createScheme(@RequestBody @Validated CreateSchemeDTO createSchemeDTO,
@@ -62,6 +66,9 @@ public class SchemaController {
     @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #id, 'ALL')")
     public ResponseEntity<Void> deleteScheme(@PathVariable UUID id) {
         this.schemaService.deleteScheme(id);
+
+        this.messagingTemplate.convertAndSend("/topic/schema/" + id,
+                new ServerEvent.SchemaDeleteEvent(new SchemaDeletedPayload(id)));
 
         return ResponseEntity.noContent()
                 .build();
