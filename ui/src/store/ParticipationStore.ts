@@ -23,6 +23,7 @@ class ParticipationsStore {
     }
 
     async loadParticipationInfo(schemaId: string) {
+        this.currentSchemaId = schemaId;
         const participationInfo = await participationApiService.loadParticipationInfo(schemaId);
         runInAction(() => {
             this.authorities = participationInfo.authorities;
@@ -67,6 +68,7 @@ class ParticipationsStore {
 
     async getParticipations(schemaId: string) {
         this.isLoading = true;
+        this.currentSchemaId = schemaId;
         try {
             const data = await participationApiService.fetchParticipations(schemaId);
             runInAction(() => {

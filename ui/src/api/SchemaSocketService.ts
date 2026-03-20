@@ -261,7 +261,13 @@ class SchemaSocketService {
                     });
                 } else if (body.eventType === 'USER_KICKED') {
                     const payload = body.payload as UserKickedPayload;
-                    participationsStore.removeUserById(payload.userId);
+                    if (authStore.user?.id === payload.userId && participationsStore.currentSchemaId === payload.schemaId) {
+                        this.leaveSchema();
+                        participationsStore.clear();
+                        window.location.href = '/';
+                    } else {
+                        participationsStore.removeUserById(payload.userId);
+                    }
                 } else if (body.eventType === 'SCHEMA_DELETED') {
                     this.leaveSchema();
                     window.location.href = '/';

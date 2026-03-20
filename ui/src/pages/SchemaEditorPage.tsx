@@ -53,6 +53,7 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
                 if (isMounted && !erStore.isAccessDenied && erStore.state) {
                     schemaSocketService.joinSchema(id);
                 }
+                await participationsStore.loadParticipationInfo(id);
             }
         };
 
@@ -79,6 +80,13 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
             await versionsStore.saveVersion(schema.id, tag);
         }
         setIsSaveModalOpen(false);
+    }
+
+    const onLeaveClick = async () => {
+        if (participationsStore.isLoading) {
+            return;
+        }
+        await participationsStore.leave();
     }
     
     return (
@@ -112,6 +120,9 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
                                         Сохранить версию
                                     </button>
                                 ) : null}
+                                <button className='btn_leave' onClick={onLeaveClick}>
+                                    Покинуть схему
+                                </button>
                             </div>
                     </header>
 
