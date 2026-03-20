@@ -45,6 +45,7 @@ public class ParticipationService {
     private final UserMapper userMapper;
     private final AuthorityService authorityService;
     private final UserService userService;
+    private final SchemaService schemaService;
 
     @Value("${app.invitation.callback-url}")
     private String invitationCallbackUrlTemplate;
@@ -131,8 +132,15 @@ public class ParticipationService {
         );
     }
 
-    public void kickUser(UUID userId, UUID schemaId) {
-
+    public void deleteParticipation(UUID userId, UUID schemaId) {
+        SchemeEntity scheme = schemeRepository.findById(schemaId)
+                .orElseThrow(() -> new SchemaNotFoundException(schemaId));
+        if (scheme.getCreator().getId().equals(userId)) {
+            schemaService.deleteScheme(schemaId);
+        } else {
+            Set<AuthorityEntity> userAuthorities = authorityRepository.findAllAuthoritiesForUserAndScheme(userId, schemaId);
+            authorityRepository.deleteAll(userAuthorities);
+        }
     }
 
     public ParticipationDto confirmParticipation(UUID userId, UUID invitationId) {

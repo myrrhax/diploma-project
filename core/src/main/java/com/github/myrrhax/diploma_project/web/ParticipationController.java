@@ -3,6 +3,7 @@ package com.github.myrrhax.diploma_project.web;
 import com.github.myrrhax.diploma_project.event.ServerEvent;
 import com.github.myrrhax.diploma_project.model.dto.GrantUserDTO;
 import com.github.myrrhax.diploma_project.model.dto.InviteUserDTO;
+import com.github.myrrhax.diploma_project.model.dto.KickUserDto;
 import com.github.myrrhax.diploma_project.model.dto.ParticipationDto;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.security.TokenUser;
@@ -81,6 +82,25 @@ public class ParticipationController {
         ParticipationDto result = authorityService.grantUser(dto.userId(), dto.schemeId(), dto.authorities());
         messagingTemplate.convertAndSendToUser(result.user().email(), "/queue/schema-events",
                 new ServerEvent.AuthorityChangesEvent(result));
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("schema/{schemaId}/leave")
+    @PreAuthorize("@authorityCheckService.hasAccess(principal.token.userId, #schemaId)")
+    public ResponseEntity<Void> leaveSchema(@PathVariable("schemaId") UUID schemaId,
+                                            @AuthenticationPrincipal TokenUser tokenUser) {
+        UUID userId = tokenUser.getToken().userId();
+        participationService.deleteParticipation(userId, schemaId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("schema/{schemaId}/kick")
+    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #schemaId, 'ALL')")
+    public ResponseEntity<Void> kickUser(@PathVariable("schemaId") UUID schemaId,
+                                         @RequestBody KickUserDto dto) {
+        participationService.deleteParticipation(dto.kickedUserID(), schemaId);
+
         return ResponseEntity.ok().build();
     }
 }
