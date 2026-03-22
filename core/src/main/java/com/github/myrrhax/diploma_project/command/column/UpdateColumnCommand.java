@@ -119,6 +119,10 @@ public class UpdateColumnCommand extends MetadataCommand {
             diff.applyDifference(refDiff);
         }
 
+        if (newColumnName != null && !newColumnName.isBlank()) {
+            diff.applyDifference(metadata.updateLinkedReferencesNames(clone));
+        }
+
         log.info("Hanging references was deleted from column {}", columnId);
         return diff;
     }
