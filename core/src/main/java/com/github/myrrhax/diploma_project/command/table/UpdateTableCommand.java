@@ -45,7 +45,10 @@ public class UpdateTableCommand extends MetadataCommand {
         SchemaDifference diff = new SchemaDifference();
         metadata.updateTable(clone);
         diff.upsertTable(clone);
-        diff.applyDifference(metadata.updateLinkedReferencesNames(clone));
+
+        if (newTableName != null && !newTableName.isBlank()) {
+            diff.applyDifference(metadata.updateLinkedReferencesNames(clone));
+        }
 
         log.info("Table {} was updated", tableId);
 
