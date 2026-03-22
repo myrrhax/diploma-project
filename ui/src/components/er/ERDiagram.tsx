@@ -14,6 +14,7 @@ import { EditTableModal } from './EditTableModal';
 import { participationsStore } from '@/store/ParticipationStore';
 import { OverlaySpinner } from '../SpinnerLoader/SpinnerLoader';
 import './css/ERDiagram.css';   
+import { ERZoomControls } from './ZoomControls';
 
 const getPortPosition = (table: Table, colId: string, side: 'left' | 'right') => {
     const column = table.columns[colId];
@@ -301,6 +302,8 @@ export const ERDiagram = observer(() => {
 
                 {Object.values(tables).map(table => <TableNode key={table.id} table={table} />)}
             </div>
+
+            <ERZoomControls />
 
             {erStore.isEditable && erStore.contextMenu.visible && (
                 <div className="er_ctx_menu" style={{ left: erStore.contextMenu.x, top: erStore.contextMenu.y }}>
