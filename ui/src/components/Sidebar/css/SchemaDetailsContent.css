@@ -1,17 +1,6 @@
 .schema-details-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow-y: auto;
-    padding: 10px 0;
-}
-
-.schema-details-wrapper::-webkit-scrollbar {
-    width: 6px;
-}
-.schema-details-wrapper::-webkit-scrollbar-thumb {
-    background-color: var(--border-color, #ccc);
-    border-radius: 3px;
+    display: block;
+    padding: 10px 0 100px 0;
 }
 
 .schema-group {

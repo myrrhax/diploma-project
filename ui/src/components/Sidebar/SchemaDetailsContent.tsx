@@ -18,6 +18,7 @@ export type ContextMenuData = {
     id: string;
     parentId?: string;
     refKeyStr?: string;
+    onRename?: () => void;
 };
 
 export const SchemaDetailsContent = observer(() => {
@@ -137,6 +138,17 @@ export const SchemaDetailsContent = observer(() => {
                     className="schema-context-menu" 
                     style={{ left: contextMenu.x, top: contextMenu.y }}
                 >
+                    {contextMenu.onRename && (
+                        <div 
+                            className="schema-ctx-item" 
+                            onClick={() => {
+                                contextMenu.onRename!();
+                                closeContextMenu();
+                            }}
+                        >
+                            Переименовать
+                        </div>
+                    )}
                     <div className="schema-ctx-item danger" onClick={handleDelete}>
                         Удалить {contextMenu.type === 'table' ? 'таблицу' : contextMenu.type === 'column' ? 'колонку' : contextMenu.type === 'index' ? 'индекс' : 'связь'}
                     </div>

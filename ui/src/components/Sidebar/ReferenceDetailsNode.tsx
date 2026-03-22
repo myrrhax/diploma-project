@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { type Reference } from '@/model/SchemaElements';
 import { refKeyToString } from '@/utils/UtilFunctions';
@@ -11,16 +11,60 @@ interface Props {
 
 export const ReferenceDetailsNode = observer(({ reference, onContextMenu }: Props) => {
     const keyStr = refKeyToString(reference.key);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editName, setEditName] = useState(reference.name || '');
+
+    const startEditing = () => {
+        setIsEditing(true);
+        setEditName(reference.name || '');
+    };
+
+    const handleSave = () => {
+        if (isEditing) {
+            setIsEditing(false);
+            if (editName.trim() !== reference.name) {
+                alert(`Новое имя связи: ${editName}`);
+            }
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSave();
+        } else if (e.key === 'Escape') {
+            setIsEditing(false);
+            setEditName(reference.name || '');
+        }
+    };
 
     return (
         <div 
             className="tree-node-leaf ref-leaf"
-            onContextMenu={(e) => onContextMenu(e, { type: 'reference', id: keyStr, refKeyStr: keyStr })}
+            onDoubleClick={startEditing}
+            onContextMenu={(e) => onContextMenu(e, { 
+                type: 'reference', 
+                id: keyStr, 
+                refKeyStr: keyStr,
+                onRename: startEditing 
+            })}
         >
             <div className="leaf-main-info">
                 <span className="tree-node-icon ref-icon">🔗</span>
                 <div className="ref-details">
-                    <span className="ref-table">{reference.name}</span>
+                    {isEditing ? (
+                        <input
+                            autoFocus
+                            className="inline-edit-input"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            onBlur={handleSave}
+                            onKeyDown={handleKeyDown}
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                        ) : (
+                            <span className="ref-table">{reference.name || 'Без имени'}</span>
+                        )}
+                        {!isEditing && <span className="tree-node-type">{reference.type}</span>}
                 </div>
             </div>
             <span className="tree-node-type">{reference.type}</span>

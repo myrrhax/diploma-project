@@ -1,7 +1,7 @@
 .versions-content-wrapper {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex-grow: 1;
 }
 
 .versions-header-controls {
@@ -36,7 +36,6 @@
 
 .versions-list-container {
     flex-grow: 1;
-    overflow-y: auto;
     padding-top: 10px;
 }
 

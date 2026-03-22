@@ -131,6 +131,19 @@
     color: var(--text-main, #333);
 }
 
+.inline-edit-input {
+    background: var(--bg-color, #ffffff);
+    border: 1px solid #3b82f6;
+    color: var(--text-main, #333);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    outline: none;
+    width: 140px;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
 .ref-arrow {
     color: #94a3b8;
 }
