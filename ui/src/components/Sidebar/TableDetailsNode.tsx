@@ -4,7 +4,6 @@ import { type Table } from '@/model/SchemaElements';
 import { ColumnDetailsNode } from './ColumnDetailsNode';
 import { IndexDetailsNode } from './IndexDetailsNode';
 import type { ContextMenuData } from './SchemaDetailsContent';
-import { columnModalsStore } from '@/store/ColumnModalsStore';
 
 interface Props {
     table: Table;
@@ -12,7 +11,7 @@ interface Props {
     isEditable: boolean;
 }
 
-export const TableDetailsNode = observer(({ table, onContextMenu, isEditable }: Props) => {
+export const TableDetailsNode = observer(({ table, onContextMenu }: Props) => {
     const [isExpanded, setIsExpanded] = useState(false);
     
     const columns = Object.values(table.columns || {});
