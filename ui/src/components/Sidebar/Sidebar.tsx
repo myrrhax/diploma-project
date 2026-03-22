@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { VersionsContent } from './VersionsContent';
 import './css/Sidebar.css';
+import { SchemaDetailsContent } from './SchemaDetailsContent';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -29,7 +30,7 @@ export const Sidebar = observer(({ isOpen, changeVisibleCallback }: SidebarProps
                         onChange={(e) => setActiveTab(e.target.value as SidebarTab)}
                     >
                         <option value="versions">Версии</option>
-                        <option value="tables">Описание таблиц</option>
+                        <option value="tables">Описание схемы</option>
                     </select>
                 </div>
 
@@ -37,9 +38,7 @@ export const Sidebar = observer(({ isOpen, changeVisibleCallback }: SidebarProps
                     {activeTab === 'versions' && <VersionsContent />}
                     
                     {activeTab === 'tables' && (
-                        <div className="sidebar-placeholder">
-                            <p>Описание таблиц</p>
-                        </div>
+                        <SchemaDetailsContent />
                     )}
                 </div>
             </div>
