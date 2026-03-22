@@ -3,6 +3,8 @@ import { observer } from 'mobx-react-lite';
 import { type Reference } from '@/model/SchemaElements';
 import { refKeyToString } from '@/utils/UtilFunctions';
 import type { ContextMenuData } from './SchemaDetailsContent';
+import { erStore } from '@/store/ERStore';
+import { eventsStore } from '@/store/EventsStore';
 
 interface Props {
     reference: Reference;
@@ -22,8 +24,12 @@ export const ReferenceDetailsNode = observer(({ reference, onContextMenu }: Prop
     const handleSave = () => {
         if (isEditing) {
             setIsEditing(false);
+            if (editName.trim().length === 0) {
+                eventsStore.addWarn('Имя связи не может быть пустым');
+                return;
+            }
             if (editName.trim() !== reference.name) {
-                alert(`Новое имя связи: ${editName}`);
+                erStore.renameReference(reference.key, editName);
             }
         }
     };
@@ -64,7 +70,6 @@ export const ReferenceDetailsNode = observer(({ reference, onContextMenu }: Prop
                         ) : (
                             <span className="ref-table">{reference.name || 'Без имени'}</span>
                         )}
-                        {!isEditing && <span className="tree-node-type">{reference.type}</span>}
                 </div>
             </div>
             <span className="tree-node-type">{reference.type}</span>

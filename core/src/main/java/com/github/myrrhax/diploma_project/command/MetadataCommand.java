@@ -7,6 +7,7 @@ import com.github.myrrhax.diploma_project.command.column.DeleteColumnCommand;
 import com.github.myrrhax.diploma_project.command.column.UpdateColumnCommand;
 import com.github.myrrhax.diploma_project.command.reference.AddReferenceCommand;
 import com.github.myrrhax.diploma_project.command.reference.DeleteReferenceCommand;
+import com.github.myrrhax.diploma_project.command.reference.RenameReferenceCommand;
 import com.github.myrrhax.diploma_project.command.table.AddTableCommand;
 import com.github.myrrhax.diploma_project.command.table.DeleteTableCommand;
 import com.github.myrrhax.diploma_project.command.table.UpdateTableCommand;
@@ -29,7 +30,8 @@ import java.util.UUID;
         @JsonSubTypes.Type(value = UpdateTableCommand.class, name = "update-table"),
         @JsonSubTypes.Type(value = DeleteColumnCommand.class, name = "delete-column"),
         @JsonSubTypes.Type(value = DeleteTableCommand.class, name = "delete-table"),
-        @JsonSubTypes.Type(value = DeleteReferenceCommand.class, name = "delete-ref")
+        @JsonSubTypes.Type(value = DeleteReferenceCommand.class, name = "delete-ref"),
+        @JsonSubTypes.Type(value = RenameReferenceCommand.class, name = "rename-ref")
 })
 @Getter
 @Setter

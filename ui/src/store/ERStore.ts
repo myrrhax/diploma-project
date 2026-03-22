@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import { type Column, type Reference } from "@/model/SchemaElements";
+import { type Column, type Reference, type ReferenceKey } from "@/model/SchemaElements";
 import type { Schema, VersionState } from "@/model/SchemaTypes";
 import { type Table } from "@/model/SchemaElements";
 import { compareAndReturnNew, length, refKeyToString } from "@/utils/UtilFunctions";
@@ -359,6 +359,17 @@ class ERStore {
         });
 
         referenceStore.closeRefContextMenu();
+    }
+
+    renameReference(ref: ReferenceKey, newName: string) {
+        if (!this.isEditable || !this.state || !this.schema) return;
+
+        schemaSocketService.sendCommand({
+            schemeId: this.schema.id,
+            type: 'rename-ref',
+            key: ref,
+            newName: newName
+        })
     }
 
     deleteTable(tableId: string) {

@@ -75,6 +75,12 @@ export interface DeleteReferenceCommand extends BaseMetadataCommand {
     key: ReferenceKey;
 }
 
+export interface RenameReferenceCommand extends BaseMetadataCommand {
+    type: 'rename-ref';
+    key: ReferenceKey;
+    newName: string;
+}
+
 export type MetadataCommand = 
     | AddTableCommand
     | AddColumnCommand
@@ -83,4 +89,5 @@ export type MetadataCommand =
     | UpdateTableCommand
     | DeleteColumnCommand
     | DeleteTableCommand
-    | DeleteReferenceCommand;
+    | DeleteReferenceCommand
+    | RenameReferenceCommand;
