@@ -7,6 +7,7 @@ import './css/TableNode.css';
 import { tableModalsStore } from '@/store/TableModalsStore';
 import { participationsStore } from '@/store/ParticipationStore';
 import { useMemo } from 'react';
+import { eventsStore } from '@/store/EventsStore';
 
 interface TableNodeProps {
     table: Table;
@@ -22,7 +23,7 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
 
     const handleModification = (action: () => void) => {
         if (!canModify) {
-            alert("Вы не можете изменять схему.");
+            eventsStore.addWarn('Вы не можете изменять схему!');
             return;
         }
         action();

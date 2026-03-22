@@ -7,6 +7,8 @@ import { refKeyToString } from '@/utils/UtilFunctions';
 import { OverlaySpinner } from '../SpinnerLoader/SpinnerLoader';
 import './css/SchemaDetailsContent.css';
 import './css/SchemaNodes.css';
+import { tableModalsStore } from '@/store/TableModalsStore';
+import { columnModalsStore } from '@/store/ColumnModalsStore';
 
 export type ContextMenuData = {
     visible: boolean;
@@ -51,9 +53,9 @@ export const SchemaDetailsContent = observer(() => {
 
     const handleDelete = () => {
         if (contextMenu.type === 'table') {
-            erStore.deleteTable(contextMenu.id);
+            tableModalsStore.openForTable(contextMenu.id);
         } else if (contextMenu.type === 'column' && contextMenu.parentId) {
-            erStore.deleteColumn(contextMenu.parentId, contextMenu.id);
+            columnModalsStore.open(contextMenu.parentId, contextMenu.id);
         } else if (contextMenu.type === 'reference' && contextMenu.refKeyStr) {
             erStore.deleteReference(contextMenu.refKeyStr);
         } else if (contextMenu.type === 'index') {

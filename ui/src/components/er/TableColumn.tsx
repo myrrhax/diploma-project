@@ -5,6 +5,7 @@ import './css/TableColumn.css';
 import { AddColumnMenu } from "./AddColumnMenu";
 import { referenceStore } from "@/store/ReferenceStore";
 import { columnModalsStore } from "@/store/ColumnModalsStore";
+import { eventsStore } from "@/store/EventsStore";
 
 interface TableColumnProps {
     col: Column;
@@ -24,7 +25,7 @@ export const TableColumn = observer(({ canModify, col, table }: TableColumnProps
 
     const handleModification = (action: () => void) => {
         if (!canModify) {
-            alert("Вы не можете изменять схему.");
+            eventsStore.addWarn('Вы не можете изменять схему!');
             return;
         }
         action();

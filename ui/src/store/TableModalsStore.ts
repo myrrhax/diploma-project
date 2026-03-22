@@ -21,6 +21,11 @@ class TableModalsStore {
         }
     }
 
+    openForTable(id: string) {
+        this.tableIdToDelete = id;
+        this.isOpen = true;
+    }
+
     close() {
         this.isOpen = false;
         this.tableIdToDelete = null;

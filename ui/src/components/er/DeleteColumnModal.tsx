@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import { columnModalsStore } from '@/store/ColumnModalsStore';
 import { erStore } from '@/store/ERStore';
-import './css/DeleteColumnModal.css'; // Подключаем наш новый файл
+import './css/DeleteColumnModal.css';
 
 export const DeleteColumnModal = observer(() => {
     if (!columnModalsStore.isOpen || !columnModalsStore.tableId || !columnModalsStore.colId) return null;
