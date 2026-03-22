@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
@@ -90,11 +91,15 @@ public class ReferenceMetadata {
                 )
                 .toArray(String[]::new);
 
-        this.name = String.format("fk_%s_%s_%s_%s",
+        String generatedName = String.format("fk_%s_%s_%s_%s",
                 fromTable.getName(),
                 String.join("_", fromCols),
                 toTable.getName(),
                 String.join("_", toCols));
+        if (schemaState.hasReference(generatedName)) {
+            generatedName += "_gen_" + Instant.now().toEpochMilli();
+        }
+        this.name = generatedName;
     }
 
     private boolean checkKeyCompatibility() {

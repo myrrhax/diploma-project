@@ -20,7 +20,7 @@ import java.util.Optional;
 public class RenameReferenceCommand extends MetadataCommand {
     private ReferenceMetadata.ReferenceKey key;
     @NotBlank(message = "{error.validation.null-value}")
-    @Size(min = 3, max = 30, message = "{error.validation.name-size}")
+    @Size(min = 3, max = 255, message = "{error.validation.name-size}")
     private String newName;
 
     @Override
