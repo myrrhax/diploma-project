@@ -2,18 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useParams } from 'react-router-dom';
 import { erStore } from '@/store/ERStore';
-import { VersionsSidebar } from '@/components/VersionsSidebar/VersionsSidebar';
+import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { UsersOverlay } from '@/components/UsersOverlay/UsersOverlay';
 import { ERDiagram } from '@/components/er/ERDiagram';
 import { OverlaySpinner } from '@/components/SpinnerLoader/SpinnerLoader';
 import { schemaSocketService } from '@/api/SchemaSocketService';
 import { versionsStore } from '@/store/VersionsStore';
 import { SaveVersionModal } from '@/components/SaveVersionModal/SaveVersionModal';
-import './css/SchemaEditorPage.css';
 import { wsConnectionStore } from '@/store/WsConnectionStore';
 import { ParticipationList } from '@/components/ParticipationList/ParticipationList';
 import { participationsStore } from '@/store/ParticipationStore';
 import { InviteModal } from '@/components/ParticipationList/InviteModal';
+import './css/SchemaEditorPage.css';
 
 interface SchemaEditorPageProps {
     isReadonly?: boolean
@@ -128,7 +128,7 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
 
                     <div className="schema_page__workspace">
                         {isReadonly ? null : (
-                            <VersionsSidebar 
+                            <Sidebar 
                                 isOpen={isSidebarOpen} 
                                 changeVisibleCallback={toggleSidebar} 
                             />

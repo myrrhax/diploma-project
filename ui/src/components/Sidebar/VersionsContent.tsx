@@ -8,16 +8,11 @@ import type { Version } from '@/model/SchemaTypes';
 import { contextMenuStore } from '@/store/VersionContextMenuStore';
 import { VersionContextMenu } from './VersionContextMenu';
 import { OverlaySpinner } from '../SpinnerLoader/SpinnerLoader';
-import './css/VersionSidebar.css';
-
-interface VersionsSidebarProps {
-    isOpen: boolean;
-    changeVisibleCallback: ((open: boolean) => void);
-}
+import './css/VersionsContent.css';
 
 type DISPLAY_MODE = 'tree' | 'list';
 
-export const VersionsSidebar = observer(({isOpen, changeVisibleCallback}: VersionsSidebarProps) => {
+export const VersionsContent = observer(() => {
     const { isLoading, versions } = versionsStore;
     const [mode, setMode] = useState<DISPLAY_MODE>('list');
 
@@ -99,60 +94,54 @@ export const VersionsSidebar = observer(({isOpen, changeVisibleCallback}: Versio
         return { roots };
     }, [mode, versions]);
 
-	const handleListContextMenu = (e: React.MouseEvent, version: Version) => {
+    const handleListContextMenu = (e: React.MouseEvent, version: Version) => {
         e.preventDefault();
-		if (version.isWorkingCopy) 
-			return;
+        if (version.isWorkingCopy) 
+            return;
         contextMenuStore.open(e.clientX, e.clientY, version);
     };
 
     return (
-        <aside className={`versions-sidebar ${isOpen ? 'open' : ''}`}>
-            <div className="sidebar-toggle" onClick={() => changeVisibleCallback(!isOpen)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d={isOpen ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"}/></svg>
-            </div>
-            
-            <div className="sidebar-content">
-                <div className="sidebar-header">
-                    <h3>История версий</h3>
-                    <div className="mode-switchers">
-                        <button className={mode === 'list' ? 'active' : ''} onClick={() => setMode('list')}>List</button>
-                        <button className={mode === 'tree' ? 'active' : ''} onClick={() => setMode('tree')}>Tree</button>
-                    </div>
-                </div>
-
-                <div className="versions">
-                    {isLoading ? (
-                        <OverlaySpinner text='Загрузка...' />
-                    ) : mode === 'list' ? (
-                        sortedVersions.map(v => (
-                            <div
-								onClick={() => {
-									if (v.isWorkingCopy) {
-										return;
-									}
-									const url = `/schema/${v.schemeId}/version/${v.versionId}`;
-            						window.open(url, '_blank', 'noopener,noreferrer');
-								}}
-                                key={v.versionId} 
-                                className={`list-version-item ${v.isWorkingCopy ? 'list-version-working' : ''} ${v.isInitial ? 'list-version-initial' : ''}`}
-								onContextMenu={(e) => handleListContextMenu(e, v)}
-                            >
-                                <span className="list-version-name">{v.tag ?? 'Рабочая версия'}</span>
-                                {v.versionedAt && (
-                                    <span className="list-version-date">{toVersionDateFormat(v.versionedAt)}</span>
-                                )}
-                            </div>
-                        ))
-                    ) : (
-                        versionsTree.roots.map(root => (
-                            <VersionTreeNode key={root.value.versionId} node={root} level={0} />
-                        ))
-                    )}
+        <div className="versions-content-wrapper">
+            <div className="versions-header-controls">
+                <span>Отображение</span>
+                <div className="mode-switchers">
+                    <button className={mode === 'list' ? 'active' : ''} onClick={() => setMode('list')}>List</button>
+                    <button className={mode === 'tree' ? 'active' : ''} onClick={() => setMode('tree')}>Tree</button>
                 </div>
             </div>
 
-			<VersionContextMenu />
-        </aside>
-    )
+            <div className="versions-list-container">
+                {isLoading ? (
+                    <OverlaySpinner text='Загрузка...' />
+                ) : mode === 'list' ? (
+                    sortedVersions.map(v => (
+                        <div
+                            onClick={() => {
+                                if (v.isWorkingCopy) {
+                                    return;
+                                }
+                                const url = `/schema/${v.schemeId}/version/${v.versionId}`;
+                                window.open(url, '_blank', 'noopener,noreferrer');
+                            }}
+                            key={v.versionId} 
+                            className={`list-version-item ${v.isWorkingCopy ? 'list-version-working' : ''} ${v.isInitial ? 'list-version-initial' : ''}`}
+                            onContextMenu={(e) => handleListContextMenu(e, v)}
+                        >
+                            <span className="list-version-name">{v.tag ?? 'Рабочая версия'}</span>
+                            {v.versionedAt && (
+                                <span className="list-version-date">{toVersionDateFormat(v.versionedAt)}</span>
+                            )}
+                        </div>
+                    ))
+                ) : (
+                    versionsTree.roots.map(root => (
+                        <VersionTreeNode key={root.value.versionId} node={root} level={0} />
+                    ))
+                )}
+            </div>
+
+            <VersionContextMenu />
+        </div>
+    );
 });
