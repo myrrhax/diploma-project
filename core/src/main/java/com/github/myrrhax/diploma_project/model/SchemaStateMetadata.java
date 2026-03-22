@@ -67,6 +67,15 @@ public class SchemaStateMetadata {
                     .findFirst();
     }
 
+    public Optional<ReferenceMetadata> getReference(ReferenceMetadata.ReferenceKey key) {
+        return Optional.ofNullable(this.references.get(key));
+    }
+
+    public boolean hasReference(String name) {
+        return this.references.values().stream()
+                .anyMatch(ref -> ref.getName().equals(name));
+    }
+
     public SchemaDifference deleteInvalidReferences(TableMetadata changedTable) {
         List<ReferenceMetadata.ReferenceKey> cascadeReferences = references.values().stream()
                 .filter(ref -> ref.getKey().getToTableId().equals(changedTable.getId())
