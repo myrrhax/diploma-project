@@ -20,9 +20,7 @@ export const ReferenceDetailsNode = observer(({ reference, onContextMenu }: Prop
             <div className="leaf-main-info">
                 <span className="tree-node-icon ref-icon">🔗</span>
                 <div className="ref-details">
-                    <span className="ref-table">{reference.key.fromTableId}</span>
-                    <span className="ref-arrow">→</span>
-                    <span className="ref-table">{reference.key.toTableId}</span>
+                    <span className="ref-table">{reference.name}</span>
                 </div>
             </div>
             <span className="tree-node-type">{reference.type}</span>

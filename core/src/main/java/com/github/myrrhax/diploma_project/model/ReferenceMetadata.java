@@ -1,6 +1,8 @@
 package com.github.myrrhax.diploma_project.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,6 +48,52 @@ public class ReferenceMetadata {
         }
 
         return checkKeyCompatibility();
+    }
+
+    public void computeAndSetName() {
+        if (this.name != null && !this.name.isBlank()) {
+            return;
+        }
+
+        UUID fromId;
+        UUID toId;
+        UUID[] fromColIds;
+        UUID[] toColIds;
+
+        if (type != ReferenceMetadata.ReferenceType.ONE_TO_MANY) {
+            fromId = key.getFromTableId();
+            toId = key.getToTableId();
+            fromColIds = key.getFromColumns();
+            toColIds = key.getToColumns();
+        } else {
+            fromId = key.getToTableId();
+            toId = key.getFromTableId();
+            fromColIds = key.getToColumns();
+            toColIds = key.getFromColumns();
+        }
+
+        TableMetadata fromTable = schemaState.getTable(fromId).orElseThrow(() ->
+                new ApplicationException(ErrorMessageKey.TABLE_NOT_FOUND.getKey()));
+        TableMetadata toTable = schemaState.getTable(toId).orElseThrow(() ->
+                new ApplicationException(ErrorMessageKey.TABLE_NOT_FOUND.getKey()));
+        String[] fromCols = Arrays.stream(fromColIds)
+                .map(c -> fromTable.getColumn(c).map(ColumnMetadata::getName)
+                        .orElseThrow(() ->
+                            new ApplicationException(ErrorMessageKey.COLUMN_NOT_FOUND.getKey()))
+                )
+                .toArray(String[]::new);
+        String[] toCols = Arrays.stream(toColIds)
+                .map(c -> toTable.getColumn(c).map(ColumnMetadata::getName)
+                        .orElseThrow(() ->
+                                new ApplicationException(ErrorMessageKey.COLUMN_NOT_FOUND.getKey()))
+                )
+                .toArray(String[]::new);
+
+        this.name = String.format("fk_%s_%s_%s_%s",
+                fromTable.getName(),
+                String.join("_", fromCols),
+                toTable.getName(),
+                String.join("_", toCols));
     }
 
     private boolean checkKeyCompatibility() {

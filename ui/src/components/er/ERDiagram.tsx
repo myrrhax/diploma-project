@@ -248,7 +248,12 @@ export const ERDiagram = observer(() => {
                             const d = getTrunkPath(tables, start.x, start.y, end.x, end.y, sTable.id, tTable.id, index);
                             
                             return ( 
-                                <g key={refKeyToString(key)} className="er_relation_group" style={{ cursor: 'context-menu' }} onContextMenu={handleRefContextMenu}>
+                                <g 
+                                    key={refKeyToString(key)} 
+                                    className="er_relation_group" 
+                                    style={{ cursor: 'context-menu' }} 
+                                    onContextMenu={handleRefContextMenu}
+                                >
                                     <path d={d} stroke="transparent" strokeWidth="15" fill="none" />
                                     <path d={d} className="er_line" markerStart={sourceMarker} markerEnd={targetMarker} fill="none" />
                                     
@@ -282,7 +287,13 @@ export const ERDiagram = observer(() => {
                             const trunkPath = getTrunkPath(tables, sBusX, sCenterY, tBusX, tCenterY, sTable.id, tTable.id, index);
 
                             return (
-                                <g key={refKeyToString(key)} className="er_relation_group" style={{ cursor: 'context-menu' }} onContextMenu={handleRefContextMenu}>
+                                <g 
+                                    key={refKeyToString(key)}
+                                    className="er_relation_group" 
+                                    style={{ cursor: 'context-menu' }} 
+                                    onContextMenu={handleRefContextMenu}
+                                >
+                                    {ref.key.name && <title>{ref.key.name}</title>}
                                     <path d={branchPaths + trunkPath} stroke="transparent" strokeWidth="15" fill="none" />
                                     
                                     <path d={branchPaths} className="er_line" fill="none" />

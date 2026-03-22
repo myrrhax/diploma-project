@@ -33,6 +33,7 @@ export interface Index {
 }
 
 export interface Reference {
+    name: string;
     key: ReferenceKey;
     type: ReferenceType;
     onDeleteAction?: OnDeleteAction;

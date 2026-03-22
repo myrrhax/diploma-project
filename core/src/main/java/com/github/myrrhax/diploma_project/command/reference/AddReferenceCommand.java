@@ -53,6 +53,7 @@ public class AddReferenceCommand extends MetadataCommand {
             throw new ApplicationException(ErrorMessageKey.REFERENCE_DUPLICATE_REF_PART.getKey());
         }
 
+        reference.computeAndSetName();
         metadata.addReference(reference);
         log.info("New reference was added to schema {}", schemeId);
         SchemaDifference diff = new SchemaDifference();

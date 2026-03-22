@@ -55,10 +55,7 @@ public abstract class AbstractScriptFabric {
                 .toArray(String[]::new);
 
         if (referenceMeta.getName() == null) {
-            referenceMeta.setName(computeForeignKeyName(fromColumnNames,
-                    toColumnNames,
-                    fromTable.getName(),
-                    toTable.getName()));
+            referenceMeta.computeAndSetName();
         }
 
         return String.format(
@@ -106,17 +103,6 @@ public abstract class AbstractScriptFabric {
         sb.append(String.join("_", cols));
 
         return sb.toString();
-    }
-
-    protected final String computeForeignKeyName(String[] fromCols,
-                                         String[] toCols,
-                                         String fromTable,
-                                         String toTable) {
-        return String.format("fk_%s_%s_%s_%s",
-                fromTable,
-                String.join("_", fromCols),
-                toTable,
-                String.join("_", toCols));
     }
 
     public abstract String getColumnDefinition(ColumnMetadata columnMeta);
