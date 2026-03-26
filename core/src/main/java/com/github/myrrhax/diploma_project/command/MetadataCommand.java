@@ -31,7 +31,8 @@ import java.util.UUID;
         @JsonSubTypes.Type(value = DeleteColumnCommand.class, name = "delete-column"),
         @JsonSubTypes.Type(value = DeleteTableCommand.class, name = "delete-table"),
         @JsonSubTypes.Type(value = DeleteReferenceCommand.class, name = "delete-ref"),
-        @JsonSubTypes.Type(value = RenameReferenceCommand.class, name = "rename-ref")
+        @JsonSubTypes.Type(value = RenameReferenceCommand.class, name = "rename-ref"),
+        @JsonSubTypes.Type(value = MultiCommand.class, name = "multi"),
 })
 @Getter
 @Setter
