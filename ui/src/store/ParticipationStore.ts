@@ -150,7 +150,7 @@ class ParticipationsStore {
             return true;
         } catch (error) {
             runInAction(() => { this.isLoading = false; });
-            alert("Ошибка при отправке приглашения");
+            eventsStore.addError("Ошибка при отправке приглашения");
 
             return false;
         }

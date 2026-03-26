@@ -15,6 +15,7 @@ import { participationsStore } from '@/store/ParticipationStore';
 import { OverlaySpinner } from '../SpinnerLoader/SpinnerLoader';
 import './css/ERDiagram.css';   
 import { ERZoomControls } from './ZoomControls';
+import { eventsStore } from '@/store/EventsStore';
 
 const getPortPosition = (table: Table, colId: string, side: 'left' | 'right') => {
     const column = table.columns[colId];
@@ -105,7 +106,7 @@ export const ERDiagram = observer(() => {
 
     const handleModification = (action: () => void) => {
         if (!erStore.isEditable) {
-            alert("Вы работаете с версией в режиме чтения. Изменения запрещены.");
+            eventsStore.addError("Вы работаете с версией в режиме чтения. Изменения запрещены.");
             return;
         } 
         if (!authorities?.some(au => au === 'MODIFY_SCHEME' || au === 'ALL')) {

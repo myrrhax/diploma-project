@@ -2,6 +2,7 @@ import { makeAutoObservable } from "mobx";
 import { schemaSocketService } from "@/api/SchemaSocketService";
 import { erStore } from "./ERStore";
 import type { ReferenceKey, ReferenceType, OnDeleteAction, OnUpdateAction } from "@/model/SchemaElements";
+import { eventsStore } from "./EventsStore";
 
 
 class ReferenceStore {
@@ -44,7 +45,7 @@ class ReferenceStore {
 
         } else {
             if (this.sourceCols.length === 0) {
-                alert("Сначала выберите исходную колонку (Output)");
+                eventsStore.addWarn("Сначала выберите исходную колонку (Output)");
                 return;
             }
             if (this.targetTableId && this.targetTableId !== tableId) {
@@ -53,7 +54,7 @@ class ReferenceStore {
             this.targetTableId = tableId;
 
             if (this.sourceTableId === tableId && this.sourceCols.includes(colId)) {
-                alert("Нельзя создать связь колонки на саму себя!");
+                eventsStore.addError("Нельзя создать связь колонки на саму себя!");
                 return;
             }
 

@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { tableModalsStore } from '@/store/TableModalsStore';
 import { erStore } from '@/store/ERStore';
 import './css/EditTableModal.css';
+import { eventsStore } from '@/store/EventsStore';
 
 const VALID_NAME_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/
 
@@ -24,7 +25,7 @@ export const EditTableModal = observer(() => {
 
     const handleSave = () => {
         if (!name.trim()) {
-            alert('Имя таблицы не может быть пустым');
+            eventsStore.addWarn('Имя таблицы не может быть пустым');
             return;
         }
         const trimmedName = name.trim();

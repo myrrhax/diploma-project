@@ -21,9 +21,7 @@ export const HomePage = observer(() => {
   }, []);
 
   useEffect(() => {
-        if (location.state?.invitationError) {
-            alert(location.state.invitationError);
-            
+        if (location.state?.invitationError) {            
             navigate('.', { replace: true, state: {} });
         }
     }, [location, navigate]);
