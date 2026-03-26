@@ -13,9 +13,12 @@ import { DeleteColumnModal } from './DeleteColumnModal';
 import { EditTableModal } from './EditTableModal';
 import { participationsStore } from '@/store/ParticipationStore';
 import { OverlaySpinner } from '../SpinnerLoader/SpinnerLoader';
-import './css/ERDiagram.css';   
 import { ERZoomControls } from './ZoomControls';
 import { eventsStore } from '@/store/EventsStore';
+import { selectionStore } from '@/store/SelectionStore';
+import './css/ERDiagram.css';
+import './css/ERSelections.css';
+import { CursorControls } from './CursorControls';
 
 const getPortPosition = (table: Table, colId: string, side: 'left' | 'right') => {
     const column = table.columns[colId];
@@ -91,9 +94,15 @@ export const ERDiagram = observer(() => {
     const handleMouseMove = (e: React.MouseEvent) => {
         if (erStore.draggingTableId) {
             erStore.moveTable(erStore.draggingTableId, e.movementX, e.movementY);
-        }
-        else if (isPanning || e.buttons === 4) {
+        } else if (isPanning || e.buttons === 4) {
             erStore.setPan(e.movementX, e.movementY);
+        } else if (selectionStore.selectionBox) {
+            const rect = containerRef.current?.getBoundingClientRect();
+            if (rect) {
+                const worldX = (e.clientX - rect.left - erStore.offsetX) / erStore.scale;
+                const worldY = (e.clientY - rect.top - erStore.offsetY) / erStore.scale;
+                selectionStore.updateSelectionBox(worldX, worldY);
+            }
         }
     };
 
@@ -122,14 +131,31 @@ export const ERDiagram = observer(() => {
     };
 
     const handleMouseDown = (e: React.MouseEvent) => {
-        if (e.button === 0) {
+        if (e.button !== 0) return;
+
+        if (selectionStore.mode === 'grab' || e.buttons === 4) {
             setPanning(true);
+        } else if (selectionStore.mode === 'select') {
+            if (!e.ctrlKey) {
+                selectionStore.clear();
+            }
+            const rect = containerRef.current?.getBoundingClientRect();
+            if (rect) {
+                const worldX = (e.clientX - rect.left - erStore.offsetX) / erStore.scale;
+                const worldY = (e.clientY - rect.top - erStore.offsetY) / erStore.scale;
+                selectionStore.setSelectionBox({ startX: worldX, startY: worldY, endX: worldX, endY: worldY });
+            }
         }
     };
 
-    const handleMouseUp = (_: React.MouseEvent) => {
+    const handleMouseUp = (e: React.MouseEvent) => {
         setPanning(false);
-    }
+        erStore.setDraggingTable(null);
+        if (selectionStore.selectionBox) {
+            selectionStore.applyBoxSelection(e.ctrlKey);
+            selectionStore.setSelectionBox(null);
+        }
+    };
 
     useEffect(() => {
         window.addEventListener('mouseup', handleUp);
@@ -155,7 +181,7 @@ export const ERDiagram = observer(() => {
                     handleOpenMenu(e.clientX, e.clientY, e.clientX - rect.left, e.clientY - rect.top);
                 }
             }}
-            style={{ cursor: isPanning ? 'grabbing' : 'default' }}
+            style={{ cursor: selectionStore.mode === 'grab' ? (isPanning ? 'grabbing' : 'grab') : 'crosshair' }}
             onClick={handleCloseMenu}
         >
             {erStore.isEditable && canModify && (
@@ -168,28 +194,70 @@ export const ERDiagram = observer(() => {
             )}
             
             <div className="er_viewport" style={{ transform: `translate(${erStore.offsetX}px, ${erStore.offsetY}px) scale(${erStore.scale})` }}>
+                
+                {selectionStore.selectionBox && (
+                    <div 
+                        className="er_selection_marquee"
+                        style={{
+                            left: Math.min(selectionStore.selectionBox.startX, selectionStore.selectionBox.endX),
+                            top: Math.min(selectionStore.selectionBox.startY, selectionStore.selectionBox.endY),
+                            width: Math.abs(selectionStore.selectionBox.endX - selectionStore.selectionBox.startX),
+                            height: Math.abs(selectionStore.selectionBox.endY - selectionStore.selectionBox.startY)
+                        }}
+                    />
+                )}
+
                 <svg className="er_svg_layer">
+                    <defs>
+                        <marker id="marker-source-one" overflow='visible' orient='auto-start-reverse'>
+                            <line x1="-10" y1="-4" x2="-10" y2="4" stroke="#94a3b8" strokeWidth="1.2" />
+                        </marker>
+                        
+                        <marker id="marker-source-many" overflow="visible" orient="auto-start-reverse">
+                            <line x1="-4" y1="-3" x2="-4" y2="3" stroke="#94a3b8" strokeWidth="1.2" />
+                            <line x1="-6" y1="-2" x2="-2" y2="2" stroke="#94a3b8" strokeWidth="1.2" />
+                            <line x1="-6" y1="2" x2="-2" y2="-2" stroke="#94a3b8" strokeWidth="1.2" />
+                        </marker>
+
+                        <marker id="marker-target-one" overflow='visible' orient='auto-start-reverse'>
+                            <line x1="-8" y1="-6" x2="-8" y2="6" stroke="#94a3b8" strokeWidth="2" />
+                            <path d="M -20 -4 L -12 0 L -20 4 z" fill="#94a3b8" />
+                        </marker>
+                        
+                        <marker id="marker-target-many" overflow="visible" orient="auto-start-reverse">
+                            <line x1="-4" y1="-3" x2="-4" y2="3" stroke="#94a3b8" strokeWidth="1.2" />
+                            <line x1="-6" y1="-2" x2="-2" y2="2" stroke="#94a3b8" strokeWidth="1.2" />
+                            <line x1="-6" y1="2" x2="-2" y2="-2" stroke="#94a3b8" strokeWidth="1.2" />
+                            <path d="M -20 -4 L -12 0 L -20 4 z" fill="#94a3b8" />
+                        </marker>
+                    </defs>
                     
                     {Object.values(references).map((ref, index) => {
                         const key = ref.key;
+                        const keyStr = refKeyToString(key);
+                        const isSelected = selectionStore.selectedRefIds.has(keyStr);
                         const sTable = tables[key.fromTableId];
                         const tTable = tables[key.toTableId];
                         if (!sTable || !tTable) return null;
 
                         let sourceLabel = 'M';
                         let targetLabel = '1';
-                                                
+                        
                         let sourceTextOffset = 8;
                         let targetTextOffset = -14;
 
                         if (ref.type === 'ONE_TO_ONE') {
-                            sourceLabel = '1'; targetLabel = '1';
+                            sourceLabel = '1'; 
+                            targetLabel = '1';
                         } else if (ref.type === 'ONE_TO_MANY') {
-                            sourceLabel = '1'; targetLabel = 'M';
+                            sourceLabel = '1'; 
+                            targetLabel = 'M';
                         } else if (ref.type === 'MANY_TO_ONE') {
-                            sourceLabel = 'M'; targetLabel = '1';
+                            sourceLabel = 'M'; 
+                            targetLabel = '1';
                         } else if (ref.type === 'MANY_TO_MANY') {
-                            sourceLabel = 'M'; targetLabel = 'M';
+                            sourceLabel = 'M'; 
+                            targetLabel = 'M';
                             targetTextOffset = -8; 
                         }
                         
@@ -208,29 +276,41 @@ export const ERDiagram = observer(() => {
                             });
                         };
 
+                        const handleRefMouseDown = (e: React.MouseEvent) => {
+                            e.stopPropagation();
+                            if (e.button !== 0) return;
+                            if (selectionStore.mode === 'select') {
+                                selectionStore.toggleReference(keyStr, e.ctrlKey);
+                            } else {
+                                if (!isSelected && !e.ctrlKey) {
+                                    selectionStore.clear();
+                                    selectionStore.toggleReference(keyStr, false);
+                                }
+                            }
+                        };
+
                         if (key.toColumns.length === 1) {
                             const start = getPortPosition(tables[key.fromTableId], key.fromColumns[0], 'right');
                             const end = getPortPosition(tables[key.toTableId], key.toColumns[0], 'left');
-                            
                             const d = getTrunkPath(tables, start.x, start.y, end.x, end.y, sTable.id, tTable.id, index);
                             
                             return ( 
                                 <g 
-                                    key={refKeyToString(key)} 
-                                    className="er_relation_group" 
-                                    style={{ cursor: 'context-menu' }} 
+                                    key={keyStr} 
+                                    className={`er_relation_group ${isSelected ? 'selected' : ''}`} 
+                                    style={{ cursor: selectionStore.mode === 'select' ? 'default' : 'grab' }} 
                                     onContextMenu={handleRefContextMenu}
+                                    onMouseDown={handleRefMouseDown}
                                 >
-                                    <path d={d} stroke="transparent" strokeWidth="15" fill="none" />
+                                    <title>{ref.key.name || 'Связь'}</title>
+                                    <path d={d} stroke="transparent" strokeWidth="15" fill="none" pointerEvents="stroke" />
                                     <path d={d} className="er_line" fill="none" />
                                     
-                                    <text className='er_relation_label' x={start.x + sourceTextOffset} y={start.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
-                                    <text className='er_relation_label' x={end.x + targetTextOffset} y={end.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
+                                    <text x={start.x + sourceTextOffset} y={start.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
+                                    <text x={end.x + targetTextOffset} y={end.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
                                 </g>
                             );
-                        }
-
-                        else {
+                        } else {
                             const sourcePoints = key.fromColumns.map(p => getPortPosition(sTable, p, 'right'));
                             const targetPoints = key.toColumns.map(p => getPortPosition(tTable, p, 'left'));
 
@@ -255,23 +335,23 @@ export const ERDiagram = observer(() => {
 
                             return (
                                 <g 
-                                    key={refKeyToString(key)}
-                                    className="er_relation_group" 
-                                    style={{ cursor: 'context-menu' }} 
+                                    key={keyStr} 
+                                    className={`er_relation_group ${isSelected ? 'selected' : ''}`} 
+                                    style={{ cursor: selectionStore.mode === 'select' ? 'default' : 'grab' }} 
                                     onContextMenu={handleRefContextMenu}
+                                    onMouseDown={handleRefMouseDown}
                                 >
-                                    {ref.key.name && <title>{ref.key.name}</title>}
-                                    <path d={branchPaths + trunkPath} stroke="transparent" strokeWidth="15" fill="none" />
+                                    <title>{ref.key.name || 'Связь'}</title>
+                                    <path d={branchPaths + trunkPath} stroke="transparent" strokeWidth="15" fill="none" pointerEvents="stroke" />
                                     
                                     <path d={branchPaths} className="er_line" fill="none" />
-                                    
                                     <path d={trunkPath} className="er_line" fill="none" />
                                     
                                     <circle cx={sBusX} cy={sCenterY} r="3" fill="#64748b" />
                                     <circle cx={tBusX} cy={tCenterY} r="3" fill="#64748b" />
 
-                                    <text className='er_relation_label' x={sBusX + sourceTextOffset} y={sCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
-                                    <text className='er_relation_label' x={tBusX + targetTextOffset} y={tCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
+                                    <text x={sBusX + sourceTextOffset} y={sCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
+                                    <text x={tBusX + targetTextOffset} y={tCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
                                 </g>
                             );
                         }
@@ -279,8 +359,13 @@ export const ERDiagram = observer(() => {
                 </svg>
 
                 {Object.values(tables).map(table => <TableNode key={table.id} table={table} />)}
-            </div>
 
+                {erStore.isEditable && canModify && (
+                    <AddReferenceMenu />
+                )}
+            </div>
+            
+            <CursorControls />
             <ERZoomControls />
 
             {erStore.isEditable && erStore.contextMenu.visible && (

@@ -9,6 +9,7 @@ import { schemaSocketService } from "@/api/SchemaSocketService";
 import { referenceStore } from "./ReferenceStore";
 import { tableModalsStore } from "./TableModalsStore";
 import { participationsStore } from "./ParticipationStore";
+import { selectionStore } from "./SelectionStore";
 
 class ERStore {
     readonly TABLE_WIDTH = 220;
@@ -295,10 +296,22 @@ class ERStore {
 
     moveTable(id: string, dx: number, dy: number) {
         if (!this.isEditable) return;
-        const table = this.getTable(id);
-        if (table) {
-            table.x += dx / this.scale;
-            table.y += dy / this.scale;
+
+        if (selectionStore.selectedTableIds.size > 1) {
+            selectionStore.selectedTableIds.forEach(tableId => {
+                const table = this.state?.tables[tableId];
+                if (table) {
+                    table.x += dx / this.scale;
+                    table.y += dy / this.scale;
+                }
+                
+            })
+        } else {
+            const table = this.getTable(id);
+            if (table) {
+                table.x += dx / this.scale;
+                table.y += dy / this.scale;
+            }
         }
     }
 

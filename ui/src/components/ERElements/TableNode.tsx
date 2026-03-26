@@ -8,6 +8,7 @@ import { tableModalsStore } from '@/store/TableModalsStore';
 import { participationsStore } from '@/store/ParticipationStore';
 import { useMemo } from 'react';
 import { eventsStore } from '@/store/EventsStore';
+import { selectionStore } from '@/store/SelectionStore';
 
 interface TableNodeProps {
     table: Table;
@@ -21,6 +22,8 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
         return (authorities?.some(au => au === 'ALL' || au === 'MODIFY_SCHEME') && isEditable) ?? false;
     }, [authorities, isEditable]);
 
+    const isSelected = selectionStore.selectedTableIds.has(table.id);
+
     const handleModification = (action: () => void) => {
         if (!canModify) {
             eventsStore.addWarn('Вы не можете изменять схему!');
@@ -29,16 +32,49 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
         action();
     };
 
+    const handleTableMouseDown = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (e.button !== 0) return;
+        
+        if (selectionStore.mode === 'select') {
+            selectionStore.toggleTable(table.id, e.ctrlKey);
+        } else {
+            if (!isSelected && !e.ctrlKey) {
+                selectionStore.clear();
+                selectionStore.toggleTable(table.id, false);
+            }
+        }
+    };
+
+    const handleHeaderMouseDown = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (e.button !== 0) return;
+        
+        if (selectionStore.mode === 'select') {
+            selectionStore.toggleTable(table.id, e.ctrlKey);
+            return;
+        }
+
+        handleModification(() => {
+            if (!isSelected && !e.ctrlKey) {
+                selectionStore.clear();
+                selectionStore.toggleTable(table.id, false);
+            }
+            erStore.setDraggingTable(table.id);
+        });
+    };
+
     return (
         <div 
-            className="er_table_card" 
+            className={`er_table_card ${isSelected ? 'selected' : ''}`} 
             style={{ 
                 position: 'absolute',
                 left: table.x, 
                 top: table.y,
-                width: erStore.TABLE_WIDTH
+                width: erStore.TABLE_WIDTH,
+                cursor: selectionStore.mode === 'select' ? 'default' : 'grab'
             }}
-            onMouseDown={(e) => e.stopPropagation()}
+            onMouseDown={handleTableMouseDown}
             onContextMenu={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -59,13 +95,11 @@ export const TableNode = observer(({ table }: TableNodeProps) => {
         >
             <div 
                 className="er_table_header"
-                onMouseDown={(e) => {
-                    e.stopPropagation();
-                    handleModification(() => {
-                        erStore.setDraggingTable(table.id);
-                    });
-                }}
+                onMouseDown={handleHeaderMouseDown}
                 title={table.description ?? table.name}
+                style={{
+                    cursor: selectionStore.mode === 'select' ? 'default' : 'grab'
+                }}
             >
                 {table.name}
             </div>
