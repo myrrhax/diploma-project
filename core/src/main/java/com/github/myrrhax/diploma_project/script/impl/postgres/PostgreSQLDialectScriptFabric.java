@@ -48,7 +48,7 @@ public class PostgreSQLDialectScriptFabric extends AbstractScriptFabric {
         }
         boolean hasBetween = hasMin && hasMax;
         StringBuilder result = new StringBuilder();
-        result.append("CHECK(");
+        result.append(" CHECK(");
         result.append(column.getName());
 
         if (hasBetween) {
@@ -56,9 +56,9 @@ public class PostgreSQLDialectScriptFabric extends AbstractScriptFabric {
             result.append(column.getMin());
             result.append(" AND ").append(column.getMax());
         } else if (hasMin) {
-            result.append(" > ").append(column.getMin());
+            result.append(" >= ").append(column.getMin());
         } else {
-            result.append(" < ").append(column.getMax());
+            result.append(" <= ").append(column.getMax());
         }
 
         result.append(")");

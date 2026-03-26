@@ -282,6 +282,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
 
         var builder = ColumnMetadata.builder()
                 .name("id")
+                .pkPart(true)
                 .columnType(type);
         if (autoIncrementTypes.contains(type)) {
             builder.autoIncrement(true);
@@ -604,6 +605,136 @@ public class PostgresMetadataToSqlScriptProcessorTest {
 
         jdbcTemplate.execute(script);
         List<String> tables = stateMetadata.getTables().values().stream()
+                .map(TableMetadata::getName)
+                .toList();
+
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+        var params = Map.of("tables", tables);
+
+        Long count = namedParameterJdbcTemplate.queryForObject(
+                "SELECT count(*) FROM information_schema.tables " +
+                        "WHERE table_schema = 'public' " +
+                        "AND table_name::text IN (:tables)",
+                params,
+                Long.class
+        );
+
+        assertThat(count).isNotNull();
+        assertThat(count).isEqualTo(tables.size());
+    }
+
+    @Test
+    public void givenMinMaxColumnDefinition_whenGenerateScript_ThenScriptIsValid() {
+        // given
+        SchemaStateMetadata state = new SchemaStateMetadata();
+        TableMetadata table = TableMetadata.builder()
+                .name("t_test")
+                .build();
+        ColumnMetadata id = buildIdCol(ColumnMetadata.ColumnType.INT);
+        table.addColumn(id);
+        table.addPkPart(id.getId());
+
+        table.addColumn(ColumnMetadata.builder()
+                        .name("c_temp")
+                        .columnType(ColumnMetadata.ColumnType.INT)
+                        .min(-10.0)
+                        .max(15.0)
+                        .build());
+        state.addTable(table);
+        // when
+        MetadataToSqlScriptProcessor processor = setupProcessor(state);
+        String script = processor.convertMetadataToSql();
+        System.out.println(script);
+
+        // then
+        jdbcTemplate.execute(script);
+        List<String> tables = state.getTables().values().stream()
+                .map(TableMetadata::getName)
+                .toList();
+
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+        var params = Map.of("tables", tables);
+
+        Long count = namedParameterJdbcTemplate.queryForObject(
+                "SELECT count(*) FROM information_schema.tables " +
+                        "WHERE table_schema = 'public' " +
+                        "AND table_name::text IN (:tables)",
+                params,
+                Long.class
+        );
+
+        assertThat(count).isNotNull();
+        assertThat(count).isEqualTo(tables.size());
+    }
+
+    @Test
+    public void givenMinColumnDefinition_whenGenerateScript_ThenScriptIsValid() {
+        // given
+        SchemaStateMetadata state = new SchemaStateMetadata();
+        TableMetadata table = TableMetadata.builder()
+                .name("t_test")
+                .build();
+        ColumnMetadata id = buildIdCol(ColumnMetadata.ColumnType.INT);
+        table.addColumn(id);
+        table.addPkPart(id.getId());
+
+        table.addColumn(ColumnMetadata.builder()
+                .name("c_temp")
+                .columnType(ColumnMetadata.ColumnType.INT)
+                .min(-10.0)
+                .build());
+        state.addTable(table);
+        // when
+        MetadataToSqlScriptProcessor processor = setupProcessor(state);
+        String script = processor.convertMetadataToSql();
+        System.out.println(script);
+
+        // then
+        jdbcTemplate.execute(script);
+        List<String> tables = state.getTables().values().stream()
+                .map(TableMetadata::getName)
+                .toList();
+
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+        var params = Map.of("tables", tables);
+
+        Long count = namedParameterJdbcTemplate.queryForObject(
+                "SELECT count(*) FROM information_schema.tables " +
+                        "WHERE table_schema = 'public' " +
+                        "AND table_name::text IN (:tables)",
+                params,
+                Long.class
+        );
+
+        assertThat(count).isNotNull();
+        assertThat(count).isEqualTo(tables.size());
+    }
+
+    @Test
+    public void givenMaxColumnDefinition_whenGenerateScript_ThenScriptIsValid() {
+        // given
+        SchemaStateMetadata state = new SchemaStateMetadata();
+        TableMetadata table = TableMetadata.builder()
+                .name("t_test")
+                .build();
+        ColumnMetadata id = buildIdCol(ColumnMetadata.ColumnType.INT);
+        table.addColumn(id);
+        table.addPkPart(id.getId());
+
+        table.addColumn(ColumnMetadata.builder()
+                .name("c_temp")
+                .columnType(ColumnMetadata.ColumnType.INT)
+                .max(100.0)
+                .build());
+        state.addTable(table);
+        // when
+        MetadataToSqlScriptProcessor processor = setupProcessor(state);
+        String script = processor.convertMetadataToSql();
+        System.out.println(script);
+
+        // then
+        jdbcTemplate.execute(script);
+        List<String> tables = state.getTables().values().stream()
                 .map(TableMetadata::getName)
                 .toList();
 

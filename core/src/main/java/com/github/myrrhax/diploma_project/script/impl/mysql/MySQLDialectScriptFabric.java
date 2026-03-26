@@ -38,6 +38,11 @@ public class MySQLDialectScriptFabric extends AbstractScriptFabric {
     }
 
     @Override
+    protected String getMinMaxDefinition(ColumnMetadata column) {
+        return "";
+    }
+
+    @Override
     public String getColumnDefinition(ColumnMetadata columnMeta) {
         return "";
     }
