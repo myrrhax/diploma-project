@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { erStore } from '@/store/ERStore';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { UsersOverlay } from '@/components/UsersOverlay/UsersOverlay';
-import { ERDiagram } from '@/components/er/ERDiagram';
+import { ERDiagram } from '@/components/ERElements/ERDiagram';
 import { OverlaySpinner } from '@/components/SpinnerLoader/SpinnerLoader';
 import { schemaSocketService } from '@/api/SchemaSocketService';
 import { versionsStore } from '@/store/VersionsStore';
