@@ -114,6 +114,7 @@ public abstract class AbstractScriptFabric {
         return sb.toString();
     }
 
+    protected abstract String getMinMaxDefinition(ColumnMetadata column);
     public abstract String getColumnDefinition(ColumnMetadata columnMeta);
     public abstract String getIndexDefinition(TableMetadata tableMetadata, IndexMetadata indexMeta);
     protected abstract Map<ColumnMetadata.ColumnType, String> getDefinitions();

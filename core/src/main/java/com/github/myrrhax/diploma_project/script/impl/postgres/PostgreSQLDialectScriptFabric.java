@@ -3,6 +3,7 @@ package com.github.myrrhax.diploma_project.script.impl.postgres;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.script.AbstractScriptFabric;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +39,33 @@ public class PostgreSQLDialectScriptFabric extends AbstractScriptFabric {
     );
 
     @Override
+    public String getMinMaxDefinition(ColumnMetadata column) {
+        boolean hasMin = column.getMin() != null;
+        boolean hasMax = column.getMax() != null;
+
+        if (!hasMin && !hasMax) {
+            throw new ApplicationException("Failed to generate min/max definition");
+        }
+        boolean hasBetween = hasMin && hasMax;
+        StringBuilder result = new StringBuilder();
+        result.append("CHECK(");
+        result.append(column.getName());
+
+        if (hasBetween) {
+            result.append(" BETWEEN ");
+            result.append(column.getMin());
+            result.append(" AND ").append(column.getMax());
+        } else if (hasMin) {
+            result.append(" > ").append(column.getMin());
+        } else {
+            result.append(" < ").append(column.getMax());
+        }
+
+        result.append(")");
+        return result.toString();
+    }
+
+    @Override
     public String getColumnDefinition(ColumnMetadata columnMeta) {
         String typeName = getSuitableType(columnMeta);
         StringBuilder sb = new StringBuilder();
@@ -50,6 +78,10 @@ public class PostgreSQLDialectScriptFabric extends AbstractScriptFabric {
 
         if (columnMeta.getDefaultValue() != null) {
             sb.append(" DEFAULT ").append(columnMeta.getDefaultValue());
+        }
+
+        if (columnMeta.getMin() != null || columnMeta.getMax() != null) {
+            sb.append(getMinMaxDefinition(columnMeta));
         }
 
         return sb.toString();
