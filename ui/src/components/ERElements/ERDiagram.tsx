@@ -169,29 +169,6 @@ export const ERDiagram = observer(() => {
             
             <div className="er_viewport" style={{ transform: `translate(${erStore.offsetX}px, ${erStore.offsetY}px) scale(${erStore.scale})` }}>
                 <svg className="er_svg_layer">
-                    <defs>
-                        <marker id="marker-source-one" overflow='visible' orient='auto-start-reverse'>
-                            <line x1="-10" y1="-4" x2="-10" y2="4" stroke="#94a3b8" strokeWidth="1.2" />
-                        </marker>
-                        
-                        <marker id="marker-source-many" overflow="visible" orient="auto-start-reverse">
-                            <line x1="-4" y1="-3" x2="-4" y2="3" stroke="#94a3b8" strokeWidth="1.2" />
-                            <line x1="-6" y1="-2" x2="-2" y2="2" stroke="#94a3b8" strokeWidth="1.2" />
-                            <line x1="-6" y1="2" x2="-2" y2="-2" stroke="#94a3b8" strokeWidth="1.2" />
-                        </marker>
-
-                        <marker id="marker-target-one" overflow='visible' orient='auto-start-reverse'>
-                            <line x1="-8" y1="-6" x2="-8" y2="6" stroke="#94a3b8" strokeWidth="2" />
-                            <path d="M -20 -4 L -12 0 L -20 4 z" fill="#94a3b8" />
-                        </marker>
-                        
-                        <marker id="marker-target-many" overflow="visible" orient="auto-start-reverse">
-                            <line x1="-4" y1="-3" x2="-4" y2="3" stroke="#94a3b8" strokeWidth="1.2" />
-                            <line x1="-6" y1="-2" x2="-2" y2="2" stroke="#94a3b8" strokeWidth="1.2" />
-                            <line x1="-6" y1="2" x2="-2" y2="-2" stroke="#94a3b8" strokeWidth="1.2" />
-                            <path d="M -20 -4 L -12 0 L -20 4 z" fill="#94a3b8" />
-                        </marker>
-                    </defs>
                     
                     {Object.values(references).map((ref, index) => {
                         const key = ref.key;
@@ -201,29 +178,18 @@ export const ERDiagram = observer(() => {
 
                         let sourceLabel = 'M';
                         let targetLabel = '1';
-                        
-                        let sourceMarker = 'url(#marker-source-many)';
-                        let targetMarker = 'url(#marker-target-one)';
-                        
+                                                
                         let sourceTextOffset = 8;
                         let targetTextOffset = -14;
 
                         if (ref.type === 'ONE_TO_ONE') {
                             sourceLabel = '1'; targetLabel = '1';
-                            sourceMarker = 'url(#marker-source-one)'; 
-                            targetMarker = 'url(#marker-target-one)';
                         } else if (ref.type === 'ONE_TO_MANY') {
                             sourceLabel = '1'; targetLabel = 'M';
-                            sourceMarker = 'url(#marker-source-one)'; 
-                            targetMarker = 'url(#marker-target-many)';
                         } else if (ref.type === 'MANY_TO_ONE') {
                             sourceLabel = 'M'; targetLabel = '1';
-                            sourceMarker = 'url(#marker-source-many)'; 
-                            targetMarker = 'url(#marker-target-one)';
                         } else if (ref.type === 'MANY_TO_MANY') {
                             sourceLabel = 'M'; targetLabel = 'M';
-                            sourceMarker = 'url(#marker-source-many)'; 
-                            targetMarker = 'url(#marker-source-many)'; 
                             targetTextOffset = -8; 
                         }
                         
@@ -256,10 +222,10 @@ export const ERDiagram = observer(() => {
                                     onContextMenu={handleRefContextMenu}
                                 >
                                     <path d={d} stroke="transparent" strokeWidth="15" fill="none" />
-                                    <path d={d} className="er_line" markerStart={sourceMarker} markerEnd={targetMarker} fill="none" />
+                                    <path d={d} className="er_line" fill="none" />
                                     
-                                    <text x={start.x + sourceTextOffset} y={start.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
-                                    <text x={end.x + targetTextOffset} y={end.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
+                                    <text className='er_relation_label' x={start.x + sourceTextOffset} y={start.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
+                                    <text className='er_relation_label' x={end.x + targetTextOffset} y={end.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
                                 </g>
                             );
                         }
@@ -299,13 +265,13 @@ export const ERDiagram = observer(() => {
                                     
                                     <path d={branchPaths} className="er_line" fill="none" />
                                     
-                                    <path d={trunkPath} className="er_line" markerStart={sourceMarker} markerEnd={targetMarker} fill="none" />
+                                    <path d={trunkPath} className="er_line" fill="none" />
                                     
                                     <circle cx={sBusX} cy={sCenterY} r="3" fill="#64748b" />
                                     <circle cx={tBusX} cy={tCenterY} r="3" fill="#64748b" />
 
-                                    <text x={sBusX + sourceTextOffset} y={sCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
-                                    <text x={tBusX + targetTextOffset} y={tCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
+                                    <text className='er_relation_label' x={sBusX + sourceTextOffset} y={sCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
+                                    <text className='er_relation_label' x={tBusX + targetTextOffset} y={tCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
                                 </g>
                             );
                         }
