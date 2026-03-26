@@ -418,6 +418,40 @@ class ERStore {
         });
     }
 
+    multiDelete() {
+        if (!this.isEditable || !this.schemaId) return;
+        const multiCommand: MultiCommand = { 
+            schemeId: this.schemaId,
+            type: 'multi', 
+            commands: [] 
+        };
+
+        selectionStore.selectedTableIds.forEach((tableId) => {
+            if (!this.state || !this.schemaId) {
+                return;
+            }            
+            multiCommand.commands.push({
+                schemeId: this.schemaId,
+                type: 'delete-table',
+                tableId: tableId
+            });
+        });
+
+        selectionStore.selectedRefIds.forEach((refId) => {
+            if (!this.state || !this.schemaId) {
+                return;
+            }
+            const reference = this.state.references[refId];
+            
+            multiCommand.commands.push({
+                schemeId: this.schemaId,
+                type: 'delete-ref',
+                key: reference.key
+            });
+        });
+        schemaSocketService.sendCommand(multiCommand);
+    }
+
     private sendCoords() {
         if (!this.schema || !this.state) {
             return;
@@ -443,7 +477,7 @@ class ERStore {
                     x: table.x,
                     y: table.y
                 });
-                schemaSocketService.sendCommand(multiCommand);    
+                schemaSocketService.sendCommand(multiCommand);
             })
         } else if (this.draggingTableId) {
             const table = this.state.tables[this.draggingTableId];

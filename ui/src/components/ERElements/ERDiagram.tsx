@@ -124,6 +124,15 @@ export const ERDiagram = observer(() => {
         action();
     };
 
+    const handleMultiDelete = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        handleModification(() => {
+            erStore.multiDelete();
+            selectionStore.clear();
+            handleCloseMenu();
+        });
+    };
+
     const handleOpenMenu = (screenX: number, screenY: number, relativeX: number, relativeY: number) => {
         handleModification(() => {
             erStore.openContextMenu(screenX, screenY, relativeX, relativeY);
@@ -165,6 +174,11 @@ export const ERDiagram = observer(() => {
     const canModify = useMemo(() => {
         return authorities?.some(au => au === 'MODIFY_SCHEME' || au === 'ALL');
     }, [authorities]);
+
+    const multiSelectCount = selectionStore.selectedTableIds.size + selectionStore.selectedRefIds.size;
+    const showMultiMenu = multiSelectCount > 1 && (tableModalsStore.tableContextMenu.visible || (referenceStore.refContextMenu?.visible ?? false));
+    const multiMenuX = tableModalsStore.tableContextMenu.visible ? tableModalsStore.tableContextMenu.x : (referenceStore.refContextMenu?.x || 0);
+    const multiMenuY = tableModalsStore.tableContextMenu.visible ? tableModalsStore.tableContextMenu.y : (referenceStore.refContextMenu?.y || 0);
 
     return (
         <div 
@@ -359,26 +373,59 @@ export const ERDiagram = observer(() => {
                 </svg>
 
                 {Object.values(tables).map(table => <TableNode key={table.id} table={table} />)}
-
-                {erStore.isEditable && canModify && (
-                    <AddReferenceMenu />
-                )}
             </div>
             
             <CursorControls />
             <ERZoomControls />
 
-            {erStore.isEditable && erStore.contextMenu.visible && (
-                <div className="er_ctx_menu" style={{ left: erStore.contextMenu.x, top: erStore.contextMenu.y }}>
-                    <div className="er_ctx_item" onClick={() => erStore.addTable()}>Добавить таблицу</div>
+            {erStore.isEditable && erStore.contextMenu.visible && !showMultiMenu && (
+                <div 
+                    className="er_ctx_menu" 
+                    style={{ left: erStore.contextMenu.x, top: erStore.contextMenu.y }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                >
+                    <div 
+                        className="er_ctx_item" 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            erStore.addTable();
+                            handleCloseMenu();
+                        }}
+                    >
+                        Добавить таблицу
+                    </div>
                 </div>
             )}
 
-            {erStore.isEditable && canModify && referenceStore.refContextMenu?.visible && (
-                <div className="er_ctx_menu" style={{ left: referenceStore.refContextMenu.x, top: referenceStore.refContextMenu.y, zIndex: 1000 }}>
+            {showMultiMenu && erStore.isEditable && canModify && (
+                <div 
+                    className="er_ctx_menu" 
+                    style={{ left: multiMenuX, top: multiMenuY, zIndex: 1000 }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                >
                     <div 
                         className="er_ctx_item" 
-                        onClick={() => erStore.deleteReference(referenceStore.refContextMenu.refKeyStr)}
+                        onClick={handleMultiDelete}
+                        style={{ color: '#ef4444', fontWeight: 'bold' }}
+                    >
+                        Удалить выделенные ({multiSelectCount})
+                    </div>
+                </div>
+            )}
+
+            {!showMultiMenu && erStore.isEditable && canModify && referenceStore.refContextMenu?.visible && (
+                <div 
+                    className="er_ctx_menu" 
+                    style={{ left: referenceStore.refContextMenu.x, top: referenceStore.refContextMenu.y, zIndex: 1000 }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                >
+                    <div 
+                        className="er_ctx_item" 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            erStore.deleteReference(referenceStore.refContextMenu!.refKeyStr);
+                            handleCloseMenu();
+                        }}
                         style={{ color: '#ef4444', fontWeight: 'bold' }}
                     >
                         Удалить
@@ -386,11 +433,16 @@ export const ERDiagram = observer(() => {
                 </div>
             )}
             
-            {erStore.isEditable && canModify && tableModalsStore.tableContextMenu.visible && (
-                <div className="er_ctx_menu" style={{ left: tableModalsStore.tableContextMenu.x, top: tableModalsStore.tableContextMenu.y, zIndex: 1000 }}>
+            {!showMultiMenu && erStore.isEditable && canModify && tableModalsStore.tableContextMenu.visible && (
+                <div 
+                    className="er_ctx_menu" 
+                    style={{ left: tableModalsStore.tableContextMenu.x, top: tableModalsStore.tableContextMenu.y, zIndex: 1000 }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                >
                     <div 
                         className="er_ctx_item" 
-                        onClick={() => {
+                        onClick={(e) => {
+                            e.stopPropagation();
                             tableModalsStore.openEdit();
                             tableModalsStore.closeTableContextMenu();
                         }}
@@ -400,7 +452,8 @@ export const ERDiagram = observer(() => {
                     
                     <div 
                         className="er_ctx_item" 
-                        onClick={() => {
+                        onClick={(e) => {
+                            e.stopPropagation();
                             tableModalsStore.open();
                             tableModalsStore.closeTableContextMenu();
                         }}
@@ -412,12 +465,16 @@ export const ERDiagram = observer(() => {
             )}
 
             {erStore.isEditable && canModify && columnModalsStore.columnContextMenu.visible && (
-                <div className="er_ctx_menu" style={{ left: columnModalsStore.columnContextMenu.x, top: columnModalsStore.columnContextMenu.y, zIndex: 1000 }}>
+                <div 
+                    className="er_ctx_menu" 
+                    style={{ left: columnModalsStore.columnContextMenu.x, top: columnModalsStore.columnContextMenu.y, zIndex: 1000 }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                >
                     <div 
                         className="er_ctx_item" 
-                        onClick={() => {
-                            if (erStore)
-                            erStore.setActiveMenuId(columnModalsStore.columnContextMenu.colId);
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (erStore) erStore.setActiveMenuId(columnModalsStore.columnContextMenu.colId);
                             columnModalsStore.closeColumnContextMenu();
                         }}
                         style={{ color: 'black' }}
@@ -427,7 +484,8 @@ export const ERDiagram = observer(() => {
 
                     <div 
                         className="er_ctx_item" 
-                        onClick={() => {
+                        onClick={(e) => {
+                            e.stopPropagation();
                             columnModalsStore.open(columnModalsStore.columnContextMenu.tableId, columnModalsStore.columnContextMenu.colId);
                             columnModalsStore.closeColumnContextMenu();
                         }}
