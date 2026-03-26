@@ -41,7 +41,8 @@ class AuthStore {
     }
 
     public logout() {
-        this.setAuthToken(null)
+        this.setAuthToken(null);
+        localStorage.removeItem(this.TOKEN_KEY);
         this.setUser(null);
     }
 
