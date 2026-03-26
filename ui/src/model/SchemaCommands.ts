@@ -83,6 +83,11 @@ export interface RenameReferenceCommand extends BaseMetadataCommand {
     newName: string;
 }
 
+export interface MultiCommand extends BaseMetadataCommand {
+    type: 'multi',
+    commands: MetadataCommand[]
+}
+
 export type MetadataCommand = 
     | AddTableCommand
     | AddColumnCommand
@@ -92,4 +97,5 @@ export type MetadataCommand =
     | DeleteColumnCommand
     | DeleteTableCommand
     | DeleteReferenceCommand
-    | RenameReferenceCommand;
+    | RenameReferenceCommand
+    | MultiCommand;

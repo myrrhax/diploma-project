@@ -10,6 +10,7 @@ import { referenceStore } from "./ReferenceStore";
 import { tableModalsStore } from "./TableModalsStore";
 import { participationsStore } from "./ParticipationStore";
 import { selectionStore } from "./SelectionStore";
+import type { MultiCommand } from "@/model/SchemaCommands";
 
 class ERStore {
     readonly TABLE_WIDTH = 220;
@@ -350,6 +351,7 @@ class ERStore {
     openContextMenu(screenX: number, screenY: number, relativeX: number, relativeY: number) {
         this.contextMenu = { visible: true, screenX, screenY, x: relativeX, y: relativeY };
     }
+
     closeContextMenu() { this.contextMenu.visible = false; }
 
     deny() {
@@ -417,8 +419,34 @@ class ERStore {
     }
 
     private sendCoords() {
-        if (this.draggingTableId && this.schema) {
-            const table = this.state?.tables[this.draggingTableId];
+        if (!this.schema || !this.state) {
+            return;
+        }
+
+        if (selectionStore.selectedTableIds.size > 0) {
+            const multiCommand: MultiCommand = { 
+                schemeId: this.schema.id,
+                type: 'multi', 
+                commands: [] 
+            };
+
+            selectionStore.selectedTableIds.forEach(tableId => {
+                if (!this.state || !this.schema) {
+                    return;
+                }
+                console.log("TableId", selectionStore.selectedTableIds);
+                const table = this.state.tables[tableId];
+                multiCommand.commands.push({
+                    schemeId: this.schema.id,
+                    type: 'update-table',
+                    tableId: table.id,
+                    x: table.x,
+                    y: table.y
+                });
+                schemaSocketService.sendCommand(multiCommand);    
+            })
+        } else if (this.draggingTableId) {
+            const table = this.state.tables[this.draggingTableId];
             schemaSocketService.sendCommand({
                 type: 'update-table',
                 schemeId: this.schema.id,
