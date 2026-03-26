@@ -306,8 +306,8 @@ export const ERDiagram = observer(() => {
                                     <path d={d} stroke="transparent" strokeWidth="15" fill="none" pointerEvents="stroke" />
                                     <path d={d} className="er_line" fill="none" />
                                     
-                                    <text x={start.x + sourceTextOffset} y={start.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
-                                    <text x={end.x + targetTextOffset} y={end.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
+                                    <text className='er_relation_label' x={start.x + sourceTextOffset} y={start.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
+                                    <text className='er_relation_label' x={end.x + targetTextOffset} y={end.y - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
                                 </g>
                             );
                         } else {
@@ -350,8 +350,8 @@ export const ERDiagram = observer(() => {
                                     <circle cx={sBusX} cy={sCenterY} r="3" fill="#64748b" />
                                     <circle cx={tBusX} cy={tCenterY} r="3" fill="#64748b" />
 
-                                    <text x={sBusX + sourceTextOffset} y={sCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
-                                    <text x={tBusX + targetTextOffset} y={tCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
+                                    <text className='er_relation_label' x={sBusX + sourceTextOffset} y={sCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{sourceLabel}</text>
+                                    <text className='er_relation_label' x={tBusX + targetTextOffset} y={tCenterY - 12} textAnchor="middle" dominantBaseline="central" fill="#94a3b8" fontSize="12" fontWeight="bold">{targetLabel}</text>
                                 </g>
                             );
                         }
