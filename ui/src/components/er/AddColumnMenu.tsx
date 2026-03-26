@@ -4,6 +4,7 @@ import { erStore } from '@/store/ERStore';
 import { v4 as uuidv4 } from 'uuid';
 import { type Column, type ColumnType, type ConstraintType } from '@/model/SchemaElements';
 import './css/AddColumnMenu.css';
+import { eventsStore } from '@/store/EventsStore';
 
 const ALL_TYPES: ColumnType[] = [
     'INT', 'BIGINT', 'SMALLINT', 'VARCHAR', 'CHAR', 'TEXT', 'NUMERIC', 'DECIMAL',
@@ -120,7 +121,7 @@ export const AddColumnMenu = observer(({ onClose, onCancel, oldColumn, tableId }
 
     const handleSave = () => {
         if (!name.trim()) {
-            alert('Введите имя колонки');
+            eventsStore.addWarn('Введите имя колонки');
             return;
         }
 

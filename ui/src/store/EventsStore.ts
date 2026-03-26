@@ -3,7 +3,7 @@ import { makeAutoObservable } from "mobx";
 import { v4 } from 'uuid';
 
 class EventsStore {
-    readonly MAX_EVENTS = 10;
+    readonly MAX_EVENTS = 5;
     readonly EVENT_TTL = 5000;
 
     events: Event[] = [];
@@ -28,8 +28,11 @@ class EventsStore {
     }
 
     private addEvent(event: Event) {
-        if (this.events.length > this.MAX_EVENTS) {
-            this.events.shift();
+        if (this.events.length >= this.MAX_EVENTS) {
+            const shifted = this.events.shift();
+            if (shifted) {
+                this.removeEvent(shifted?.id);
+            }
         }
         this.events.push(event);
 

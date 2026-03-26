@@ -3,7 +3,7 @@ import { Header } from "./Header/Header";
 import { observer } from "mobx-react-lite";
 import { authStore } from "@/store/AuthStore";
 import { OverlaySpinner } from "./SpinnerLoader/SpinnerLoader";
-import { EventsToastContainer } from "./ErrorToast/EventToastContainter";
+import { EventsToastContainer } from "./EventsToast/EventToastContainter";
 
 export const Layout = observer(() => {
     const { isLoading } = authStore;
