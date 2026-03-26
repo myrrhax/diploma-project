@@ -3,8 +3,8 @@ import { observer } from 'mobx-react-lite';
 import { referenceStore } from '@/store/ReferenceStore';
 import { erStore } from '@/store/ERStore';
 import type { ReferenceType, OnDeleteAction, OnUpdateAction } from '@/model/SchemaElements';
+import './css/AddReferenceMenu.css';
 
-// Словарь для читаемого отображения типов связей
 const REFERENCE_TYPE_LABELS: Record<ReferenceType, string> = {
     'MANY_TO_ONE': 'Многие к одному (M:1)',
     'ONE_TO_MANY': 'Один ко многим (1:M)',
@@ -26,14 +26,28 @@ const UPDATE_ACTION_LABELS: Record<OnUpdateAction, string> = {
 }
 
 export const AddReferenceMenu = observer(() => {
+    const menuRef = useRef<HTMLDivElement>(null);
+    const position = useRef({ x: 0, y: 0 });
     const isDragging = useRef(false);
     const dragOffset = useRef({ x: 0, y: 0 });
 
     useEffect(() => {
+        if (referenceStore.isOpen) {
+            position.current = { x: referenceStore.menuX, y: referenceStore.menuY };
+            if (menuRef.current) {
+                menuRef.current.style.transform = `translate(${position.current.x}px, ${position.current.y}px)`;
+            }
+        }
+    }, [referenceStore.isOpen, referenceStore.menuX, referenceStore.menuY]);
+
+    useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
-            if (isDragging.current) {
-                referenceStore.menuX = e.clientX - dragOffset.current.x;
-                referenceStore.menuY = e.clientY - dragOffset.current.y;
+            if (isDragging.current && menuRef.current) {
+                position.current = {
+                    x: e.clientX - dragOffset.current.x,
+                    y: e.clientY - dragOffset.current.y
+                };
+                menuRef.current.style.transform = `translate(${position.current.x}px, ${position.current.y}px)`;
             }
         };
 
@@ -53,8 +67,8 @@ export const AddReferenceMenu = observer(() => {
     const handleMouseDown = (e: React.MouseEvent) => {
         isDragging.current = true;
         dragOffset.current = {
-            x: e.clientX - referenceStore.menuX,
-            y: e.clientY - referenceStore.menuY
+            x: e.clientX - position.current.x,
+            y: e.clientY - position.current.y
         };
     };
 
@@ -62,53 +76,26 @@ export const AddReferenceMenu = observer(() => {
 
     const sourceTable = referenceStore.sourceTableId ? erStore.getTable(referenceStore.sourceTableId) : null;
     const targetTable = referenceStore.targetTableId ? erStore.getTable(referenceStore.targetTableId) : null;
-
     const maxRows = Math.max(referenceStore.sourceCols.length, referenceStore.targetCols.length);
 
     return (
         <div 
-            style={{
-                position: 'fixed',
-                left: referenceStore.menuX + 15,
-                top: referenceStore.menuY + 15,
-                backgroundColor: '#1e293b',
-                border: '2px solid #ef4444', 
-                borderRadius: '8px',
-                zIndex: 9999,
-                width: '350px',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
-                color: 'white',
-                display: 'flex',
-                flexDirection: 'column'
-            }}
-            // Останавливаем клики, чтобы не тащился канвас под меню
+            className="er_add_reference_menu__container"
+            ref={menuRef}
             onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
         >
-            {/* ШАПКА ОКНА (Draggable Area) */}
-            <div 
-                onMouseDown={handleMouseDown}
-                style={{ 
-                    padding: '12px 16px', 
-                    borderBottom: '1px solid #334155', 
-                    cursor: 'grab', 
-                    userSelect: 'none', // Чтобы текст не выделялся при перетаскивании
-                    backgroundColor: '#0f172a', // Делаем шапку чуть темнее для визуального выделения
-                    borderTopLeftRadius: '6px',
-                    borderTopRightRadius: '6px'
-                }}
-            >
-                <h4 style={{ margin: 0, fontSize: '15px' }}>Создание связи</h4>
+            <div className="add_reference_header" onMouseDown={handleMouseDown}>
+                <h4 className="add_reference_title">Создание связи</h4>
             </div>
 
-            {/* ОСНОВНОЕ ТЕЛО ОКНА */}
-            <div style={{ padding: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+            <div className="er_add_reference_menu">
+                <div className="ref_controls_group">
                     <select 
+                        className="ref_select"
                         value={referenceStore.refType} 
                         onChange={e => referenceStore.refType = e.target.value as ReferenceType} 
-                        style={{ padding: '6px', borderRadius: '4px' }}
                     >
-                        {/* Используем наш словарь для красивых названий */}
                         {(Object.keys(REFERENCE_TYPE_LABELS) as ReferenceType[]).map(type => (
                             <option key={type} value={type}>
                                 {REFERENCE_TYPE_LABELS[type]}
@@ -116,10 +103,14 @@ export const AddReferenceMenu = observer(() => {
                         ))}
                     </select>
 
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ fontSize: '12px', color: '#94a3b8' }}>При удалении</label>
-                            <select value={referenceStore.onDelete} onChange={e => referenceStore.onDelete = e.target.value as OnDeleteAction} style={{ width: '100%', padding: '4px' }}>
+                    <div className="ref_actions_row">
+                        <div className="ref_action_col">
+                            <label className="ref_label">При удалении</label>
+                            <select 
+                                className="ref_select"
+                                value={referenceStore.onDelete} 
+                                onChange={e => referenceStore.onDelete = e.target.value as OnDeleteAction}
+                            >
                                 {(Object.keys(DELETE_ACTION_LABELS) as OnDeleteAction[]).map(action => (
                                     <option key={action} value={action}>
                                         {DELETE_ACTION_LABELS[action]}
@@ -127,9 +118,13 @@ export const AddReferenceMenu = observer(() => {
                                 ))}
                             </select>
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ fontSize: '12px', color: '#94a3b8' }}>При обновлении</label>
-                            <select value={referenceStore.onUpdate} onChange={e => referenceStore.onUpdate = e.target.value as OnUpdateAction} style={{ width: '100%', padding: '4px' }}>
+                        <div className="ref_action_col">
+                            <label className="ref_label">При обновлении</label>
+                            <select 
+                                className="ref_select"
+                                value={referenceStore.onUpdate} 
+                                onChange={e => referenceStore.onUpdate = e.target.value as OnUpdateAction}
+                            >
                                 {(Object.keys(UPDATE_ACTION_LABELS) as OnUpdateAction[]).map(action => (
                                     <option key={action} value={action}>
                                         {UPDATE_ACTION_LABELS[action]}
@@ -140,10 +135,10 @@ export const AddReferenceMenu = observer(() => {
                     </div>
                 </div>
 
-                <div style={{ border: '1px solid #334155', borderRadius: '6px', padding: '8px', marginBottom: '16px' }}>
-                    <div style={{ display: 'flex', borderBottom: '1px solid #334155', paddingBottom: '4px', marginBottom: '8px', fontSize: '12px', color: '#94a3b8' }}>
-                        <div style={{ flex: 1 }}>Source: {sourceTable?.name || '...'}</div>
-                        <div style={{ flex: 1 }}>Target: {targetTable?.name || '...'}</div>
+                <div className="ref_mapping_box">
+                    <div className="ref_mapping_header">
+                        <div className="ref_mapping_col">Source: {sourceTable?.name || '...'}</div>
+                        <div className="ref_mapping_col">Target: {targetTable?.name || '...'}</div>
                     </div>
 
                     {Array.from({ length: maxRows }).map((_, i) => {
@@ -153,18 +148,30 @@ export const AddReferenceMenu = observer(() => {
                         const tColName = tColId && targetTable ? targetTable.columns[tColId]?.name : '---';
 
                         return (
-                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', fontSize: '14px' }}>
-                                <div style={{ flex: 1, backgroundColor: '#334155', padding: '4px 8px', borderRadius: '4px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <div key={i} className="ref_mapping_row">
+                                <div className="ref_col_item">
                                     {sColName}
                                 </div>
-                                <span style={{ color: '#64748b' }}>➡</span>
-                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#334155', padding: '4px 8px', borderRadius: '4px' }}>
-                                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{tColName}</span>
+                                <span className="ref_arrow_icon">➡</span>
+                                <div className="ref_col_item target_item">
+                                    <span className="ref_col_text">{tColName}</span>
                                     
                                     {tColId && (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                            <button disabled={i === 0} onClick={() => referenceStore.moveTargetUp(i)} style={{ fontSize: '8px', padding: '1px 4px', cursor: 'pointer' }}>▲</button>
-                                            <button disabled={i === referenceStore.targetCols.length - 1} onClick={() => referenceStore.moveTargetDown(i)} style={{ fontSize: '8px', padding: '1px 4px', cursor: 'pointer' }}>▼</button>
+                                        <div className="ref_col_controls">
+                                            <button 
+                                                className="ref_ctrl_btn"
+                                                disabled={i === 0} 
+                                                onClick={() => referenceStore.moveTargetUp(i)} 
+                                            >
+                                                ▲
+                                            </button>
+                                            <button 
+                                                className="ref_ctrl_btn"
+                                                disabled={i === referenceStore.targetCols.length - 1} 
+                                                onClick={() => referenceStore.moveTargetDown(i)} 
+                                            >
+                                                ▼
+                                            </button>
                                         </div>
                                     )}
                                 </div>
@@ -173,20 +180,17 @@ export const AddReferenceMenu = observer(() => {
                     })}
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div className="ref_btn_container">
                     <button 
+                        className="ref_btn submit_btn"
                         onClick={() => referenceStore.submit()} 
                         disabled={!referenceStore.isReadyToSubmit}
-                        style={{ 
-                            flex: 1, padding: '8px', borderRadius: '4px', border: 'none', color: 'white', cursor: referenceStore.isReadyToSubmit ? 'pointer' : 'not-allowed',
-                            backgroundColor: referenceStore.isReadyToSubmit ? '#3b82f6' : '#475569'
-                        }}
                     >
                         Добавить
                     </button>
                     <button 
+                        className="ref_btn cancel_btn"
                         onClick={() => referenceStore.reset()} 
-                        style={{ flex: 1, padding: '8px', borderRadius: '4px', border: 'none', backgroundColor: '#64748b', color: 'white', cursor: 'pointer' }}
                     >
                         Отмена
                     </button>
