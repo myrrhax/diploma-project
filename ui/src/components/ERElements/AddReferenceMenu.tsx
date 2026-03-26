@@ -30,15 +30,22 @@ export const AddReferenceMenu = observer(() => {
     const position = useRef({ x: 0, y: 0 });
     const isDragging = useRef(false);
     const dragOffset = useRef({ x: 0, y: 0 });
-
+    
+    const scale = erStore.scale;
     useEffect(() => {
         if (referenceStore.isOpen) {
             position.current = { x: referenceStore.menuX, y: referenceStore.menuY };
             if (menuRef.current) {
-                menuRef.current.style.transform = `translate(${position.current.x}px, ${position.current.y}px)`;
+                menuRef.current.style.transform = `translate(${position.current.x}px, ${position.current.y}px) scale(${scale})`;
             }
         }
     }, [referenceStore.isOpen, referenceStore.menuX, referenceStore.menuY]);
+
+    useEffect(() => {
+        if (referenceStore.isOpen && menuRef.current) {
+            menuRef.current.style.transform = `translate(${position.current.x}px, ${position.current.y}px) scale(${scale})`;
+        }
+    }, [scale, referenceStore.isOpen]);
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
@@ -47,7 +54,7 @@ export const AddReferenceMenu = observer(() => {
                     x: e.clientX - dragOffset.current.x,
                     y: e.clientY - dragOffset.current.y
                 };
-                menuRef.current.style.transform = `translate(${position.current.x}px, ${position.current.y}px)`;
+                menuRef.current.style.transform = `translate(${position.current.x}px, ${position.current.y}px) scale(${erStore.scale})`;
             }
         };
 
