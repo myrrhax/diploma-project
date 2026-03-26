@@ -51,7 +51,9 @@ public class ColumnMetadata implements Cloneable {
     private Boolean autoIncrement;
     @Setter
     private boolean pkPart;
+    @Setter
     private Double min;
+    @Setter
     private Double max;
 
     @Override
@@ -158,90 +160,66 @@ public class ColumnMetadata implements Cloneable {
         }
     }
 
-    public void setMin(Double min) {
-        if (this.min == null) {
-            this.min = min;
-            return;
-        }
-
-        if (min == null) {
-            this.min = null;
-            return;
-        }
+    public void updateBounds(Double newMin, Double newMax) {
+        Double targetMin = newMin != null ? newMin : this.min;
+        Double targetMax = newMax != null ? newMax : this.max;
 
         if (!MetadataTypeUtils.isMinMaxableType(this)) {
             return;
         }
 
-        if (this.max != null && min >= this.max) {
-            throw new ApplicationException(ErrorMessageKey.COLUMN_MAX_VIOLATION.getKey(), min, this.max);
+        if (targetMin != null && targetMax != null && targetMin >= targetMax) {
+            throw new ApplicationException(ErrorMessageKey.COLUMN_MAX_VIOLATION.getKey(), targetMin, targetMax);
         }
 
-        if (this.defaultValue != null && Double.parseDouble(this.defaultValue) < min) {
-            throw new ApplicationException(ErrorMessageKey.COLUMN_DEFAULT_MIN_VIOLATION.getKey(), this.defaultValue, min);
-        }
+        if (targetMin != null) {
+            if (this.defaultValue != null && Double.parseDouble(this.defaultValue) < targetMin) {
+                throw new ApplicationException(ErrorMessageKey.COLUMN_DEFAULT_MIN_VIOLATION.getKey(), this.defaultValue, targetMin);
+            }
 
-        if (this.columnType == ColumnType.DECIMAL && this.precision != null && this.scale != null) {
-            BigDecimal minValue = new BigDecimal(
-                    BigInteger.TEN.pow(precision).subtract(BigInteger.ONE),
-                    scale
-            ).negate();
+            if (this.columnType == ColumnType.DECIMAL && this.precision != null && this.scale != null) {
+                BigDecimal minValue = new BigDecimal(
+                        BigInteger.TEN.pow(precision).subtract(BigInteger.ONE),
+                        scale
+                ).negate();
 
-            if (minValue.compareTo(new BigDecimal(min)) < 0) {
-                throw new ApplicationException(ErrorMessageKey.COLUMN_MIN_PRECISION_VIOLATION.getKey(), min);
+                if (minValue.compareTo(new BigDecimal(targetMin)) < 0) {
+                    throw new ApplicationException(ErrorMessageKey.COLUMN_MIN_PRECISION_VIOLATION.getKey(), targetMin);
+                }
+            }
+
+            if (this.columnType == ColumnType.NUMERIC
+                    && this.length != null
+                    && targetMin < -(Math.pow(10, -this.length) - 1)) {
+                throw new ApplicationException(ErrorMessageKey.COLUMN_MIN_LENGTH_VIOLATION.getKey(), targetMin, this.length);
             }
         }
 
-        if (this.columnType == ColumnType.NUMERIC
-                && this.length != null
-                && min < -(Math.pow(10, -this.length) - 1)) {
-            throw new ApplicationException(ErrorMessageKey.COLUMN_MIN_LENGTH_VIOLATION.getKey(), min, this.length);
-        }
+        if (targetMax != null) {
+            if (this.defaultValue != null && Double.parseDouble(this.defaultValue) > targetMax) {
+                throw new ApplicationException(ErrorMessageKey.COLUMN_MAX_VIOLATION.getKey(), defaultValue, targetMax);
+            }
 
-        this.min = min;
-    }
+            if (this.columnType == ColumnType.DECIMAL && this.precision != null && this.scale != null) {
+                BigDecimal maxValue = new BigDecimal(
+                        BigInteger.TEN.pow(precision).subtract(BigInteger.ONE),
+                        scale
+                );
 
-    public void setMax(Double max) {
-        if (this.max == null) {
-            this.max = max;
-            return;
-        }
+                if (maxValue.compareTo(new BigDecimal(targetMax)) > 0) {
+                    throw new ApplicationException(ErrorMessageKey.COLUMN_MAX_PRECISION_VIOLATION.getKey(), targetMax);
+                }
+            }
 
-        if (max == null) {
-            this.max = null;
-            return;
-        }
-
-        if (!MetadataTypeUtils.isMinMaxableType(this)) {
-            return;
-        }
-
-        if (this.min != null && max <= this.min) {
-            throw new ApplicationException(ErrorMessageKey.COLUMN_MIN_VIOLATION.getKey(), max, this.min);
-        }
-
-        if (this.defaultValue != null && Double.parseDouble(this.defaultValue) > max) {
-            throw new ApplicationException(ErrorMessageKey.COLUMN_MAX_VIOLATION.getKey(), defaultValue, max);
-        }
-
-        if (this.columnType == ColumnType.DECIMAL && this.precision != null && this.scale != null) {
-            BigDecimal maxValue = new BigDecimal(
-                    BigInteger.TEN.pow(precision).subtract(BigInteger.ONE),
-                    scale
-            );
-
-            if (maxValue.compareTo(new BigDecimal(max)) > 0) {
-                throw new ApplicationException(ErrorMessageKey.COLUMN_MAX_PRECISION_VIOLATION.getKey(), max);
+            if (this.columnType == ColumnType.NUMERIC
+                    && this.length != null
+                    && targetMax > (Math.pow(10, -this.length) - 1)) {
+                throw new ApplicationException(ErrorMessageKey.COLUMN_MAX_LENGTH_VIOLATION.getKey(), targetMax, this.length);
             }
         }
 
-        if (this.columnType == ColumnType.NUMERIC
-                && this.length != null
-                && max > (Math.pow(10, -this.length) - 1)) {
-            throw new ApplicationException(ErrorMessageKey.COLUMN_MAX_LENGTH_VIOLATION.getKey(), max, this.length);
-        }
-
-        this.max = max;
+        this.min = targetMin;
+        this.max = targetMax;
     }
 
     public enum ConstraintType {

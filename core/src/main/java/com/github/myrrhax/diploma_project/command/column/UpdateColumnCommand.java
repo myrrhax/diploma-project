@@ -100,15 +100,9 @@ public class UpdateColumnCommand extends MetadataCommand {
             clone.setPrecision(newPrecision);
             clone.setScale(newScale);
         }
-
-        if (min != null) {
-            clone.setMin(min);
+        if (min != null || max != null) {
+            clone.updateBounds(min, max);
         }
-
-        if (max != null) {
-            clone.setMax(max);
-        }
-
 
         clone.setAutoIncrement(autoIncrement != null ? autoIncrement : column.getAutoIncrement());
         table.updateColumn(clone);
