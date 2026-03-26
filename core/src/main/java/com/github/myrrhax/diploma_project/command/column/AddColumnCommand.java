@@ -38,6 +38,8 @@ public class AddColumnCommand extends MetadataCommand {
     private List<ColumnMetadata.ConstraintType> constraints;
     private boolean pkPart;
     private Boolean autoIncrement;
+    private Double min;
+    private Double max;
 
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
@@ -87,6 +89,13 @@ public class AddColumnCommand extends MetadataCommand {
 
             column.setPrecision(precision);
             column.setScale(scale);
+        }
+
+        if (min != null) {
+            column.setMin(min);
+        }
+        if (max != null) {
+            column.setMax(max);
         }
 
         if (constraints != null && !constraints.isEmpty()) {

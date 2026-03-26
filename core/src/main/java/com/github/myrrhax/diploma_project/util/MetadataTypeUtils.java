@@ -27,6 +27,10 @@ public class MetadataTypeUtils {
         return AbstractScriptFabric.validAutoIncrementTypes.contains(column.getColumnType());
     }
 
+    public static boolean isMinMaxableType(ColumnMetadata column) {
+        return AbstractScriptFabric.minMaxableTypes.contains(column.getColumnType());
+    }
+
     public static boolean isCompactibleLengthLimitedType(ColumnMetadata column, int newLength, String newDefaultValue) {
         if (!AbstractScriptFabric.lengthLimitedTypes.contains(column.getColumnType())) {
             return false;

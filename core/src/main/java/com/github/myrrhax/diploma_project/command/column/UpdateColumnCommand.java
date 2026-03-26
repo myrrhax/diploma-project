@@ -39,6 +39,8 @@ public class UpdateColumnCommand extends MetadataCommand {
     private List<ColumnMetadata.ConstraintType> constraints;
     private Boolean autoIncrement;
     private Boolean pkPart;
+    private Double min;
+    private Double max;
 
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
@@ -98,6 +100,15 @@ public class UpdateColumnCommand extends MetadataCommand {
             clone.setPrecision(newPrecision);
             clone.setScale(newScale);
         }
+
+        if (min != null) {
+            clone.setMin(min);
+        }
+
+        if (max != null) {
+            clone.setMax(max);
+        }
+
 
         clone.setAutoIncrement(autoIncrement != null ? autoIncrement : column.getAutoIncrement());
         table.updateColumn(clone);

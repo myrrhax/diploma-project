@@ -286,7 +286,9 @@ class ERStore {
                 newLength: compareAndReturnNew(oldColumn.length, newColumn.length),
                 constraints: compareAndReturnNew(oldColumn.constraints, newColumn.constraints),
                 pkPart: compareAndReturnNew(oldColumn.pkPart, newColumn.pkPart),
-                autoIncrement: compareAndReturnNew(oldColumn.autoIncrement, newColumn.autoIncrement)
+                autoIncrement: compareAndReturnNew(oldColumn.autoIncrement, newColumn.autoIncrement),
+                min: compareAndReturnNew(oldColumn.min, newColumn.min),
+                max: compareAndReturnNew(oldColumn.max, newColumn.max)
             })
         }
     }

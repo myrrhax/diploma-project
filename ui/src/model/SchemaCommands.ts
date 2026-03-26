@@ -57,6 +57,8 @@ export interface UpdateColumnCommand extends BaseMetadataCommand {
     constraints: ConstraintType[] | null;
     pkPart?: boolean | null;
     autoIncrement: boolean | null;
+    min: number | null;
+    max: number | null;
 }
 
 export interface DeleteColumnCommand extends BaseMetadataCommand {

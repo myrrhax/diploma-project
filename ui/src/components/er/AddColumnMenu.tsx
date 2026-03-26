@@ -54,11 +54,14 @@ export const AddColumnMenu = observer(({ onClose, onCancel, oldColumn, tableId }
     const [isUnique, setIsUnique] = useState((oldColumn?.constraints?.includes('UNIQUE') ?? false) || oldFullPk);
     const [description, setDescription] = useState<string | null>(oldColumn?.description ?? null);
     const [isAutoIncrement, setIsAutoIncrement] = useState(oldColumn?.autoIncrement ?? false);
+    const [min, setMin] = useState(oldColumn?.min ?? null);
+    const [max, setMax] = useState(oldColumn?.max ?? null);
 
     const hasLength = ['CHAR', 'VARCHAR', 'NUMERIC'].includes(type);
     const hasPrecisionScale = type === 'DECIMAL';
     const isDateType = ['DATE', 'TIME', 'TIMESTAMP', 'DATETIME'].includes(type);
     const isAutoIncrementableType = ['INT', 'SMALLINT', 'BIGINT'].includes(type);
+    const isMinMaxableType = ['SMALLINT', 'INT', 'BIGINT', 'NUMERIC', 'DECIMAL', 'FLOAT', 'DOUBLE'].includes(type);
     
     const isSolePk = isPkPart && otherPkPartsCount === 0;
 
@@ -67,6 +70,8 @@ export const AddColumnMenu = observer(({ onClose, onCancel, oldColumn, tableId }
         isUnique && 
         isAutoIncrementableType &&
         !hasOtherAutoIncrement;
+
+    const canMinMax = isMinMaxableType && !isAutoIncrement;
 
     const menuRef = useRef<HTMLDivElement>(null);
     const position = useRef({ x: 0, y: 0 });
@@ -134,7 +139,9 @@ export const AddColumnMenu = observer(({ onClose, onCancel, oldColumn, tableId }
             precision: hasPrecisionScale && precision !== '' ? Number(precision) : null,
             scale: hasPrecisionScale && scale !== '' ? Number(scale) : null,
             description: description,
-            pkPart: isPkPart
+            pkPart: isPkPart,
+            min: min,
+            max: max
         };
 
         onClose(column);
@@ -206,6 +213,63 @@ export const AddColumnMenu = observer(({ onClose, onCancel, oldColumn, tableId }
                         {isDateType && (
                             <button title="Установить текущее время" onClick={() => setDefaultValue('now')} style={{ padding: '6px' }}>🕒</button>
                         )}
+                    </div>
+                )}
+
+                {canMinMax && (
+                    <div className='add_col_min_max_container'>
+                        <div className='min_max_container'>
+                            <label className='min-max-label'>
+                                Мин.
+                            </label>
+                            <div className='input-wrapper'>
+                                <input 
+                                    className='min-max-input' 
+                                    type='number' 
+                                    value={min ?? ''}
+                                    min={max ? max - 1 : undefined} 
+                                    onChange={e => setMin(e.target.value ? Number(e.target.value) : null)} 
+                                />
+                                {min !== undefined && min !== null && (
+                                    <svg 
+                                        className="clear-icon" 
+                                        onClick={() => setMin(null)}
+                                        xmlns="http://www.w3.org/2000/svg" 
+                                        viewBox="0 0 24 24" 
+                                        width="16" 
+                                        height="16"
+                                    >
+                                        <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                                    </svg>
+                                )}
+                            </div>
+                        </div>
+                        <div className='min_max_container'>
+                            <label className='min-max-label'>
+                                Макс.
+                            </label>
+                            <div className='input-wrapper'>
+                                <input 
+                                    className='min-max-input' 
+                                    type='number' 
+                                    value={max ?? ''}
+                                    min={min ? min + 1 : undefined} 
+                                    onChange={e => setMax(e.target.value ? Number(e.target.value) : null)} 
+                                />
+                                {max !== undefined && max !== null && (
+                                    <svg 
+                                        className="clear-icon" 
+                                        onClick={() => setMax(null)}
+                                        xmlns="http://www.w3.org/2000/svg" 
+                                        viewBox="0 0 24 24" 
+                                        width="16" 
+                                        height="16"
+                                    >
+                                        <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                                    </svg>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 )}
 

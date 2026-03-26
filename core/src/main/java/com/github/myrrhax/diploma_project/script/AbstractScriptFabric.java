@@ -34,6 +34,15 @@ public abstract class AbstractScriptFabric {
             ColumnMetadata.ColumnType.BIGINT
     );
 
+    public static final Set<ColumnMetadata.ColumnType> minMaxableTypes = Set.of(
+            ColumnMetadata.ColumnType.SMALLINT,
+            ColumnMetadata.ColumnType.INT,
+            ColumnMetadata.ColumnType.BIGINT,
+            ColumnMetadata.ColumnType.NUMERIC,
+            ColumnMetadata.ColumnType.DECIMAL,
+            ColumnMetadata.ColumnType.FLOAT,
+            ColumnMetadata.ColumnType.DOUBLE
+    );
 
     public final String getReferenceDefinition(Map<UUID, TableMetadata> tables, ReferenceMetadata referenceMeta) {
         ReferenceMetadata.ReferenceKey key = referenceMeta.getKey();

@@ -22,6 +22,8 @@ export interface Column {
     constraints: ConstraintType[] | null;
     autoIncrement: boolean | null;
     pkPart: boolean;
+    min: number | null;
+    max: number | null;
 }
 
 export interface Index {
