@@ -23,7 +23,6 @@ public class JsonSchemaStateMapper {
         var module = new SimpleModule();
         module.addKeyDeserializer(ReferenceMetadata.ReferenceKey.class, new ReferenceKeyFromStringDeserializer());
 
-        objectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.registerModule(module);
     }

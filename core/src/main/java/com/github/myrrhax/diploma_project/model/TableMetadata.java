@@ -83,7 +83,7 @@ public class TableMetadata implements Cloneable {
                             && MetadataTypeUtils.isFullEquals(Arrays.asList(key.getToColumns()), index.getColumnIds()))
                 .peek(diff::removeReference)
                 .toList();
-        cascadeReferences.forEach(diff::removeReference);
+        cascadeReferences.forEach(schemaState::removeReference);
 
         return diff;
     }
