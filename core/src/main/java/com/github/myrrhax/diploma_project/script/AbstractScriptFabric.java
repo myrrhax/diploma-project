@@ -101,19 +101,6 @@ public abstract class AbstractScriptFabric {
         return actionName.replace('_', ' ');
     }
 
-    protected final String computeIndexName(String tableName, String[] cols, boolean isUnique) {
-        StringBuilder sb = new StringBuilder();
-        if (isUnique) {
-            sb.append("uq_");
-        }
-        sb.append("idx_");
-        sb.append(tableName);
-        sb.append('_');
-        sb.append(String.join("_", cols));
-
-        return sb.toString();
-    }
-
     protected abstract String getMinMaxDefinition(ColumnMetadata column);
     public abstract String getColumnDefinition(ColumnMetadata columnMeta);
     public abstract String getIndexDefinition(TableMetadata tableMetadata, IndexMetadata indexMeta);

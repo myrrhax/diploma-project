@@ -102,7 +102,7 @@ public class PostgreSQLDialectScriptFabric extends AbstractScriptFabric {
         }
         sb.append("INDEX ");
         if (indexMeta.getIndexName() == null) {
-            indexMeta.setIndexName(computeIndexName(tableMetadata.getName(), affectedCols, indexMeta.isUnique()));
+            indexMeta.computeAndSetName();
         }
         sb.append(indexMeta.getIndexName());
         sb.append(" ON ");

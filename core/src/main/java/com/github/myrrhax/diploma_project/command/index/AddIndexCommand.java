@@ -44,6 +44,8 @@ public class AddIndexCommand extends MetadataCommand {
                 .noneMatch(meta -> meta.equals(indexName))
         ) {
                builtIndex.setIndexName(indexName);
+        } else {
+            builtIndex.computeAndSetName();
         }
 
         if (table.getIndexes().values()

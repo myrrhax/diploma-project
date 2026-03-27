@@ -1,6 +1,8 @@
 package com.github.myrrhax.diploma_project.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
+import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,6 +35,23 @@ public class IndexMetadata {
     @JsonIgnore
     private TableMetadata table;
 
+    public void computeAndSetName() {
+        String[] affectedColumns = columnIds.stream()
+                .map(col -> table.getColumn(col).orElseThrow(() ->
+                        new ApplicationException("error.column.notfound")).getName())
+                .toArray(String[]::new);
+        StringBuilder sb = new StringBuilder();
+        if (isUnique) {
+            sb.append("uq_");
+        }
+        sb.append("idx_");
+        sb.append(table.getName());
+        sb.append('_');
+        sb.append(String.join("_", affectedColumns));
+
+        this.indexName = sb.toString();
+    }
+
     public enum IndexType {
         B_TREE,
         HASH,
@@ -41,8 +60,9 @@ public class IndexMetadata {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        IndexMetadata that = (IndexMetadata) o;
-        return Objects.deepEquals(columnIds, that.columnIds);
+        IndexMetadata other = (IndexMetadata) o;
+
+        return MetadataTypeUtils.isFullEquals(columnIds, other.columnIds);
     }
 
     @Override
