@@ -2,9 +2,11 @@ package com.github.myrrhax.diploma_project.command.index;
 
 import com.github.myrrhax.diploma_project.command.MetadataCommand;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
+import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -30,8 +32,8 @@ public class AddIndexCommand extends MetadataCommand {
 
     @Override
     public SchemaDifference execute(SchemaStateMetadata metadata) {
-        TableMetadata table = metadata.getTable(tableId).orElse(null);
-        Objects.requireNonNull(table);
+        TableMetadata table = metadata.getTable(tableId).orElseThrow(() ->
+                new ApplicationException("error.table.notfound"));
 
         IndexMetadata builtIndex = IndexMetadata.builder()
                 .indexType(indexType)
@@ -49,10 +51,18 @@ public class AddIndexCommand extends MetadataCommand {
             builtIndex.computeAndSetName();
         }
 
+        if (isUnique && affectedColumns.length == 1) {
+            ColumnMetadata column = table.getColumn(affectedColumns[0])
+                    .orElseThrow(() -> new ApplicationException("error.column.notfound"));
+            if (column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)) {
+                throw new ApplicationException("error.indexes.index-already-exists");
+            }
+        }
+
         if (table.getIndexes().values()
                 .stream().anyMatch(builtIndex::equals)
             || MetadataTypeUtils.isFullEquals(table.getPrimaryKeyParts(), builtIndex.getColumnIds())) {
-            throw new RuntimeException("Index already exists");
+            throw new ApplicationException("error.indexes.index-already-exists");
         }
 
         table.addIndexes(builtIndex);
