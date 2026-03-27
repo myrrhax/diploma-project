@@ -5,6 +5,7 @@ import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
+import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -49,7 +50,8 @@ public class AddIndexCommand extends MetadataCommand {
         }
 
         if (table.getIndexes().values()
-                .stream().anyMatch(builtIndex::equals)) {
+                .stream().anyMatch(builtIndex::equals)
+            || MetadataTypeUtils.isFullEquals(table.getPrimaryKeyParts(), builtIndex.getColumnIds())) {
             throw new RuntimeException("Index already exists");
         }
 
