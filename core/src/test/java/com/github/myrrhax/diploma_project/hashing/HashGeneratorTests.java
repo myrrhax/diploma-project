@@ -180,7 +180,8 @@ public class HashGeneratorTests extends AbstractIntegrationTest {
         System.out.println("Hash before: " + hashBefore);
 
         TableMetadata t = state.getTable(TABLE_1_NAME).orElseThrow();
-        t.removeColumn(t.getColumn(COL_1_NAME).orElseThrow(), state);
+        t.setSchemaState(state);
+        t.removeColumn(t.getColumn(COL_1_NAME).orElseThrow());
 
         String stateAfter = jsonSchemaStateMapper.toJson(state);
         String hashAfter = SchemaHashGenerator.hashSchema(stateAfter);

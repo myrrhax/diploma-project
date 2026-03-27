@@ -2,6 +2,8 @@ package com.github.myrrhax.diploma_project.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
+import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -69,15 +71,28 @@ public class TableMetadata implements Cloneable {
         }
     }
 
-    public void removeIndex(IndexMetadata index) {
+    public SchemaDifference removeIndex(IndexMetadata index) {
+        SchemaDifference diff = new SchemaDifference();
         indexes.remove(index.getId());
+        diff.removeIndex(index);
+
+        List<ReferenceMetadata.ReferenceKey> cascadeReferences = schemaState.getReferences().keySet().stream()
+                .filter(key -> key.getFromTableId().equals(this.id)
+                            && MetadataTypeUtils.isFullEquals(Arrays.asList(key.getFromColumns()), index.getColumnIds())
+                        || key.getToTableId().equals(this.id)
+                            && MetadataTypeUtils.isFullEquals(Arrays.asList(key.getToColumns()), index.getColumnIds()))
+                .peek(diff::removeReference)
+                .toList();
+        cascadeReferences.forEach(diff::removeReference);
+
+        return diff;
     }
 
     public boolean containsColumn(String columnName) {
         return this.getColumn(columnName).isPresent();
     }
 
-    public SchemaDifference removeColumn(ColumnMetadata column, SchemaStateMetadata schema) {
+    public SchemaDifference removeColumn(ColumnMetadata column) {
         SchemaDifference diff = new SchemaDifference();
         columns.remove(column.getId());
         diff.removeColumn(column);
@@ -90,7 +105,7 @@ public class TableMetadata implements Cloneable {
         cascadeIndexes.forEach(this::removeIndex);
 
         // Каскадно удаляем связи
-        List<ReferenceMetadata.ReferenceKey> cascadeReferences = schema.getReferences().keySet().stream()
+        List<ReferenceMetadata.ReferenceKey> cascadeReferences = schemaState.getReferences().keySet().stream()
                 .filter(key ->
                            key.getFromTableId().equals(this.id) && Arrays.stream(key.getFromColumns())
                                     .anyMatch(c -> c.equals(column.getId()))
@@ -99,7 +114,7 @@ public class TableMetadata implements Cloneable {
                 )
                 .peek(diff::removeReference)
                 .toList();
-        cascadeReferences.forEach(schema::removeReference);
+        cascadeReferences.forEach(schemaState::removeReference);
 
         return diff;
     }
@@ -183,5 +198,9 @@ public class TableMetadata implements Cloneable {
 
     public void removePkPart(UUID id) {
         primaryKeyParts.remove(id);
+    }
+
+    public Optional<IndexMetadata> getIndex(@NotNull UUID indexId) {
+        return Optional.ofNullable(indexes.get(indexId));
     }
 }

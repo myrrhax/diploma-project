@@ -42,7 +42,7 @@ public class DeleteColumnCommand extends MetadataCommand {
         }
 
         SchemaDifference diff = new SchemaDifference();
-        diff.applyDifference(table.removeColumn(column, metadata));
+        diff.applyDifference(table.removeColumn(column));
         log.info("Column {} was deleted from table {}", columnId, tableId);
         // Каскадное удаление связей
         var refDiff = metadata.deleteInvalidReferences(column);
