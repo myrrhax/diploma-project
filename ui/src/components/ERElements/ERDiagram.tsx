@@ -26,11 +26,11 @@ const getPortPosition = (table: Table, colId: string, side: 'left' | 'right') =>
     const columnsArray = Object.keys(table.columns);    
     const colIndex = columnsArray.indexOf(colId); 
     
-    const y = table.y + erStore.HEADER_HEIGHT + (colIndex * erStore.ROW_HEIGHT) + (erStore.ROW_HEIGHT / 2);
+    const y = table.y + erStore.HEADER_HEIGHT + (colIndex * erStore.ROW_HEIGHT) + (erStore.ROW_HEIGHT / 2) + 7;
     const x = side === 'left' ? table.x : table.x + erStore.TABLE_WIDTH;
     
     return { x, y };
-};
+}
 
 const getTrunkPath = (
     tables: Record<string, Table>,
