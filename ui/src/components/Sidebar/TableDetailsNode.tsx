@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { type Table } from '@/model/SchemaElements';
+import { type Table, type Index } from '@/model/SchemaElements';
 import { ColumnDetailsNode } from './ColumnDetailsNode';
 import { IndexDetailsNode } from './IndexDetailsNode';
 import type { ContextMenuData } from './SchemaDetailsContent';
+import { AddIndexModal } from './AddIndexModal';
 
 interface Props {
     table: Table;
@@ -11,11 +12,17 @@ interface Props {
     isEditable: boolean;
 }
 
-export const TableDetailsNode = observer(({ table, onContextMenu }: Props) => {
+export const TableDetailsNode = observer(({ table, onContextMenu, isEditable }: Props) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isIndexModalOpen, setIsIndexModalOpen] = useState(false);
     
     const columns = Object.values(table.columns || {});
     const indexes = Object.values(table.indexes || {});
+
+    const handleSaveIndex = (newIndex: Index) => {
+        alert('Add index: ' + newIndex);
+        setIsIndexModalOpen(false);
+    };
 
     return (
         <div className="tree-node-container">
@@ -41,7 +48,20 @@ export const TableDetailsNode = observer(({ table, onContextMenu }: Props) => {
                         />
                     ))}
 
-                    <div className="tree-node-subgroup">Индексы ({indexes.length})</div>
+                    <div className="tree-node-subgroup-wrapper">
+                        <div className="tree-node-subgroup">Индексы ({indexes.length})</div>
+                        {isEditable && (
+                            <button 
+                                className="tree-node-add-btn" 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsIndexModalOpen(true);
+                                }}
+                            >
+                                +
+                            </button>
+                        )}
+                    </div>
                     {indexes.map(idx => (
                         <IndexDetailsNode 
                             key={idx.id} 
@@ -51,6 +71,14 @@ export const TableDetailsNode = observer(({ table, onContextMenu }: Props) => {
                         />
                     ))}
                 </div>
+            )}
+
+            {isIndexModalOpen && (
+                <AddIndexModal 
+                    table={table} 
+                    onClose={() => setIsIndexModalOpen(false)} 
+                    onSave={handleSaveIndex} 
+                />
             )}
         </div>
     );
