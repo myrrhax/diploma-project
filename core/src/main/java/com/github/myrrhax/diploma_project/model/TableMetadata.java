@@ -208,4 +208,9 @@ public class TableMetadata implements Cloneable {
     public Optional<IndexMetadata> getIndex(@NotNull UUID indexId) {
         return Optional.ofNullable(indexes.get(indexId));
     }
+
+    public boolean containsIndex(String name) {
+        return indexes.values().stream()
+                .anyMatch(idx -> idx.getIndexName().equals(name));
+    }
 }
