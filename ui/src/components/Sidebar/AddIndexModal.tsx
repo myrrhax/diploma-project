@@ -30,7 +30,7 @@ export const AddIndexModal = observer(({ table, onClose, onSave }: AddIndexModal
             columnIds: selectedCols,
             indexType: indexType,
             indexName: indexName.trim() || undefined,
-            isUnique: isUnique
+            unique: isUnique
         };
         onSave(newIndex);
     };

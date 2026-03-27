@@ -416,7 +416,7 @@ class ERStore {
             tableId: tableId,
             affectedColumns: index.columnIds,
             indexName: index.indexName,
-            isUnique: index.isUnique,
+            unique: index.unique,
             indexType: index.indexType
         });
     }

@@ -501,7 +501,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
 
         table.addColumns(idCol, nameCol, complectationCol, price, count, supplierId, lastSupplyDate);
         table.addIndexes(IndexMetadata.builder()
-                    .isUnique(true)
+                    .unique(true)
                     .columnIds(List.of(nameCol.getId(), supplierId.getId()))
                     .build());
         schema.addTable(table);

@@ -31,7 +31,7 @@ export interface Index {
     columnIds: string[];
     indexType: IndexType;
     indexName?: string;
-    isUnique: boolean;
+    unique: boolean;
 }
 
 export interface Reference {

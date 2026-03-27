@@ -14,7 +14,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -26,7 +25,7 @@ public class AddIndexCommand extends MetadataCommand {
     @NotEmpty
     private UUID[] affectedColumns;
     private String indexName;
-    private boolean isUnique = false;
+    private boolean unique = false;
     @NotNull
     private IndexMetadata.IndexType indexType = IndexMetadata.IndexType.B_TREE;
 
@@ -38,7 +37,7 @@ public class AddIndexCommand extends MetadataCommand {
         IndexMetadata builtIndex = IndexMetadata.builder()
                 .indexType(indexType)
                 .columnIds(Arrays.asList(affectedColumns))
-                .isUnique(isUnique)
+                .unique(unique)
                 .table(table)
                 .tableId(tableId)
                 .schemaState(metadata)
@@ -54,7 +53,7 @@ public class AddIndexCommand extends MetadataCommand {
             builtIndex.computeAndSetName();
         }
 
-        if (isUnique && affectedColumns.length == 1) {
+        if (unique && affectedColumns.length == 1) {
             ColumnMetadata column = table.getColumn(affectedColumns[0])
                     .orElseThrow(() -> new ApplicationException("error.column.notfound"));
             if (column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)) {

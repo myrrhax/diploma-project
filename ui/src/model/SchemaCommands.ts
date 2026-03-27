@@ -93,7 +93,7 @@ export interface AddIndexCommand extends BaseMetadataCommand {
     tableId: string,
     affectedColumns: string[],
     indexName?: string,
-    isUnique: boolean,
+    unique: boolean,
     indexType: IndexType
 }
 

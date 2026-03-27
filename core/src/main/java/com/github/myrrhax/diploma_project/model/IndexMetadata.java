@@ -28,7 +28,7 @@ public class IndexMetadata {
     @Builder.Default
     private IndexType indexType = IndexType.B_TREE;
     private String indexName;
-    private boolean isUnique;
+    private boolean unique;
 
     @JsonIgnore
     private SchemaStateMetadata schemaState;
@@ -41,7 +41,7 @@ public class IndexMetadata {
                         new ApplicationException("error.column.notfound")).getName())
                 .toArray(String[]::new);
         StringBuilder sb = new StringBuilder();
-        if (isUnique) {
+        if (unique) {
             sb.append("uq_");
         }
         sb.append("idx_");
@@ -67,6 +67,6 @@ public class IndexMetadata {
 
     @Override
     public int hashCode() {
-        return Objects.hash(columnIds, indexType, indexName, isUnique);
+        return Objects.hash(columnIds, indexType, indexName, unique);
     }
 }
