@@ -60,7 +60,7 @@ export const SchemaDetailsContent = observer(() => {
         } else if (contextMenu.type === 'reference' && contextMenu.refKeyStr) {
             erStore.deleteReference(contextMenu.refKeyStr);
         } else if (contextMenu.type === 'index') {
-            alert('Удаление индекса');
+            erStore.deleteIndex(contextMenu.id, contextMenu.parentId!!);
         }
         closeContextMenu();
     };

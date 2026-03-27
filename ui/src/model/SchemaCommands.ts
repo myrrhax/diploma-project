@@ -97,6 +97,12 @@ export interface AddIndexCommand extends BaseMetadataCommand {
     indexType: IndexType
 }
 
+export interface DeleteIndexCommand extends BaseMetadataCommand {
+    type: 'delete-index',
+    tableId: string,
+    indexId: string
+}
+
 export type MetadataCommand = 
     | AddTableCommand
     | AddColumnCommand
@@ -108,4 +114,5 @@ export type MetadataCommand =
     | DeleteReferenceCommand
     | RenameReferenceCommand
     | MultiCommand
-    | AddIndexCommand;
+    | AddIndexCommand
+    | DeleteIndexCommand;

@@ -421,6 +421,17 @@ class ERStore {
         });
     }
 
+    deleteIndex(indexId: string, tableId: string) {
+        if (!this.isEditable || !this.schema || !this.state) return;
+        
+        schemaSocketService.sendCommand({
+            schemeId: this.schema.id,
+            type: 'delete-index',
+            tableId: tableId,
+            indexId: indexId
+        });
+    }
+
     deleteColumn(tableId: string, columnId: string) {
         if (!this.isEditable || !this.schema || !this.state) return;
 
