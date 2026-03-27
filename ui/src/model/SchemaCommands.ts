@@ -1,4 +1,4 @@
-import type { ColumnType, ConstraintType, OnDeleteAction, OnUpdateAction, ReferenceKey, ReferenceType } from "./SchemaElements";
+import type { ColumnType, ConstraintType, IndexType, OnDeleteAction, OnUpdateAction, ReferenceKey, ReferenceType } from "./SchemaElements";
 
 export interface BaseMetadataCommand {
     schemeId: string;
@@ -88,6 +88,15 @@ export interface MultiCommand extends BaseMetadataCommand {
     commands: MetadataCommand[]
 }
 
+export interface AddIndexCommand extends BaseMetadataCommand {
+    type: 'add-index',
+    tableId: string,
+    affectedColumns: string[],
+    indexName?: string,
+    isUnique: boolean,
+    indexType: IndexType
+}
+
 export type MetadataCommand = 
     | AddTableCommand
     | AddColumnCommand
@@ -98,4 +107,5 @@ export type MetadataCommand =
     | DeleteTableCommand
     | DeleteReferenceCommand
     | RenameReferenceCommand
-    | MultiCommand;
+    | MultiCommand
+    | AddIndexCommand;

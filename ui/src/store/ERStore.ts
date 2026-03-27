@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import { type Column, type Reference, type ReferenceKey } from "@/model/SchemaElements";
+import { type Column, type Index, type Reference, type ReferenceKey } from "@/model/SchemaElements";
 import type { Schema, VersionState } from "@/model/SchemaTypes";
 import { type Table } from "@/model/SchemaElements";
 import { compareAndReturnNew, length, refKeyToString } from "@/utils/UtilFunctions";
@@ -405,6 +405,20 @@ class ERStore {
         this.isCentered = false; 
         const schema = await schemaApi.findReadonlyWithVersion(versionId);
         this.setSchema(schema);
+    }
+
+    addIndex(index: Index, tableId: string) {
+        if (!this.isEditable || !this.schema || !this.state) return;
+        
+        schemaSocketService.sendCommand({
+            schemeId: this.schema.id,
+            type: 'add-index',
+            tableId: tableId,
+            affectedColumns: index.columnIds,
+            indexName: index.indexName,
+            isUnique: index.isUnique,
+            indexType: index.indexType
+        });
     }
 
     deleteColumn(tableId: string, columnId: string) {

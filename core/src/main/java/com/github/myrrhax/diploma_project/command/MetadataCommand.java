@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.github.myrrhax.diploma_project.command.column.AddColumnCommand;
 import com.github.myrrhax.diploma_project.command.column.DeleteColumnCommand;
 import com.github.myrrhax.diploma_project.command.column.UpdateColumnCommand;
+import com.github.myrrhax.diploma_project.command.index.AddIndexCommand;
+import com.github.myrrhax.diploma_project.command.index.DeleteIndexCommand;
 import com.github.myrrhax.diploma_project.command.reference.AddReferenceCommand;
 import com.github.myrrhax.diploma_project.command.reference.DeleteReferenceCommand;
 import com.github.myrrhax.diploma_project.command.reference.RenameReferenceCommand;
@@ -33,6 +35,8 @@ import java.util.UUID;
         @JsonSubTypes.Type(value = DeleteReferenceCommand.class, name = "delete-ref"),
         @JsonSubTypes.Type(value = RenameReferenceCommand.class, name = "rename-ref"),
         @JsonSubTypes.Type(value = MultiCommand.class, name = "multi"),
+        @JsonSubTypes.Type(value = AddIndexCommand.class, name = "add-index"),
+        @JsonSubTypes.Type(value = DeleteIndexCommand.class, name = "delete-index"),
 })
 @Getter
 @Setter

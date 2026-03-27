@@ -153,3 +153,17 @@
 .tree-node-add-btn:hover {
     background-color: #e2e8f0;
 }
+
+.index_modal_checkbox_wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #0f172a;
+    cursor: pointer;
+    padding: 4px 0;
+}
+
+.index_modal_checkbox_wrapper input[type="checkbox"] {
+    cursor: pointer;
+}

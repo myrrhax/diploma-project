@@ -194,6 +194,11 @@ public class TableMetadata implements Cloneable {
             column.setSchema(schemaState);
             column.setTable(this);
         }
+
+        for (IndexMetadata index : indexes.values()) {
+            index.setSchemaState(this.schemaState);
+            index.setTable(this);
+        }
     }
 
     public void removePkPart(UUID id) {

@@ -5,6 +5,7 @@ import { ColumnDetailsNode } from './ColumnDetailsNode';
 import { IndexDetailsNode } from './IndexDetailsNode';
 import type { ContextMenuData } from './SchemaDetailsContent';
 import { AddIndexModal } from './AddIndexModal';
+import { erStore } from '@/store/ERStore';
 
 interface Props {
     table: Table;
@@ -20,7 +21,7 @@ export const TableDetailsNode = observer(({ table, onContextMenu, isEditable }: 
     const indexes = Object.values(table.indexes || {});
 
     const handleSaveIndex = (newIndex: Index) => {
-        alert('Add index: ' + newIndex);
+        erStore.addIndex(newIndex, table.id);
         setIsIndexModalOpen(false);
     };
 

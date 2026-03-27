@@ -39,6 +39,9 @@ public class AddIndexCommand extends MetadataCommand {
                 .indexType(indexType)
                 .columnIds(Arrays.asList(affectedColumns))
                 .isUnique(isUnique)
+                .table(table)
+                .tableId(tableId)
+                .schemaState(metadata)
                 .build();
         if (indexName != null
             && !indexName.isBlank()

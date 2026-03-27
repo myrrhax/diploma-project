@@ -13,6 +13,7 @@ interface AddIndexModalProps {
 export const AddIndexModal = observer(({ table, onClose, onSave }: AddIndexModalProps) => {
     const [indexName, setIndexName] = useState('');
     const [indexType, setIndexType] = useState<IndexType>('B_TREE');
+    const [isUnique, setIsUnique] = useState(false);
     const [selectedCols, setSelectedCols] = useState<string[]>([]);
     const columns = Object.values(table.columns || {});
 
@@ -29,7 +30,7 @@ export const AddIndexModal = observer(({ table, onClose, onSave }: AddIndexModal
             columnIds: selectedCols,
             indexType: indexType,
             indexName: indexName.trim() || undefined,
-            isUnique: false
+            isUnique: isUnique
         };
         onSave(newIndex);
     };
@@ -54,6 +55,15 @@ export const AddIndexModal = observer(({ table, onClose, onSave }: AddIndexModal
                     <option value="B_TREE">B-Tree</option>
                     <option value="HASH">Hash</option>
                 </select>
+
+                <label className="index_modal_checkbox_wrapper">
+                    <input 
+                        type="checkbox" 
+                        checked={isUnique}
+                        onChange={e => setIsUnique(e.target.checked)}
+                    />
+                    <span>Уникальный индекс (UNIQUE)</span>
+                </label>
 
                 <div className="index_modal_columns">
                     {columns.map(col => {
