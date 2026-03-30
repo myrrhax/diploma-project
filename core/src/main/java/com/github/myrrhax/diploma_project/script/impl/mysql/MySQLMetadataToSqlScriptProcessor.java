@@ -1,4 +1,4 @@
-package com.github.myrrhax.diploma_project.script.impl.postgres;
+package com.github.myrrhax.diploma_project.script.impl.mysql;
 
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.script.AbstractScriptFabric;
@@ -10,12 +10,12 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Component("postgresqlScriptProcessor")
-public class PostgreSQLMetadataToSqlScriptProcessor extends MetadataToSqlScriptProcessor {
+@Component
+public class MySQLMetadataToSqlScriptProcessor extends MetadataToSqlScriptProcessor {
     private AbstractScriptFabric scriptFabric;
 
-    public PostgreSQLMetadataToSqlScriptProcessor(SchemaStateMetadata stateMetadata) {
-        super(stateMetadata);
+    public MySQLMetadataToSqlScriptProcessor(SchemaStateMetadata metadata) {
+        super(metadata);
     }
 
     @Override
@@ -24,7 +24,7 @@ public class PostgreSQLMetadataToSqlScriptProcessor extends MetadataToSqlScriptP
     }
 
     @Autowired
-    @Qualifier("postgresDialectFabric")
+    @Qualifier("mysqlDialectFabric")
     public void setScriptFabric(AbstractScriptFabric scriptFabric) {
         this.scriptFabric = scriptFabric;
     }
