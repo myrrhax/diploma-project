@@ -1,7 +1,11 @@
 package com.github.myrrhax.diploma_project.model.entity;
 
+import com.github.myrrhax.diploma_project.model.enums.GeneratedScriptType;
 import com.github.myrrhax.diploma_project.model.enums.ScriptType;
 import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.DiscriminatorType;
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -31,6 +35,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "generated_type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorValue("FULL")
 public class DDLScriptEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -46,4 +52,8 @@ public class DDLScriptEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "script_type")
     ScriptType type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "generated_type", insertable = false, updatable = false)
+    private GeneratedScriptType generatedType;
 }

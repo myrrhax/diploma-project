@@ -1,5 +1,6 @@
 package com.github.myrrhax.diploma_project.model.entity;
 
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -16,6 +17,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@DiscriminatorValue("MIGRATION")
 public class MigrationDDLScriptEntity extends DDLScriptEntity {
     @JoinColumn(name = "from_v_id")
     @ManyToOne
