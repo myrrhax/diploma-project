@@ -31,9 +31,9 @@ public class VersionController {
         return versionService.findAll(schemaId);
     }
 
-    // ToDo добавить проверку прав
     @GetMapping("/{id}")
     @JsonView(ViewMarkers.Stateful.class)
+    @PreAuthorize("@authorityCheckService.hasAccessToVersion(principal.token.userId, #id)")
     public VersionDTO getById(@PathVariable("id") Long id) {
         log.info("Fetching version with id {}", id);
 

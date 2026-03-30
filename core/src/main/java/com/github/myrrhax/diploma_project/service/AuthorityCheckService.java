@@ -1,5 +1,7 @@
 package com.github.myrrhax.diploma_project.service;
 
+import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
+import com.github.myrrhax.diploma_project.repository.VersionRepository;
 import com.github.myrrhax.shared.model.AuthorityType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthorityCheckService {
     private final AuthorityService authorityService;
+    private final VersionRepository versionRepository;
+
+    public boolean hasAccessToVersion(UUID userId, Long versionId) {
+        VersionEntity versionEntity = versionRepository.findById(versionId).orElse(null);
+        if (versionEntity == null) {
+            return true;
+        }
+
+        UUID schemeId = versionEntity.getScheme().getId();
+        return hasAccess(userId, schemeId);
+    }
 
     public boolean hasAccess(UUID userId, UUID schemeId) {
         return hasAuthority(userId, schemeId, AuthorityType.READ_SCHEME.name());
