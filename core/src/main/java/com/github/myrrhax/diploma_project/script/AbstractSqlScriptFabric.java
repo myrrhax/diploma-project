@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-public abstract class AbstractScriptFabric {
+public abstract class AbstractSqlScriptFabric {
     protected static final String FK_TEMPLATE =
             """
             ALTER TABLE %s
@@ -80,7 +80,7 @@ public abstract class AbstractScriptFabric {
     }
 
     public String getTableDefinition(TableMetadata tableMeta) {
-        return String.format("CREATE TABLE IF NOT EXISTS %s (", tableMeta.getName());
+        return String.format("CREATE TABLE IF NOT EXISTS %s (\n", tableMeta.getName());
     }
 
     protected String generateDecimalDefinition(ColumnMetadata metadata) {

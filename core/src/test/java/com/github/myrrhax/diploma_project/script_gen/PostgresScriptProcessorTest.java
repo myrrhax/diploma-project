@@ -5,10 +5,10 @@ import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
-import com.github.myrrhax.diploma_project.script.AbstractScriptFabric;
-import com.github.myrrhax.diploma_project.script.MetadataToSqlScriptProcessor;
-import com.github.myrrhax.diploma_project.script.impl.postgres.PostgreSQLDialectScriptFabric;
-import com.github.myrrhax.diploma_project.script.impl.postgres.PostgreSQLMetadataToSqlScriptProcessor;
+import com.github.myrrhax.diploma_project.script.AbstractSqlScriptFabric;
+import com.github.myrrhax.diploma_project.script.ScriptProcessor;
+import com.github.myrrhax.diploma_project.script.impl.postgres.PostgreSQLDialectSqlScriptFabric;
+import com.github.myrrhax.diploma_project.script.impl.postgres.PostgreSQLScriptProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +32,7 @@ import java.util.UUID;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @Testcontainers
-public class PostgresMetadataToSqlScriptProcessorTest {
+public class PostgresScriptProcessorTest {
     static Set<ColumnMetadata.ColumnType> autoIncrementTypes = Set.of(ColumnMetadata.ColumnType.SMALLINT,
             ColumnMetadata.ColumnType.INT,
             ColumnMetadata.ColumnType.BIGINT);
@@ -49,27 +49,36 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         postgres.start();
     }
 
-    private static ColumnMetadata buildPhone() {
+    private static ColumnMetadata buildPhone(TableMetadata table) {
         return ColumnMetadata.builder()
                 .name("phone")
+                .table(table)
+                .tableId(table.getId())
+                .schema(table.getSchemaState())
                 .columnType(ColumnMetadata.ColumnType.CHAR)
                 .length(11)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL, ColumnMetadata.ConstraintType.UNIQUE))
                 .build();
     }
 
-    private static ColumnMetadata buildFioCol() {
+    private static ColumnMetadata buildFioCol(TableMetadata table) {
         return ColumnMetadata.builder()
                 .name("fio")
+                .table(table)
+                .tableId(table.getId())
+                .schema(table.getSchemaState())
                 .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(55)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
     }
 
-    private static ColumnMetadata buildEmail() {
+    private static ColumnMetadata buildEmail(TableMetadata table) {
         return ColumnMetadata.builder()
                 .name("email")
+                .table(table)
+                .tableId(table.getId())
+                .schema(table.getSchemaState())
                 .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(55)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL, ColumnMetadata.ConstraintType.UNIQUE))
@@ -102,12 +111,14 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .id(UUID.randomUUID())
                 .name("id")
                 .columnType(ColumnMetadata.ColumnType.BIGINT)
+                .schema(schemaStateMetadata)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .autoIncrement(true)
                 .build();
         ColumnMetadata cmUsername = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("username")
+                .schema(schemaStateMetadata)
                 .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(55)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL, ColumnMetadata.ConstraintType.UNIQUE))
@@ -115,6 +126,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         ColumnMetadata cmPassword = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("password")
+                .schema(schemaStateMetadata)
                 .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(255)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
@@ -134,7 +146,14 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .columns(columns)
                 .indexes(Map.of(idx.getId(), idx))
                 .primaryKeyParts(Set.of(cmId.getId()))
+                .schemaState(schemaStateMetadata)
                 .build();
+        for (ColumnMetadata column : columns.values()) {
+            column.setTable(table);
+            column.setTableId(table.getId());
+        }
+        idx.setTable(table);
+        idx.setTableId(table.getId());
         schemaStateMetadata.getTables().put(table.getId(), table);
     }
 
@@ -145,12 +164,14 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .columnType(ColumnMetadata.ColumnType.BIGINT)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .autoIncrement(true)
+                .schema(schemaStateMetadata)
                 .build();
         ColumnMetadata cmAirplaneCode = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("airplane_code")
                 .columnType(ColumnMetadata.ColumnType.CHAR)
                 .length(8)
+                .schema(schemaStateMetadata)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         ColumnMetadata maxBooksCount = ColumnMetadata.builder()
@@ -158,11 +179,13 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .name("max_books_count")
                 .columnType(ColumnMetadata.ColumnType.INT)
                 .defaultValue("15")
+                .schema(schemaStateMetadata)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
         ColumnMetadata cmDeparture = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("departure_date")
+                .schema(schemaStateMetadata)
                 .columnType(ColumnMetadata.ColumnType.DATETIME)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
@@ -183,7 +206,15 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .columns(columns)
                 .indexes(Map.of(idx.getId(), idx))
                 .primaryKeyParts(Set.of(cmId.getId()))
+                .schemaState(schemaStateMetadata)
                 .build();
+        for (ColumnMetadata column : columns.values()) {
+            column.setTable(table);
+            column.setTableId(table.getId());
+        }
+        idx.setTable(table);
+        idx.setTableId(table.getId());
+
         schemaStateMetadata.getTables().put(table.getId(), table);
     }
 
@@ -192,15 +223,18 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .id(UUID.randomUUID())
                 .name("user_id")
                 .columnType(ColumnMetadata.ColumnType.BIGINT)
+                .schema(schemaStateMetadata)
                 .build();
         ColumnMetadata flightId = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("flight_id")
+                .schema(schemaStateMetadata)
                 .columnType(ColumnMetadata.ColumnType.BIGINT)
                 .build();
         ColumnMetadata bookedAt = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("booked_at")
+                .schema(schemaStateMetadata)
                 .columnType(ColumnMetadata.ColumnType.TIMESTAMP)
                 .defaultValue("now()")
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
@@ -212,6 +246,7 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .precision(10)
                 .scale(2)
+                .schema(schemaStateMetadata)
                 .build();
 
         var columns = new LinkedHashMap<UUID, ColumnMetadata>();
@@ -225,8 +260,14 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .name("bookings")
                 .columns(columns)
                 .primaryKeyParts(Set.of(userId.getId(), flightId.getId()))
+                .schemaState(schemaStateMetadata)
                 .build();
         schemaStateMetadata.getTables().put(table.getId(), table);
+
+        for (ColumnMetadata column : columns.values()) {
+            column.setTable(table);
+            column.setTableId(table.getId());
+        }
 
         TableMetadata userTable = schemaStateMetadata.getTables().values().stream()
                 .filter(t -> t.getName().equals("users"))
@@ -247,13 +288,16 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                     userTable.getId(),
                     new UUID[]{idColumn.getId()}
             );
+            ReferenceMetadata reference = ReferenceMetadata.builder()
+                    .key(key)
+                    .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
+                    .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
+                    .schemaState(schemaStateMetadata)
+                    .build();
+            reference.computeAndSetName();
             schemaStateMetadata.getReferences().put(
                     key,
-                    ReferenceMetadata.builder()
-                            .key(key)
-                            .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
-                            .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
-                            .build()
+                    reference
             );
         }
 
@@ -267,22 +311,27 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                     flightsTable.getId(),
                     new UUID[]{idColumn.getId()}
             );
+            ReferenceMetadata reference = ReferenceMetadata.builder()
+                    .key(key)
+                    .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
+                    .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
+                    .schemaState(schemaStateMetadata)
+                    .build();
+            reference.computeAndSetName();
             schemaStateMetadata.getReferences().put(
                     key,
-                    ReferenceMetadata.builder()
-                            .key(key)
-                            .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
-                            .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
-                            .build()
+                    reference
             );
         }
     }
 
-    public ColumnMetadata buildIdCol(ColumnMetadata.ColumnType type) {
-
+    public ColumnMetadata buildIdCol(ColumnMetadata.ColumnType type, TableMetadata table) {
         var builder = ColumnMetadata.builder()
                 .name("id")
                 .pkPart(true)
+                .table(table)
+                .tableId(table.getId())
+                .schema(table.getSchemaState())
                 .columnType(type);
         if (autoIncrementTypes.contains(type)) {
             builder.autoIncrement(true);
@@ -291,178 +340,249 @@ public class PostgresMetadataToSqlScriptProcessorTest {
     }
 
     public void addEmployeeTable(SchemaStateMetadata schema) {
-        var idCol = buildIdCol(ColumnMetadata.ColumnType.UUID);
-        var fioCol = buildFioCol();
+        var table = TableMetadata.builder()
+                .name("employees")
+                .description("Сотрудники")
+                .schemaState(schema)
+                .build();
+
+        var idCol = buildIdCol(ColumnMetadata.ColumnType.UUID, table);
+        var fioCol = buildFioCol(table);
         var positionCol = ColumnMetadata.builder()
                 .name("position")
                 .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(55)
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
                 .build();
-        var phoneCol = buildPhone();
-        var emailCol = buildEmail();
+        var phoneCol = buildPhone(table);
+        var emailCol = buildEmail(table);
+
         var admissionDateCol = ColumnMetadata.builder()
                 .name("admission_date")
+                .table(table)
+                .tableId(table.getId())
                 .columnType(ColumnMetadata.ColumnType.DATE)
                 .build();
-
-        var table = TableMetadata.builder()
-                .name("employees")
-                .description("Сотрудники")
-                .primaryKeyParts(Set.of(idCol.getId()))
-                .build();
-
         table.addColumns(idCol, fioCol, positionCol, phoneCol, emailCol, admissionDateCol);
+        table.addPkPart(idCol.getId());
+
         schema.addTable(table);
     }
 
     void addSupplierTable(SchemaStateMetadata schema) {
-        var idCol = buildIdCol(ColumnMetadata.ColumnType.UUID);
+        TableMetadata table = TableMetadata.builder()
+                .name("suppliers")
+                .description("Поставщики")
+                .schemaState(schema)
+                .build();
+
+        var idCol = buildIdCol(ColumnMetadata.ColumnType.UUID, table);
         var companyName = ColumnMetadata.builder()
                 .name("company_name")
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(55)
                 .build();
         var memberFio = ColumnMetadata.builder()
                 .name("member_fio")
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(55)
                 .build();
-        var phoneCol = buildPhone();
-        var emailCol = buildEmail();
+        var phoneCol = buildPhone(table);
+        var emailCol = buildEmail(table);
         var lastSupplyDate = ColumnMetadata.builder()
                 .name("last_supply_date")
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .columnType(ColumnMetadata.ColumnType.DATE)
                 .build();
 
-        TableMetadata table = TableMetadata.builder()
-                .name("suppliers")
-                .description("Поставщики")
-                .primaryKeyParts(Set.of(idCol.getId()))
-                .build();
-
         table.addColumns(idCol, companyName, memberFio, phoneCol, emailCol, lastSupplyDate);
+        table.addPkPart(idCol.getId());
         schema.addTable(table);
     }
 
     void addOrders(SchemaStateMetadata schema) {
-        var idCol = buildIdCol(ColumnMetadata.ColumnType.BIGINT);
+        var table = TableMetadata.builder()
+                .name("orders")
+                .description("Заказы")
+                .schemaState(schema)
+                .build();
+
+        var idCol = buildIdCol(ColumnMetadata.ColumnType.BIGINT, table);
         var ordertime = ColumnMetadata.builder()
                 .name("order_date")
                 .columnType(ColumnMetadata.ColumnType.TIMESTAMP)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
         var status = ColumnMetadata.builder()
                 .name("status")
                 .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(20)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
         var sum = ColumnMetadata.builder()
                 .name("sum")
                 .columnType(ColumnMetadata.ColumnType.DECIMAL)
                 .precision(8)
                 .scale(2)
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
         var employeeId = ColumnMetadata.builder()
                 .name("employee_id")
                 .columnType(ColumnMetadata.ColumnType.UUID)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
         var itemId = ColumnMetadata.builder()
                 .name("item_id")
                 .columnType(ColumnMetadata.ColumnType.BIGINT)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
         var clientId = ColumnMetadata.builder()
                 .name("client_id")
                 .columnType(ColumnMetadata.ColumnType.UUID)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
         var updateTime = ColumnMetadata.builder()
                 .name("update_time")
                 .columnType(ColumnMetadata.ColumnType.TIMESTAMP)
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
 
-        var table = TableMetadata.builder()
-                .name("orders")
-                .description("Заказы")
-                .primaryKeyParts(Set.of(idCol.getId()))
-                .build();
         table.addColumns(idCol, ordertime, status, sum, employeeId, itemId, clientId, updateTime);
+        table.addPkPart(idCol.getId());
         schema.addTable(table);
 
         schema.getTable("employees")
                 .ifPresent(employees -> {
                     var tableIdCol = employees.getColumn("id");
-                    tableIdCol.ifPresent(refereeId -> schema.addReference(ReferenceMetadata.builder()
-                            .key(ReferenceMetadata.ReferenceKey.builder()
-                                    .fromTableId(table.getId())
-                                    .toTableId(employees.getId())
-                                    .fromColumns(new UUID[]{employeeId.getId()})
-                                    .toColumns(new UUID[]{refereeId.getId()})
-                                    .build())
-                            .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
-                            .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
-                            .build()));
+                    tableIdCol.ifPresent(refereeId -> {
+                        ReferenceMetadata reference = ReferenceMetadata.builder()
+                                .key(ReferenceMetadata.ReferenceKey.builder()
+                                        .fromTableId(table.getId())
+                                        .toTableId(employees.getId())
+                                        .fromColumns(new UUID[]{employeeId.getId()})
+                                        .toColumns(new UUID[]{refereeId.getId()})
+                                        .build())
+                                .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
+                                .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
+                                .schemaState(schema)
+                                .build();
+                        reference.computeAndSetName();
+                        schema.addReference(reference);
+                    });
                 });
     }
 
     void addClientsTable(SchemaStateMetadata schema) {
-        var idCol = buildIdCol(ColumnMetadata.ColumnType.UUID);
-        var fioCol = buildFioCol();
+        var table = TableMetadata.builder()
+                .name("clients")
+                .description("Клиенты")
+                .schemaState(schema)
+                .build();
+
+        var idCol = buildIdCol(ColumnMetadata.ColumnType.UUID, table);
+        var fioCol = buildFioCol(table);
         var addressCol = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("address")
                 .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(55)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
-        var phoneCol = buildPhone();
-        var emailCol = buildEmail();
+        var phoneCol = buildPhone(table);
+        var emailCol = buildEmail(table);
         var registrationTime = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("registration_time")
                 .columnType(ColumnMetadata.ColumnType.TIMESTAMP)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
         var lastBuyTime = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name("last_buy_time")
                 .columnType(ColumnMetadata.ColumnType.TIMESTAMP)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
-        var table = TableMetadata.builder()
-                .primaryKeyParts(Set.of(idCol.getId()))
-                .name("clients")
-                .description("Клиенты")
-                .build();
+
         table.addColumns(idCol, fioCol, addressCol, phoneCol, emailCol, registrationTime, lastBuyTime);
         schema.addTable(table);
+        table.addPkPart(idCol.getId());
 
         schema.getTable("orders")
                 .ifPresent(orders -> {
                     orders.getColumn("client_id").ifPresent(clientIdCol ->
-                            schema.addReference(ReferenceMetadata.builder()
-                                    .key(ReferenceMetadata.ReferenceKey.builder()
-                                            .fromTableId(table.getId())
-                                            .toTableId(orders.getId())
-                                            .fromColumns(new UUID[]{idCol.getId()})
-                                            .toColumns(new UUID[]{clientIdCol.getId()})
-                                            .build())
-                                    .type(ReferenceMetadata.ReferenceType.ONE_TO_MANY)
-                                    .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
-                                    .build()));
+                    {
+                        ReferenceMetadata reference = ReferenceMetadata.builder()
+                                .key(ReferenceMetadata.ReferenceKey.builder()
+                                        .fromTableId(table.getId())
+                                        .toTableId(orders.getId())
+                                        .fromColumns(new UUID[]{idCol.getId()})
+                                        .toColumns(new UUID[]{clientIdCol.getId()})
+                                        .build())
+                                .type(ReferenceMetadata.ReferenceType.ONE_TO_MANY)
+                                .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
+                                .schemaState(schema)
+                                .build();
+                        reference.computeAndSetName();
+                        schema.addReference(reference);
+                    });
                 });
     }
 
     void addItemsTable(SchemaStateMetadata schema) {
-        var idCol = buildIdCol(ColumnMetadata.ColumnType.BIGINT);
+        var table = TableMetadata.builder()
+                .name("items")
+                .description("Товары")
+                .schemaState(schema)
+                .build();
+
+        var idCol = buildIdCol(ColumnMetadata.ColumnType.BIGINT, table);
         var nameCol = ColumnMetadata.builder()
                 .name("name")
                 .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(100)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
         var complectationCol = ColumnMetadata.builder()
                 .name("complectation")
@@ -470,6 +590,9 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .columnType(ColumnMetadata.ColumnType.VARCHAR)
                 .length(256)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
         var price = ColumnMetadata.builder()
                 .name("price")
@@ -477,64 +600,83 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .precision(8)
                 .scale(2)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
         var count = ColumnMetadata.builder()
                 .name("count")
                 .columnType(ColumnMetadata.ColumnType.INT)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
         var supplierId = ColumnMetadata.builder()
                 .name("supplier_id")
                 .columnType(ColumnMetadata.ColumnType.UUID)
                 .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL))
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
         var lastSupplyDate = ColumnMetadata.builder()
                 .name("last_supply_date")
                 .columnType(ColumnMetadata.ColumnType.TIMESTAMP)
-                .build();
-
-        var table = TableMetadata.builder()
-                .primaryKeyParts(Set.of(idCol.getId()))
-                .name("items")
-                .description("Товары")
+                .schema(schema)
+                .table(table)
+                .tableId(table.getId())
                 .build();
 
         table.addColumns(idCol, nameCol, complectationCol, price, count, supplierId, lastSupplyDate);
         table.addIndexes(IndexMetadata.builder()
                     .unique(true)
                     .columnIds(List.of(nameCol.getId(), supplierId.getId()))
+                    .table(table)
+                    .tableId(table.getId())
                     .build());
+        table.addPkPart(idCol.getId());
         schema.addTable(table);
 
         schema.getTable("suppliers")
                 .ifPresent(suppliers -> suppliers.getColumn("id")
-                        .ifPresent(id -> schema.addReference(ReferenceMetadata.builder()
-                                .key(ReferenceMetadata.ReferenceKey.builder()
-                                        .fromTableId(table.getId())
-                                        .toTableId(suppliers.getId())
-                                        .fromColumns(new UUID[]{ supplierId.getId() })
-                                        .toColumns(new UUID[]{ id.getId() })
-                                        .build())
-                                .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
-                                .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
-                                .build())));
+                        .ifPresent(id -> {
+                            ReferenceMetadata ref = ReferenceMetadata.builder()
+                                    .key(ReferenceMetadata.ReferenceKey.builder()
+                                            .fromTableId(table.getId())
+                                            .toTableId(suppliers.getId())
+                                            .fromColumns(new UUID[]{supplierId.getId()})
+                                            .toColumns(new UUID[]{id.getId()})
+                                            .build())
+                                    .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
+                                    .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
+                                    .schemaState(schema)
+                                    .build();
+                            ref.computeAndSetName();
+                            schema.addReference(ref);
+                        }));
 
         schema.getTable("orders")
                 .ifPresent(orders -> orders.getColumn("id")
-                        .ifPresent(itemId -> schema.addReference(ReferenceMetadata.builder()
-                                        .key(ReferenceMetadata.ReferenceKey.builder()
-                                                .fromTableId(table.getId())
-                                                .toTableId(orders.getId())
-                                                .fromColumns(new UUID[]{ idCol.getId() })
-                                                .toColumns(new UUID[]{ itemId.getId() })
-                                                .build())
-                                        .type(ReferenceMetadata.ReferenceType.MANY_TO_MANY)
-                                        .build())));
+                        .ifPresent(itemId -> {
+                            ReferenceMetadata reference = ReferenceMetadata.builder()
+                                    .key(ReferenceMetadata.ReferenceKey.builder()
+                                            .fromTableId(table.getId())
+                                            .toTableId(orders.getId())
+                                            .fromColumns(new UUID[]{idCol.getId()})
+                                            .toColumns(new UUID[]{itemId.getId()})
+                                            .build())
+                                    .type(ReferenceMetadata.ReferenceType.MANY_TO_MANY)
+                                    .schemaState(schema)
+                                    .build();
+                            reference.computeAndSetName();
+                            schema.addReference(reference);
+                        }));
     }
 
-    private MetadataToSqlScriptProcessor setupProcessor(SchemaStateMetadata state) {
-        AbstractScriptFabric fabric = new PostgreSQLDialectScriptFabric();
-        var processor = new PostgreSQLMetadataToSqlScriptProcessor(state);
+    private ScriptProcessor setupProcessor(SchemaStateMetadata state) {
+        AbstractSqlScriptFabric fabric = new PostgreSQLDialectSqlScriptFabric();
+        var processor = new PostgreSQLScriptProcessor(state);
         processor.setScriptFabric(fabric);
 
         return processor;
@@ -544,8 +686,8 @@ public class PostgresMetadataToSqlScriptProcessorTest {
     public void givenUsersTableMetadata_whenGenerateScript_ThenScriptIsValid() {
         SchemaStateMetadata stateMetadata = new SchemaStateMetadata();
         addUsersTable(stateMetadata);
-        MetadataToSqlScriptProcessor processor = setupProcessor(stateMetadata);
-        String script = processor.convertMetadataToSql();
+        ScriptProcessor processor = setupProcessor(stateMetadata);
+        String script = processor.process();
         System.out.println(script);
         jdbcTemplate.execute(script);
 
@@ -560,8 +702,8 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         SchemaStateMetadata stateMetadata = new SchemaStateMetadata();
         addFlightsTable(stateMetadata);
 
-        MetadataToSqlScriptProcessor processor = setupProcessor(stateMetadata);
-        String script = processor.convertMetadataToSql();
+        ScriptProcessor processor = setupProcessor(stateMetadata);
+        String script = processor.process();
         System.out.println(script);
         jdbcTemplate.execute(script);
 
@@ -578,8 +720,8 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         addFlightsTable(stateMetadata);
         addBookingsTable(stateMetadata);
 
-        MetadataToSqlScriptProcessor processor = setupProcessor(stateMetadata);
-        String script = processor.convertMetadataToSql();
+        ScriptProcessor processor = setupProcessor(stateMetadata);
+        String script = processor.process();
         System.out.println(script);
 
         jdbcTemplate.execute(script);
@@ -599,8 +741,8 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         addClientsTable(stateMetadata);
         addItemsTable(stateMetadata);
 
-        MetadataToSqlScriptProcessor processor = setupProcessor(stateMetadata);
-        String script = processor.convertMetadataToSql();
+        ScriptProcessor processor = setupProcessor(stateMetadata);
+        String script = processor.process();
         System.out.println(script);
 
         jdbcTemplate.execute(script);
@@ -628,9 +770,10 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         // given
         SchemaStateMetadata state = new SchemaStateMetadata();
         TableMetadata table = TableMetadata.builder()
+                .schemaState(state)
                 .name("t_test")
                 .build();
-        ColumnMetadata id = buildIdCol(ColumnMetadata.ColumnType.INT);
+        ColumnMetadata id = buildIdCol(ColumnMetadata.ColumnType.INT, table);
         table.addColumn(id);
         table.addPkPart(id.getId());
 
@@ -642,8 +785,8 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                         .build());
         state.addTable(table);
         // when
-        MetadataToSqlScriptProcessor processor = setupProcessor(state);
-        String script = processor.convertMetadataToSql();
+        ScriptProcessor processor = setupProcessor(state);
+        String script = processor.process();
         System.out.println(script);
 
         // then
@@ -673,8 +816,9 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         SchemaStateMetadata state = new SchemaStateMetadata();
         TableMetadata table = TableMetadata.builder()
                 .name("t_test")
+                .schemaState(state)
                 .build();
-        ColumnMetadata id = buildIdCol(ColumnMetadata.ColumnType.INT);
+        ColumnMetadata id = buildIdCol(ColumnMetadata.ColumnType.INT, table);
         table.addColumn(id);
         table.addPkPart(id.getId());
 
@@ -685,8 +829,8 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .build());
         state.addTable(table);
         // when
-        MetadataToSqlScriptProcessor processor = setupProcessor(state);
-        String script = processor.convertMetadataToSql();
+        ScriptProcessor processor = setupProcessor(state);
+        String script = processor.process();
         System.out.println(script);
 
         // then
@@ -716,8 +860,9 @@ public class PostgresMetadataToSqlScriptProcessorTest {
         SchemaStateMetadata state = new SchemaStateMetadata();
         TableMetadata table = TableMetadata.builder()
                 .name("t_test")
+                .schemaState(state)
                 .build();
-        ColumnMetadata id = buildIdCol(ColumnMetadata.ColumnType.INT);
+        ColumnMetadata id = buildIdCol(ColumnMetadata.ColumnType.INT, table);
         table.addColumn(id);
         table.addPkPart(id.getId());
 
@@ -728,8 +873,8 @@ public class PostgresMetadataToSqlScriptProcessorTest {
                 .build());
         state.addTable(table);
         // when
-        MetadataToSqlScriptProcessor processor = setupProcessor(state);
-        String script = processor.convertMetadataToSql();
+        ScriptProcessor processor = setupProcessor(state);
+        String script = processor.process();
         System.out.println(script);
 
         // then

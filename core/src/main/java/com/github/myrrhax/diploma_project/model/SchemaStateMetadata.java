@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
 import com.github.myrrhax.diploma_project.util.ReferenceKeyFromStringDeserializer;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,8 +14,10 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -23,8 +27,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
-public class SchemaStateMetadata {
+@AllArgsConstructor
+public class SchemaStateMetadata implements Cloneable {
     private UUID schemaId;
     private Map<UUID, TableMetadata> tables = new HashMap<>();
     private Map<ReferenceMetadata.ReferenceKey, ReferenceMetadata> references = new HashMap<>();
@@ -73,7 +79,7 @@ public class SchemaStateMetadata {
 
     public boolean hasReference(String name) {
         return this.references.values().stream()
-                .anyMatch(ref -> ref.getName().equals(name));
+                .anyMatch(ref -> Objects.equals(name, ref.getName()));
     }
 
     public SchemaDifference deleteInvalidReferences(TableMetadata changedTable) {
@@ -207,6 +213,15 @@ public class SchemaStateMetadata {
         return tables.values().stream()
                 .map(TableMetadata::getName)
                 .anyMatch(name -> name.equals(tableName));
+    }
+
+    public SchemaStateMetadata clone() {
+        return SchemaStateMetadata.builder()
+                .schemaId(this.schemaId)
+                .tables(new LinkedHashMap<>(this.tables))
+                .references(new LinkedHashMap<>(this.references))
+                .linkedColumns(new HashSet<>(this.linkedColumns))
+                .build();
     }
 
     private void linkReferenceColumn(ReferenceMetadata ref) {

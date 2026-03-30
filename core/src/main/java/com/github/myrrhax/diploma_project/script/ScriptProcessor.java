@@ -1,34 +1,25 @@
 package com.github.myrrhax.diploma_project.script;
 
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
-import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
-import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
-import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public abstract class MetadataToSqlScriptProcessor {
+public abstract class ScriptProcessor {
     private final SchemaStateMetadata metadata;
-    private final StringBuilder sqlBuilder = new StringBuilder();
-    private final StringBuilder indexesBuilder = new StringBuilder();
 
-    public MetadataToSqlScriptProcessor(SchemaStateMetadata metadata) {
-        this.metadata = metadata;
+    public ScriptProcessor(SchemaStateMetadata metadata) {
+        this.metadata = metadata.clone();
     }
 
-    public final String convertMetadataToSql() {
+    public String process() {
         List<ReferenceMetadata> refsToProcess = new ArrayList<>();
         List<TableMetadata> tablesToProcess = new ArrayList<>(metadata.getTables().values());
 
@@ -55,35 +46,10 @@ public abstract class MetadataToSqlScriptProcessor {
                     refsToProcess.add(rotateOtmReference(otmRef));
                 });
 
-        for (TableMetadata tableMetadata : tablesToProcess) {
-            sqlBuilder.append(getScriptFabric().getTableDefinition(tableMetadata));
-            sqlBuilder.append('\n');
-            List<ColumnMetadata> columns = tableMetadata.getColumns().values()
-                    .stream().toList();
-
-            Set<UUID> primaryKeyParts = tableMetadata.getPrimaryKeyParts();
-            if (primaryKeyParts.isEmpty()) {
-                throw new ApplicationException("Table must contain primary key", HttpStatus.BAD_REQUEST);
-            }
-            buildColumnsPart(columns, sqlBuilder);
-            buildPrimaryKeyConstraint(tableMetadata, primaryKeyParts.stream().toList());
-
-            sqlBuilder.append(");\n");
-
-            Collection<IndexMetadata> indexes = tableMetadata.getIndexes().values();
-            buildIndexPart(tableMetadata, indexes, indexesBuilder);
-        }
-
-        buildReferencePart(tablesToProcess.stream()
-                        .collect(Collectors.toMap(TableMetadata::getId, Function.identity())),
-                refsToProcess,
-                sqlBuilder);
-        sqlBuilder.append(indexesBuilder);
-
-        return sqlBuilder.toString();
+        return generateContent(tablesToProcess, refsToProcess);
     }
 
-    protected abstract AbstractScriptFabric getScriptFabric();
+    protected abstract String generateContent(List<TableMetadata> tablesToProcess, List<ReferenceMetadata> referencesToProcess);
 
     private MtmTableProcessingResult buildTableAndRefsFromMtmRef(SchemaStateMetadata metadata,
                                                                  ReferenceMetadata ref) {
@@ -124,15 +90,19 @@ public abstract class MetadataToSqlScriptProcessor {
                 .primaryKeyParts(concatMtmCols.stream()
                         .map(ColumnMetadata::getId)
                         .collect(Collectors.toSet()))
+                .schemaState(this.metadata)
                 .build();
+        this.metadata.addTable(mtmTable);
 
         ReferenceMetadata ftmRef = buildRef(mtmTable, fromTable, mtmFrom, fromCols);
         ReferenceMetadata mttRef = buildRef(mtmTable, toTable, mtmTo, toCols);
+        this.metadata.addReference(ftmRef);
+        this.metadata.addReference(mttRef);
 
         return new MtmTableProcessingResult(mtmTable, new ReferenceMetadata[]{ftmRef, mttRef});
     }
 
-    private static ReferenceMetadata buildRef(TableMetadata fromTable,
+    private ReferenceMetadata buildRef(TableMetadata fromTable,
                                               TableMetadata toTable,
                                               ColumnMetadata[] fromCols,
                                               ColumnMetadata[] toCols) {
@@ -149,6 +119,7 @@ public abstract class MetadataToSqlScriptProcessor {
                         .build())
                 .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
                 .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
+                .schemaState(this.metadata)
                 .build();
     }
 
@@ -167,6 +138,7 @@ public abstract class MetadataToSqlScriptProcessor {
                         .toTableId(otmRef.getKey().getFromTableId())
                         .toColumns(otmRef.getKey().getFromColumns())
                         .build())
+                .schemaState(this.metadata)
                 .build();
     }
 
@@ -179,44 +151,6 @@ public abstract class MetadataToSqlScriptProcessor {
                 .precision(origin.getPrecision())
                 .defaultValue(origin.getDefaultValue())
                 .build();
-    }
-
-    private void buildPrimaryKeyConstraint(TableMetadata table, List<UUID> primaryKeyParts) {
-        sqlBuilder.append("\tPRIMARY KEY (");
-        for (int i = 0; i < primaryKeyParts.size(); i++) {
-            ColumnMetadata column = table.getColumn(primaryKeyParts.get(i)).orElseThrow();
-            sqlBuilder.append(column.getName());
-            if (i < primaryKeyParts.size() - 1) {
-                sqlBuilder.append(", ");
-            }
-        }
-        sqlBuilder.append(")\n");
-    }
-
-    private void buildReferencePart(Map<UUID, TableMetadata> tables,
-                                    List<ReferenceMetadata> refs,
-                                    StringBuilder sqlBuilder) {
-        for (ReferenceMetadata ref : refs) {
-            sqlBuilder.append(getScriptFabric().getReferenceDefinition(tables, ref));
-            sqlBuilder.append("\n");
-        }
-    }
-
-    private void buildIndexPart(TableMetadata tableMetadata, Collection<IndexMetadata> indexes, StringBuilder indexBuilder) {
-        for (IndexMetadata indexMetadata : indexes) {
-            indexBuilder.append(getScriptFabric().getIndexDefinition(tableMetadata, indexMetadata));
-            indexBuilder.append("\n");
-        }
-    }
-
-    private void buildColumnsPart(List<ColumnMetadata> columns, StringBuilder sb) {
-        for (ColumnMetadata columnMeta : columns) {
-            String definition = getScriptFabric().getColumnDefinition(columnMeta);
-            sb.append('\t');
-            sb.append(definition);
-            sb.append(',');
-            sb.append('\n');
-        }
     }
 
     private record MtmTableProcessingResult(

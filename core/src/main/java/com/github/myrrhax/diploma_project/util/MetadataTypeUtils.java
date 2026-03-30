@@ -1,38 +1,32 @@
 package com.github.myrrhax.diploma_project.util;
 
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
-import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
-import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
-import com.github.myrrhax.diploma_project.model.TableMetadata;
-import com.github.myrrhax.diploma_project.script.AbstractScriptFabric;
+import com.github.myrrhax.diploma_project.script.AbstractSqlScriptFabric;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 public class MetadataTypeUtils {
     public static boolean isValidAutoincrement(ColumnMetadata column) {
-        return AbstractScriptFabric.validAutoIncrementTypes.contains(column.getColumnType());
+        return AbstractSqlScriptFabric.validAutoIncrementTypes.contains(column.getColumnType());
     }
 
     public static boolean isMinMaxableType(ColumnMetadata column) {
-        return AbstractScriptFabric.minMaxableTypes.contains(column.getColumnType());
+        return AbstractSqlScriptFabric.minMaxableTypes.contains(column.getColumnType());
     }
 
     public static boolean isCompactibleLengthLimitedType(ColumnMetadata column, int newLength, String newDefaultValue) {
-        if (!AbstractScriptFabric.lengthLimitedTypes.contains(column.getColumnType())) {
+        if (!AbstractSqlScriptFabric.lengthLimitedTypes.contains(column.getColumnType())) {
             return false;
         }
         String defaultValue = newDefaultValue != null ? newDefaultValue : column.getDefaultValue();

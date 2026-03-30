@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -211,6 +212,6 @@ public class TableMetadata implements Cloneable {
 
     public boolean containsIndex(String name) {
         return indexes.values().stream()
-                .anyMatch(idx -> idx.getIndexName().equals(name));
+                .anyMatch(idx -> Objects.equals(name, idx.getIndexName()));
     }
 }
