@@ -4,6 +4,7 @@ import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
+import com.github.myrrhax.diploma_project.model.enums.ScriptType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,15 +14,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public abstract class ScriptProcessor {
-    private final SchemaStateMetadata metadata;
-
-    public ScriptProcessor(SchemaStateMetadata metadata) {
-        this.metadata = metadata.clone();
-    }
-
-    public String process() {
+    public String process(SchemaStateMetadata metadata) {
+        var clone = metadata.clone();
         List<ReferenceMetadata> refsToProcess = new ArrayList<>();
-        List<TableMetadata> tablesToProcess = new ArrayList<>(metadata.getTables().values());
+        List<TableMetadata> tablesToProcess = new ArrayList<>(clone.getTables().values());
 
         List<ReferenceMetadata> references = metadata.getReferences().values()
                 .stream()
@@ -43,13 +39,17 @@ public abstract class ScriptProcessor {
                 .filter(ref -> ref.getType() == ReferenceMetadata.ReferenceType.ONE_TO_MANY)
                 .forEach(otmRef -> {
                     refsToProcess.remove(otmRef);
-                    refsToProcess.add(rotateOtmReference(otmRef));
+                    refsToProcess.add(rotateOtmReference(otmRef, clone));
                 });
 
-        return generateContent(tablesToProcess, refsToProcess);
+        return generateContent(clone, tablesToProcess, refsToProcess);
     }
 
-    protected abstract String generateContent(List<TableMetadata> tablesToProcess, List<ReferenceMetadata> referencesToProcess);
+    public abstract boolean supports(ScriptType type);
+
+    protected abstract String generateContent(SchemaStateMetadata metadata,
+                                              List<TableMetadata> tablesToProcess,
+                                              List<ReferenceMetadata> referencesToProcess);
 
     private MtmTableProcessingResult buildTableAndRefsFromMtmRef(SchemaStateMetadata metadata,
                                                                  ReferenceMetadata ref) {
@@ -90,22 +90,23 @@ public abstract class ScriptProcessor {
                 .primaryKeyParts(concatMtmCols.stream()
                         .map(ColumnMetadata::getId)
                         .collect(Collectors.toSet()))
-                .schemaState(this.metadata)
+                .schemaState(metadata)
                 .build();
-        this.metadata.addTable(mtmTable);
+        metadata.addTable(mtmTable);
 
-        ReferenceMetadata ftmRef = buildRef(mtmTable, fromTable, mtmFrom, fromCols);
-        ReferenceMetadata mttRef = buildRef(mtmTable, toTable, mtmTo, toCols);
-        this.metadata.addReference(ftmRef);
-        this.metadata.addReference(mttRef);
+        ReferenceMetadata ftmRef = buildRef(mtmTable, fromTable, mtmFrom, fromCols, metadata);
+        ReferenceMetadata mttRef = buildRef(mtmTable, toTable, mtmTo, toCols, metadata);
+        metadata.addReference(ftmRef);
+        metadata.addReference(mttRef);
 
         return new MtmTableProcessingResult(mtmTable, new ReferenceMetadata[]{ftmRef, mttRef});
     }
 
     private ReferenceMetadata buildRef(TableMetadata fromTable,
-                                              TableMetadata toTable,
-                                              ColumnMetadata[] fromCols,
-                                              ColumnMetadata[] toCols) {
+                                       TableMetadata toTable,
+                                       ColumnMetadata[] fromCols,
+                                       ColumnMetadata[] toCols,
+                                       SchemaStateMetadata metadata) {
         return ReferenceMetadata.builder()
                 .key(ReferenceMetadata.ReferenceKey.builder()
                         .fromTableId(fromTable.getId())
@@ -119,7 +120,7 @@ public abstract class ScriptProcessor {
                         .build())
                 .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
                 .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
-                .schemaState(this.metadata)
+                .schemaState(metadata)
                 .build();
     }
 
@@ -127,7 +128,7 @@ public abstract class ScriptProcessor {
         return String.format("mtm_%s_%s", fromTable.getName(), toTable.getName());
     }
 
-    private ReferenceMetadata rotateOtmReference(ReferenceMetadata otmRef) {
+    private ReferenceMetadata rotateOtmReference(ReferenceMetadata otmRef, SchemaStateMetadata metadata) {
         return ReferenceMetadata.builder()
                 .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
                 .onUpdateAction(otmRef.getOnUpdateAction())
@@ -138,7 +139,7 @@ public abstract class ScriptProcessor {
                         .toTableId(otmRef.getKey().getFromTableId())
                         .toColumns(otmRef.getKey().getFromColumns())
                         .build())
-                .schemaState(this.metadata)
+                .schemaState(metadata)
                 .build();
     }
 

@@ -19,15 +19,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public abstract class SqlScriptProcessor extends ScriptProcessor {
-    private final StringBuilder scriptBuilder = new StringBuilder();
-    private final StringBuilder indexesBuilder = new StringBuilder();
-
-    public SqlScriptProcessor(SchemaStateMetadata metadata) {
-        super(metadata);
-    }
-
     @Override
-    protected String generateContent(List<TableMetadata> tablesToProcess, List<ReferenceMetadata> referencesToProcess) {
+    protected String generateContent(SchemaStateMetadata metadata,
+                                     List<TableMetadata> tablesToProcess,
+                                     List<ReferenceMetadata> referencesToProcess) {
+        StringBuilder scriptBuilder = new StringBuilder();
+        StringBuilder indexesBuilder = new StringBuilder();
+
         AbstractSqlScriptFabric scriptFabric = getScriptFabric();
         for (TableMetadata tableMetadata : tablesToProcess) {
             scriptBuilder.append(scriptFabric.getTableDefinition(tableMetadata));
@@ -38,8 +36,8 @@ public abstract class SqlScriptProcessor extends ScriptProcessor {
                 throw new ApplicationException("Table must contain primary key", HttpStatus.BAD_REQUEST);
             }
 
-            buildColumnsPart(columns);
-            buildPrimaryKeyConstraint(tableMetadata, primaryKeyParts.stream().toList());
+            buildColumnsPart(columns, scriptBuilder);
+            buildPrimaryKeyConstraint(tableMetadata, primaryKeyParts.stream().toList(), scriptBuilder);
 
             scriptBuilder.append(");\n");
 
@@ -57,7 +55,7 @@ public abstract class SqlScriptProcessor extends ScriptProcessor {
     }
     protected abstract AbstractSqlScriptFabric getScriptFabric();
 
-    private void buildPrimaryKeyConstraint(TableMetadata table, List<UUID> primaryKeyParts) {
+    private void buildPrimaryKeyConstraint(TableMetadata table, List<UUID> primaryKeyParts, StringBuilder scriptBuilder) {
         scriptBuilder.append("\tPRIMARY KEY (");
         for (int i = 0; i < primaryKeyParts.size(); i++) {
             ColumnMetadata column = table.getColumn(primaryKeyParts.get(i)).orElseThrow();
@@ -85,7 +83,7 @@ public abstract class SqlScriptProcessor extends ScriptProcessor {
         }
     }
 
-    private void buildColumnsPart(List<ColumnMetadata> columns) {
+    private void buildColumnsPart(List<ColumnMetadata> columns, StringBuilder scriptBuilder) {
         for (ColumnMetadata columnMeta : columns) {
             String definition = getScriptFabric().getColumnDefinition(columnMeta);
             scriptBuilder.append('\t');

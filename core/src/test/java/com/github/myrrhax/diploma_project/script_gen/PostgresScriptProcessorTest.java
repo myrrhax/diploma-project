@@ -676,7 +676,7 @@ public class PostgresScriptProcessorTest {
 
     private ScriptProcessor setupProcessor(SchemaStateMetadata state) {
         AbstractSqlScriptFabric fabric = new PostgreSQLDialectSqlScriptFabric();
-        var processor = new PostgreSQLScriptProcessor(state);
+        var processor = new PostgreSQLScriptProcessor();
         processor.setScriptFabric(fabric);
 
         return processor;
@@ -687,7 +687,7 @@ public class PostgresScriptProcessorTest {
         SchemaStateMetadata stateMetadata = new SchemaStateMetadata();
         addUsersTable(stateMetadata);
         ScriptProcessor processor = setupProcessor(stateMetadata);
-        String script = processor.process();
+        String script = processor.process(stateMetadata);
         System.out.println(script);
         jdbcTemplate.execute(script);
 
@@ -703,7 +703,7 @@ public class PostgresScriptProcessorTest {
         addFlightsTable(stateMetadata);
 
         ScriptProcessor processor = setupProcessor(stateMetadata);
-        String script = processor.process();
+        String script = processor.process(stateMetadata);
         System.out.println(script);
         jdbcTemplate.execute(script);
 
@@ -721,7 +721,7 @@ public class PostgresScriptProcessorTest {
         addBookingsTable(stateMetadata);
 
         ScriptProcessor processor = setupProcessor(stateMetadata);
-        String script = processor.process();
+        String script = processor.process(stateMetadata);
         System.out.println(script);
 
         jdbcTemplate.execute(script);
@@ -742,7 +742,7 @@ public class PostgresScriptProcessorTest {
         addItemsTable(stateMetadata);
 
         ScriptProcessor processor = setupProcessor(stateMetadata);
-        String script = processor.process();
+        String script = processor.process(stateMetadata);
         System.out.println(script);
 
         jdbcTemplate.execute(script);
@@ -786,7 +786,7 @@ public class PostgresScriptProcessorTest {
         state.addTable(table);
         // when
         ScriptProcessor processor = setupProcessor(state);
-        String script = processor.process();
+        String script = processor.process(state);
         System.out.println(script);
 
         // then
@@ -830,7 +830,7 @@ public class PostgresScriptProcessorTest {
         state.addTable(table);
         // when
         ScriptProcessor processor = setupProcessor(state);
-        String script = processor.process();
+        String script = processor.process(state);
         System.out.println(script);
 
         // then
@@ -874,7 +874,7 @@ public class PostgresScriptProcessorTest {
         state.addTable(table);
         // when
         ScriptProcessor processor = setupProcessor(state);
-        String script = processor.process();
+        String script = processor.process(state);
         System.out.println(script);
 
         // then
