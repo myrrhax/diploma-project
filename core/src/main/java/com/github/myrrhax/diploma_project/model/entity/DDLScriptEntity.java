@@ -1,6 +1,6 @@
 package com.github.myrrhax.diploma_project.model.entity;
 
-import com.github.myrrhax.diploma_project.model.enums.SupportedDBMSType;
+import com.github.myrrhax.diploma_project.model.enums.ScriptType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -44,6 +44,6 @@ public class DDLScriptEntity extends BaseEntity {
     String script;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "dbms_type")
-    SupportedDBMSType type;
+    @Column(name = "script_type")
+    ScriptType type;
 }
