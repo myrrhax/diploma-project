@@ -15,10 +15,12 @@ import com.github.myrrhax.diploma_project.script.impl.SqlScriptProcessor;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -36,6 +38,13 @@ public class ScriptGeneratorService {
         return scriptRepository.findByVersionId(versionId).stream()
                 .map(scriptMapper::toDto)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public ScriptDto getScriptById(UUID scriptId) {
+        return scriptRepository.findById(scriptId)
+                .map(scriptMapper::toDto)
+                .orElseThrow(() -> new ApplicationException("error.script.notfound", HttpStatus.NOT_FOUND));
     }
 
     public ScriptDto generateScript(Long versionId, ScriptType type) {

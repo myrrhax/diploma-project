@@ -1,6 +1,8 @@
 package com.github.myrrhax.diploma_project.service;
 
+import com.github.myrrhax.diploma_project.model.entity.DDLScriptEntity;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
+import com.github.myrrhax.diploma_project.repository.ScriptRepository;
 import com.github.myrrhax.diploma_project.repository.VersionRepository;
 import com.github.myrrhax.shared.model.AuthorityType;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,16 @@ import java.util.UUID;
 public class AuthorityCheckService {
     private final AuthorityService authorityService;
     private final VersionRepository versionRepository;
+    private final ScriptRepository scriptRepository;
+
+    public boolean hasAccessToScript(UUID userId, UUID scriptId) {
+        DDLScriptEntity ddl = scriptRepository.findById(scriptId).orElse(null);
+        if (ddl == null) {
+            return true;
+        }
+        UUID schemeId = ddl.getVersion().getScheme().getId();
+        return hasAccess(userId, schemeId);
+    }
 
     public boolean hasAccessToVersion(UUID userId, Long versionId) {
         return hasAuthorityForVersion(userId, versionId, AuthorityType.READ_SCHEME.name());
