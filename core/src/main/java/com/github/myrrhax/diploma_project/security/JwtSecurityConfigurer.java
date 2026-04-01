@@ -5,6 +5,7 @@ import lombok.Setter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.AuthenticationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
@@ -24,7 +25,7 @@ public class JwtSecurityConfigurer extends AbstractHttpConfigurer<JwtSecurityCon
     }
 
     @Override
-    public void configure(HttpSecurity builder) {
+    public void configure(HttpSecurity builder) throws Exception {
         AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
 
         var jwtFilter = new AuthenticationFilter(authenticationManager, new TokenAuthenticationConverter());
@@ -36,6 +37,8 @@ public class JwtSecurityConfigurer extends AbstractHttpConfigurer<JwtSecurityCon
         provider.setPreAuthenticatedUserDetailsService(tokenAuthenticationDetailsService);
 
         builder.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .authenticationProvider(provider);
+                .authenticationProvider(provider)
+                .sessionManagement(policy ->
+                        policy.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
     }
 }
