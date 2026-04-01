@@ -39,7 +39,7 @@ public abstract class SqlScriptProcessor extends ScriptProcessor {
             buildColumnsPart(columns, scriptBuilder);
             buildPrimaryKeyConstraint(tableMetadata, primaryKeyParts.stream().toList(), scriptBuilder);
 
-            scriptBuilder.append(");\n");
+            scriptBuilder.append(");\n\n");
 
             Collection<IndexMetadata> indexes = tableMetadata.getIndexes().values();
             buildIndexPart(tableMetadata, indexes, indexesBuilder);
