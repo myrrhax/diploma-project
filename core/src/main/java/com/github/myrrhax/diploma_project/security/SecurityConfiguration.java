@@ -69,7 +69,6 @@ public class SecurityConfiguration {
                         .anyRequest().hasAuthority(JwtAuthority.ROLE_USER.name())
                 )
                 .with(new JwtSecurityConfigurer(), configurer -> {
-                    configurer.setJwsTokenProvider(tokenProvider);
                     configurer.setTokenAuthenticationDetailsService(tokenAuthenticationDetailsService);
                     configurer.setRefreshCookieName(refreshCookieName);
                 });
