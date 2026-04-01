@@ -14,7 +14,6 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 @Setter
 public class JwtSecurityConfigurer extends AbstractHttpConfigurer<JwtSecurityConfigurer, HttpSecurity> {
     private TokenAuthenticationDetailsService tokenAuthenticationDetailsService;
-    private JwsTokenProvider jwsTokenProvider;
     private String refreshCookieName = "Refresh-Token";
 
     @Override

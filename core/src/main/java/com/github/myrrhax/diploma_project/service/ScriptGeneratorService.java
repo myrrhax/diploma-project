@@ -4,7 +4,6 @@ import com.github.myrrhax.diploma_project.mapper.ScriptMapper;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.dto.ScriptDto;
 import com.github.myrrhax.diploma_project.model.entity.DDLScriptEntity;
-import com.github.myrrhax.diploma_project.model.entity.FileEntity;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
 import com.github.myrrhax.diploma_project.model.enums.GeneratedScriptType;
 import com.github.myrrhax.diploma_project.model.enums.ScriptType;
