@@ -40,4 +40,11 @@ public class FileEntity extends BaseEntity {
     @Column(name = "storage_provider")
     @Enumerated(EnumType.STRING)
     StorageProvider storageProvider;
+
+    public FileEntity(String originalName, long size, String mediaType, StorageProvider storageProvider) {
+        this.originalName = originalName;
+        this.size = size;
+        this.mediaType = mediaType;
+        this.storageProvider = storageProvider;
+    }
 }
