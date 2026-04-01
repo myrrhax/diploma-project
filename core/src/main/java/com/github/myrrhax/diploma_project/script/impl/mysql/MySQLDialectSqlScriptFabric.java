@@ -125,7 +125,7 @@ public class MySQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
         ColumnMetadata.ColumnType type = metadata.getColumnType();
         String baseType;
 
-        if (lengthLimitedTypes.contains(type)) {
+        if (lengthLimitedTypes.contains(type) && metadata.getLength() != null) {
             if (type != ColumnMetadata.ColumnType.DECIMAL) {
                 baseType = generateLengthLimitedDefinition(metadata);
             } else {

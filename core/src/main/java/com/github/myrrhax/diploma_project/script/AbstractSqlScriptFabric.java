@@ -88,7 +88,10 @@ public abstract class AbstractSqlScriptFabric {
     }
 
     protected String generateLengthLimitedDefinition(ColumnMetadata metadata) {
-        int length = metadata.getLength();
+        Integer length = metadata.getLength();
+        if (length == null) {
+            return "";
+        }
         String type = getDefinitions().get(metadata.getColumnType());
         return type + "(" + length + ")";
     }

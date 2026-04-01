@@ -119,11 +119,11 @@ public class PostgreSQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
     private String getSuitableType(ColumnMetadata metadata) {
         ColumnMetadata.ColumnType type = metadata.getColumnType();
         if (!Objects.requireNonNullElse(metadata.getAutoIncrement(), false)
-            && !lengthLimitedTypes.contains(type)) {
+            && !(lengthLimitedTypes.contains(type) && metadata.getLength() != null)) {
             return postgresMapping.get(type);
         }
 
-        if (lengthLimitedTypes.contains(type)) {
+        if (lengthLimitedTypes.contains(type) ) {
             if (type != ColumnMetadata.ColumnType.DECIMAL) {
                 return generateLengthLimitedDefinition(metadata);
             }

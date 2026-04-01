@@ -1,29 +1,72 @@
 package com.github.myrrhax.diploma_project.service;
 
 import com.github.myrrhax.diploma_project.mapper.ScriptMapper;
+import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.dto.ScriptDto;
+import com.github.myrrhax.diploma_project.model.entity.DDLScriptEntity;
+import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
 import com.github.myrrhax.diploma_project.model.enums.GeneratedScriptType;
+import com.github.myrrhax.diploma_project.model.enums.ScriptType;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.repository.ScriptRepository;
 import com.github.myrrhax.diploma_project.repository.VersionRepository;
+import com.github.myrrhax.diploma_project.script.ScriptProcessor;
+import com.github.myrrhax.diploma_project.script.impl.SqlScriptProcessor;
+import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ScriptGeneratorService {
     private final ScriptRepository scriptRepository;
     private final VersionRepository versionRepository;
     private final ScriptMapper scriptMapper;
+    private final JsonSchemaStateMapper stateMapper;
+    private final List<ScriptProcessor> scriptProcessors;
 
+    @Transactional(readOnly = true)
     public List<ScriptDto> getScriptsForVersion(Long versionId) {
         return scriptRepository.findByVersionId(versionId).stream()
                 .map(scriptMapper::toDto)
                 .toList();
     }
 
-    public ScriptDto generateScript(Long versionId, GeneratedScriptType generatedType) {
-        return null;
+    public ScriptDto generateScript(Long versionId, ScriptType type) {
+        log.info("Processing generate script for version {} with type {}", versionId, type);
+        if (scriptRepository.existsByTypeAndGeneratedTypeAndVersionId(type, GeneratedScriptType.FULL, versionId)) {
+            throw new ApplicationException("error.script.already-exists");
+        }
+
+        ScriptProcessor processor = getScriptProcessor(type);
+        VersionEntity version = versionRepository.findById(versionId)
+                .orElseThrow(() -> new ApplicationException("error.version.notfound"));
+        if (version.getIsWorkingCopy()) {
+            throw new ApplicationException("error.version.generating-on-working-copy");
+        }
+        try {
+            SchemaStateMetadata schema = stateMapper.toMetadata(version.getSchema());
+            String script = processor.process(schema);
+            DDLScriptEntity ddl = new DDLScriptEntity(version, script, type);
+            scriptRepository.save(ddl);
+
+            return scriptMapper.toDto(ddl);
+        } catch (Exception e) {
+            log.error("Failed to convert schema from JSON", e);
+            throw new ApplicationException("Failed to convert schema from JSON", e);
+        }
+    }
+
+    private ScriptProcessor getScriptProcessor(ScriptType type) {
+        return scriptProcessors.stream()
+                .filter(processor -> processor.supports(type))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Failed to find script processor for type " + type));
     }
 }

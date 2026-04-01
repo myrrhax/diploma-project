@@ -5,5 +5,6 @@ public enum AuthorityType {
     MODIFY_SCHEME,
     VERSION,
     INVITE_USERS,
+    GENERATE_SCRIPT,
     ALL                 // Max
 }

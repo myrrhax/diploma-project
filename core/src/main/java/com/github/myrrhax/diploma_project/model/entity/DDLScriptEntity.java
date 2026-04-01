@@ -56,4 +56,11 @@ public class DDLScriptEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "generated_type", insertable = false, updatable = false)
     private GeneratedScriptType generatedType;
+
+    public DDLScriptEntity(VersionEntity version, String script, ScriptType type) {
+        this.version = version;
+        this.script = script;
+        this.type = type;
+        this.generatedType = GeneratedScriptType.FULL;
+    }
 }

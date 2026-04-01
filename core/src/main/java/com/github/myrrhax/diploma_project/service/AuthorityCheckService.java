@@ -18,13 +18,18 @@ public class AuthorityCheckService {
     private final VersionRepository versionRepository;
 
     public boolean hasAccessToVersion(UUID userId, Long versionId) {
+        return hasAuthorityForVersion(userId, versionId, AuthorityType.READ_SCHEME.name());
+    }
+
+    public boolean hasAuthorityForVersion(UUID userId, Long versionId, String authority) {
+        log.info("Checking user {} access for version {} with authority {}", userId, versionId, authority);
         VersionEntity versionEntity = versionRepository.findById(versionId).orElse(null);
         if (versionEntity == null) {
             return true;
         }
-
         UUID schemeId = versionEntity.getScheme().getId();
-        return hasAccess(userId, schemeId);
+
+        return hasAuthority(userId, schemeId, authority);
     }
 
     public boolean hasAccess(UUID userId, UUID schemeId) {
