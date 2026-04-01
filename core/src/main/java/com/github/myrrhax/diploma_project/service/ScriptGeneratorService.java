@@ -4,6 +4,7 @@ import com.github.myrrhax.diploma_project.mapper.ScriptMapper;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.dto.ScriptDto;
 import com.github.myrrhax.diploma_project.model.entity.DDLScriptEntity;
+import com.github.myrrhax.diploma_project.model.entity.FileEntity;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
 import com.github.myrrhax.diploma_project.model.enums.GeneratedScriptType;
 import com.github.myrrhax.diploma_project.model.enums.ScriptType;
@@ -11,7 +12,6 @@ import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.repository.ScriptRepository;
 import com.github.myrrhax.diploma_project.repository.VersionRepository;
 import com.github.myrrhax.diploma_project.script.ScriptProcessor;
-import com.github.myrrhax.diploma_project.script.impl.SqlScriptProcessor;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,6 +33,7 @@ public class ScriptGeneratorService {
     private final ScriptMapper scriptMapper;
     private final JsonSchemaStateMapper stateMapper;
     private final List<ScriptProcessor> scriptProcessors;
+    private final FileStorageService fileStorageService;
 
     @Transactional(readOnly = true)
     public List<ScriptDto> getScriptsForVersion(Long versionId) {
@@ -62,7 +64,12 @@ public class ScriptGeneratorService {
         try {
             SchemaStateMetadata schema = stateMapper.toMetadata(version.getSchema());
             String script = processor.process(schema);
-            DDLScriptEntity ddl = new DDLScriptEntity(version, script, type);
+            byte[] scriptBytes = script.getBytes(StandardCharsets.UTF_8);
+            UUID fileId = fileStorageService.saveFile(version.getTag(),
+                    scriptBytes,
+                    getMediaTypeForScript(type),
+                    schema.getSchemaId());
+            DDLScriptEntity ddl = new DDLScriptEntity(version, fileId, type);
             scriptRepository.save(ddl);
 
             return scriptMapper.toDto(ddl);
@@ -70,6 +77,13 @@ public class ScriptGeneratorService {
             log.error("Failed to convert schema from JSON", e);
             throw new ApplicationException("Failed to convert schema from JSON", e);
         }
+    }
+
+    private String getMediaTypeForScript(ScriptType type) {
+        return switch (type) {
+            case POSTGRES, MYSQL -> "application/sql";
+            case LIQUIBASE -> "application/yaml";
+        };
     }
 
     private ScriptProcessor getScriptProcessor(ScriptType type) {

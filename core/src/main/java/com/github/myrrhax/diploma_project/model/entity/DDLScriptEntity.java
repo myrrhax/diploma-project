@@ -46,8 +46,8 @@ public class DDLScriptEntity extends BaseEntity {
     @JoinColumn(name = "v_id")
     VersionEntity version;
 
-    @Column(nullable = false)
-    String script;
+    @Column(name = "script_file_id", nullable = false)
+    UUID scriptFileId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "script_type")
@@ -57,9 +57,9 @@ public class DDLScriptEntity extends BaseEntity {
     @Column(name = "generated_type", insertable = false, updatable = false)
     private GeneratedScriptType generatedType;
 
-    public DDLScriptEntity(VersionEntity version, String script, ScriptType type) {
+    public DDLScriptEntity(VersionEntity version, UUID scriptFileId, ScriptType type) {
         this.version = version;
-        this.script = script;
+        this.scriptFileId = scriptFileId;
         this.type = type;
         this.generatedType = GeneratedScriptType.FULL;
     }

@@ -38,9 +38,9 @@ public class FileStorageService {
     }
 
     @Transactional
-    public UUID saveFile(String originalFileName, byte[] content, String mediaType) {
+    public UUID saveFile(String originalFileName, byte[] content, String mediaType, UUID schemeId) {
         log.info("Saving file {} to storage", originalFileName);
-        FileEntity file = new FileEntity(originalFileName, content.length, mediaType, currentSaveProvider);
+        FileEntity file = new FileEntity(originalFileName, content.length, mediaType, currentSaveProvider, schemeId);
         file = fileRepository.saveAndFlush(file);
         String internalStorageName = getStorageName(file);
         FileStorageManager fsManager = getFileStorageManager(currentSaveProvider);

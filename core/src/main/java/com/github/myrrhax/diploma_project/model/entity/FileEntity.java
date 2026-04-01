@@ -41,10 +41,23 @@ public class FileEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     StorageProvider storageProvider;
 
-    public FileEntity(String originalName, long size, String mediaType, StorageProvider storageProvider) {
+    @Column(name = "is_public")
+    Boolean isPublic = false;
+
+    @Column(name = "scheme_id")
+    UUID schemeId;
+
+    public FileEntity(String originalName, long size, String mediaType, StorageProvider storageProvider, UUID schemeId) {
         this.originalName = originalName;
         this.size = size;
         this.mediaType = mediaType;
         this.storageProvider = storageProvider;
+
+        if (schemeId != null) {
+            this.isPublic = false;
+            this.schemeId = schemeId;
+        } else {
+            this.isPublic = true;
+        }
     }
 }
