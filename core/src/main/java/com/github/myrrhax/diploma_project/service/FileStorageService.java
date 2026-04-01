@@ -39,13 +39,16 @@ public class FileStorageService {
 
     @Transactional
     public UUID saveFile(String originalFileName, byte[] content, String mediaType) {
+        log.info("Saving file {} to storage", originalFileName);
         FileEntity file = new FileEntity(originalFileName, content.length, mediaType, currentSaveProvider);
         file = fileRepository.saveAndFlush(file);
         String internalStorageName = getStorageName(file);
         FileStorageManager fsManager = getFileStorageManager(currentSaveProvider);
+        log.info("Using file provider {}", currentSaveProvider);
 
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(content)) {
             fsManager.saveFile(inputStream, internalStorageName);
+            log.info("File was saved as {}", internalStorageName);
         } catch (IOException e) {
             log.error("Failed to close input stream for file {}", originalFileName, e);
             throw new RuntimeException("Stream error during file save", e);
@@ -58,10 +61,13 @@ public class FileStorageService {
     }
 
     public FileInfoDto getFile(UUID id) {
+        log.info("Retrieving file {} from storage", id);
         FileEntity file = fileRepository.findById(id).orElseThrow(() ->
                 new ApplicationException("error.files.file-not-found"));
         String internalStorageName = getStorageName(file);
+        log.info("File {} name is {}", id, internalStorageName);
         FileStorageManager preferredManager = getFileStorageManager(file.getStorageProvider());
+        log.info("Retrieving file {} using provider {}", id, file.getStorageProvider());
 
         Optional<InputStream> fis = preferredManager.getFile(internalStorageName);
         if (fis.isEmpty()) {
