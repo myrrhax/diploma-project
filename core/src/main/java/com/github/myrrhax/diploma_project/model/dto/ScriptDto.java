@@ -8,7 +8,7 @@ import java.util.UUID;
 public record ScriptDto(
         UUID id,
         VersionDTO version,
-        String script,
+        UUID scriptFileId,
         ScriptType type,
         GeneratedScriptType generatedType,
         VersionDTO fromVersion

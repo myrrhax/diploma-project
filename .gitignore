@@ -39,3 +39,5 @@ out/
 
 ### ENV ###
 *.env
+
+/files

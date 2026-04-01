@@ -31,6 +31,10 @@ app:
     accessTokenTtl: 1d
     refreshTokenTtl: 30d
 
+  files:
+    storage-provider: LOCAL
+    save-dir: ./files
+
   security:
     refresh-cookie-name: Refresh-Token
     refresh-cookie-security: false
