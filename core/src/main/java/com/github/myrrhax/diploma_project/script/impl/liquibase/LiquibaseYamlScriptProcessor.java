@@ -143,10 +143,10 @@ public class LiquibaseYamlScriptProcessor extends ScriptProcessor {
             appendLine(scriptBuilder, "referencedTableName: ", referencedTable.getName(), TABLE_PADDING_LEVEL + 1);
             appendLine(scriptBuilder, "referencedColumnNames: ", String.join(", ", referencedColumnNames), TABLE_PADDING_LEVEL + 1);
             if (ref.getOnDeleteAction() != null) {
-                appendLine(scriptBuilder, "onDelete", ref.getOnDeleteAction().name().replace("_", " "), TABLE_PADDING_LEVEL + 1);
+                appendLine(scriptBuilder, "onDelete: ", ref.getOnDeleteAction().name().replace("_", " "), TABLE_PADDING_LEVEL + 1);
             }
             if (ref.getOnUpdateAction() != null) {
-                appendLine(scriptBuilder, "onUpdate", ref.getOnUpdateAction().name().replace("_", " "), TABLE_PADDING_LEVEL + 1);
+                appendLine(scriptBuilder, "onUpdate: ", ref.getOnUpdateAction().name().replace("_", " "), TABLE_PADDING_LEVEL + 1);
             }
         }
     }
