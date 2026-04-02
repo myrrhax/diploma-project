@@ -109,6 +109,9 @@ public class ReferenceMetadata {
 
         for (int i = 0; i < key.getFromColumns().length; i++) {
             ColumnMetadata fromColumn = fromTable.getColumn(key.getFromColumns()[i]).orElseThrow();
+            if (Objects.equals(fromColumn.getAutoIncrement(), Boolean.TRUE)) {
+                throw new ApplicationException("error.reference.autoincrement-from-part");
+            }
             ColumnMetadata toColumn = toTable.getColumn(key.getToColumns()[i]).orElseThrow();
             if (fromColumn.getColumnType() != toColumn.getColumnType()
                     || !Objects.equals(fromColumn.getLength(), toColumn.getLength())

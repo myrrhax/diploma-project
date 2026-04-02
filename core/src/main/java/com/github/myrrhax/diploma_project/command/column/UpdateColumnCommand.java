@@ -115,11 +115,12 @@ public class UpdateColumnCommand extends MetadataCommand {
             table.removePkPart(columnId);
         }
 
-        if (newColumnType != null && newColumnType != oldType ||
-                (!clone.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)
+        if (newColumnType != null && newColumnType != oldType
+                || (!clone.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)
                     && column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE))
-            || oldIsPkPart != Objects.requireNonNullElse(pkPart, false)) { // Тип, Часть ключа или Уникальность изменена
-
+                || oldIsPkPart != Objects.requireNonNullElse(pkPart, false) // Тип, Часть ключа или Уникальность изменена
+                || autoIncrement != null && autoIncrement != column.getAutoIncrement()
+            ) {
             SchemaDifference refDiff = metadata.deleteInvalidReferences(clone);
             diff.applyDifference(refDiff);
         }
