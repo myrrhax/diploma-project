@@ -42,15 +42,37 @@ public class ReferenceMetadata {
                 || checkInvalidReferenceKeyPart(key.getToTableId(), key.getToColumns())) {
             return false;
         }
-        if (type == ReferenceMetadata.ReferenceType.ONE_TO_MANY
-                && !isToPartValid(key.getFromTableId(), key.getFromColumns())) {
-            return false;
-        } else if (type != ReferenceMetadata.ReferenceType.ONE_TO_MANY
-                && !isToPartValid(key.getToTableId(), key.getToColumns())) {
+        UUID fromTableId = key.getFromTableId();
+        UUID toTableId = key.getToTableId();
+        UUID[] fromTableCols = key.getFromColumns();
+        UUID[] toTableCols = key.getToColumns();
+
+        if (type == ReferenceType.ONE_TO_MANY) {
+            fromTableId = toTableId;
+            toTableId = key.getFromTableId();
+            fromTableCols = toTableCols;
+            toTableCols = key.getFromColumns();
+        }
+        if (!isToPartValid(toTableId, toTableCols)) {
             return false;
         }
 
-        return checkKeyCompatibility();
+        if (type != ReferenceType.MANY_TO_MANY) {
+            TableMetadata fromTable = schemaState.getTable(fromTableId)
+                    .orElseThrow(() -> new ApplicationException(ErrorMessageKey.TABLE_NOT_FOUND.getKey(), name));
+            for (UUID colId : fromTableCols) {
+                ColumnMetadata col = fromTable.getColumn(colId)
+                        .orElseThrow(() -> new ApplicationException(ErrorMessageKey.COLUMN_NOT_FOUND.getKey(), name));
+
+                if (Objects.equals(col.getAutoIncrement(), Boolean.TRUE)) {
+                    throw new ApplicationException("error.reference.autoincrement-from-part");
+                }
+            }
+
+            return checkKeyCompatibility();
+        }
+
+        return true;
     }
 
     public void computeAndSetName() {
@@ -109,9 +131,6 @@ public class ReferenceMetadata {
 
         for (int i = 0; i < key.getFromColumns().length; i++) {
             ColumnMetadata fromColumn = fromTable.getColumn(key.getFromColumns()[i]).orElseThrow();
-            if (Objects.equals(fromColumn.getAutoIncrement(), Boolean.TRUE)) {
-                throw new ApplicationException("error.reference.autoincrement-from-part");
-            }
             ColumnMetadata toColumn = toTable.getColumn(key.getToColumns()[i]).orElseThrow();
             if (fromColumn.getColumnType() != toColumn.getColumnType()
                     || !Objects.equals(fromColumn.getLength(), toColumn.getLength())
