@@ -66,7 +66,7 @@ public class AddColumnCommand extends MetadataCommand {
             throw new ApplicationException(ErrorMessageKey.COLUMN_PK_PART_MUST_BE_NOT_NULL.getKey());
         }
 
-        if (length == null && (columnType == ColumnMetadata.ColumnType.CHAR || columnType == ColumnMetadata.ColumnType.NUMERIC)) {
+        if (length == null && MetadataTypeUtils.lengthLimitedTypes.contains(columnType)) {
             log.info("Processing column of type {} must have length", columnType);
             throw new ApplicationException(ErrorMessageKey.COLUMN_INVALID_LENGTH.getKey(), name);
         }
