@@ -133,9 +133,11 @@ public class ReferenceMetadata {
             ColumnMetadata fromColumn = fromTable.getColumn(key.getFromColumns()[i]).orElseThrow();
             ColumnMetadata toColumn = toTable.getColumn(key.getToColumns()[i]).orElseThrow();
             if (fromColumn.getColumnType() != toColumn.getColumnType()
-                    || !Objects.equals(fromColumn.getLength(), toColumn.getLength())
-                    || !Objects.equals(fromColumn.getScale(), toColumn.getScale())
-                    || !Objects.equals(fromColumn.getPrecision(), toColumn.getPrecision())) {
+                    || (MetadataTypeUtils.lengthLimitedTypes.contains(fromColumn.getColumnType())
+                            && !Objects.equals(fromColumn.getLength(), toColumn.getLength()))
+                    || (fromColumn.getColumnType() == ColumnMetadata.ColumnType.DECIMAL
+                            && !Objects.equals(fromColumn.getScale(), toColumn.getScale())
+                            || !Objects.equals(fromColumn.getPrecision(), toColumn.getPrecision()))) {
                 return false;
             }
         }
