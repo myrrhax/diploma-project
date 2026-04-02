@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Component
@@ -23,6 +24,13 @@ public class LiquibaseYamlScriptProcessor extends ScriptProcessor {
     private static final int INDEX_COLUMN_PADDING_LEVEL = 5;
 
     private static final String DEFAULT_PADDING = "  ";
+
+    private static final Map<ColumnMetadata.ColumnType, String> defaultTimeValuesMap = Map.of(
+            ColumnMetadata.ColumnType.DATE, "CURRENT_DATE",
+            ColumnMetadata.ColumnType.TIME, "CURRENT_TIME",
+            ColumnMetadata.ColumnType.DATETIME, "CURRENT_TIMESTAMP",
+            ColumnMetadata.ColumnType.TIMESTAMP, "CURRENT_TIMESTAMP"
+    );
 
     @Override
     public boolean supports(ScriptType type) {
@@ -53,7 +61,11 @@ public class LiquibaseYamlScriptProcessor extends ScriptProcessor {
 
                 appendLine(scriptBuilder, "type: ", type, COLUMN_PADDING_LEVEL + 1);
                 if (column.getDefaultValue() != null) {
-                    appendLine(scriptBuilder, "defaultValue: ", column.getDefaultValue(), COLUMN_PADDING_LEVEL + 1);
+                    String defaultValue = column.getDefaultValue();
+                    if (MetadataTypeUtils.timeTypes.contains(column.getColumnType())) {
+                        defaultValue = defaultTimeValuesMap.get(column.getColumnType());
+                    }
+                    appendLine(scriptBuilder, "defaultValue: ", defaultValue, COLUMN_PADDING_LEVEL + 1);
                 }
 
                 if (MetadataTypeUtils.isValidAutoincrement(column)
@@ -80,8 +92,11 @@ public class LiquibaseYamlScriptProcessor extends ScriptProcessor {
 
             for (IndexMetadata index : table.getIndexes().values()) {
                 buildIndex(indexesBuilder, index, metadata);
+                indexesBuilder.append('\n');
             }
+            scriptBuilder.append('\n');
         }
+
         buildReferences(tablesToProcess, referencesToProcess, scriptBuilder);
         scriptBuilder.append(indexesBuilder);
 
@@ -148,6 +163,7 @@ public class LiquibaseYamlScriptProcessor extends ScriptProcessor {
             if (ref.getOnUpdateAction() != null) {
                 appendLine(scriptBuilder, "onUpdate: ", ref.getOnUpdateAction().name().replace("_", " "), TABLE_PADDING_LEVEL + 1);
             }
+            scriptBuilder.append('\n');
         }
     }
 

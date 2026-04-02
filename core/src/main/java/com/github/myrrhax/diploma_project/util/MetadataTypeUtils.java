@@ -1,7 +1,6 @@
 package com.github.myrrhax.diploma_project.util;
 
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
-import com.github.myrrhax.diploma_project.script.AbstractSqlScriptFabric;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -37,6 +36,13 @@ public class MetadataTypeUtils {
             ColumnMetadata.ColumnType.DECIMAL,
             ColumnMetadata.ColumnType.FLOAT,
             ColumnMetadata.ColumnType.DOUBLE
+    );
+
+    public static final Set<ColumnMetadata.ColumnType> timeTypes = Set.of(
+            ColumnMetadata.ColumnType.TIME,
+            ColumnMetadata.ColumnType.DATE,
+            ColumnMetadata.ColumnType.DATETIME,
+            ColumnMetadata.ColumnType.TIMESTAMP
     );
 
     public static boolean isValidAutoincrement(ColumnMetadata column) {
