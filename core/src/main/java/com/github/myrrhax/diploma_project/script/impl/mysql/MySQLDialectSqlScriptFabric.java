@@ -5,6 +5,7 @@ import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.script.AbstractSqlScriptFabric;
+import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -125,7 +126,7 @@ public class MySQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
         ColumnMetadata.ColumnType type = metadata.getColumnType();
         String baseType;
 
-        if (lengthLimitedTypes.contains(type) && metadata.getLength() != null) {
+        if (MetadataTypeUtils.lengthLimitedTypes.contains(type) && metadata.getLength() != null) {
             if (type != ColumnMetadata.ColumnType.DECIMAL) {
                 baseType = generateLengthLimitedDefinition(metadata);
             } else {

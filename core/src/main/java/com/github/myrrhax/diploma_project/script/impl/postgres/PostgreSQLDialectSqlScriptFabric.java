@@ -5,6 +5,7 @@ import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.script.AbstractSqlScriptFabric;
+import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -119,11 +120,11 @@ public class PostgreSQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
     private String getSuitableType(ColumnMetadata metadata) {
         ColumnMetadata.ColumnType type = metadata.getColumnType();
         if (!Objects.requireNonNullElse(metadata.getAutoIncrement(), false)
-            && !(lengthLimitedTypes.contains(type) && metadata.getLength() != null)) {
+            && !(MetadataTypeUtils.lengthLimitedTypes.contains(type) && metadata.getLength() != null)) {
             return postgresMapping.get(type);
         }
 
-        if (lengthLimitedTypes.contains(type) ) {
+        if (MetadataTypeUtils.lengthLimitedTypes.contains(type) ) {
             if (type != ColumnMetadata.ColumnType.DECIMAL) {
                 return generateLengthLimitedDefinition(metadata);
             }

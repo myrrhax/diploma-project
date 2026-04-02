@@ -17,16 +17,38 @@ import java.util.Objects;
 import java.util.Set;
 
 public class MetadataTypeUtils {
+    public static final Set<ColumnMetadata.ColumnType> lengthLimitedTypes = Set.of(
+            ColumnMetadata.ColumnType.VARCHAR,
+            ColumnMetadata.ColumnType.CHAR,
+            ColumnMetadata.ColumnType.NUMERIC
+    );
+
+    public static final Set<ColumnMetadata.ColumnType> validAutoIncrementTypes = Set.of(
+            ColumnMetadata.ColumnType.SMALLINT,
+            ColumnMetadata.ColumnType.INT,
+            ColumnMetadata.ColumnType.BIGINT
+    );
+
+    public static final Set<ColumnMetadata.ColumnType> minMaxableTypes = Set.of(
+            ColumnMetadata.ColumnType.SMALLINT,
+            ColumnMetadata.ColumnType.INT,
+            ColumnMetadata.ColumnType.BIGINT,
+            ColumnMetadata.ColumnType.NUMERIC,
+            ColumnMetadata.ColumnType.DECIMAL,
+            ColumnMetadata.ColumnType.FLOAT,
+            ColumnMetadata.ColumnType.DOUBLE
+    );
+
     public static boolean isValidAutoincrement(ColumnMetadata column) {
-        return AbstractSqlScriptFabric.validAutoIncrementTypes.contains(column.getColumnType());
+        return validAutoIncrementTypes.contains(column.getColumnType());
     }
 
     public static boolean isMinMaxableType(ColumnMetadata column) {
-        return AbstractSqlScriptFabric.minMaxableTypes.contains(column.getColumnType());
+        return minMaxableTypes.contains(column.getColumnType());
     }
 
     public static boolean isCompactibleLengthLimitedType(ColumnMetadata column, int newLength, String newDefaultValue) {
-        if (!AbstractSqlScriptFabric.lengthLimitedTypes.contains(column.getColumnType())) {
+        if (!lengthLimitedTypes.contains(column.getColumnType())) {
             return false;
         }
         String defaultValue = newDefaultValue != null ? newDefaultValue : column.getDefaultValue();

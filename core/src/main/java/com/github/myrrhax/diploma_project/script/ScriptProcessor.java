@@ -81,6 +81,7 @@ public abstract class ScriptProcessor {
         LinkedHashMap<UUID, ColumnMetadata> concatColumnsMap = new LinkedHashMap<>(concatMtmCols.size());
         for (ColumnMetadata column : concatMtmCols) {
             concatColumnsMap.put(column.getId(), column);
+            column.setPkPart(true);
         }
 
         TableMetadata mtmTable = TableMetadata.builder()
