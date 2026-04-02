@@ -22,6 +22,8 @@ public class LiquibaseYamlScriptProcessor extends ScriptProcessor {
     private static final int COLUMN_PADDING_LEVEL = 5;
     private static final int INDEX_COLUMN_PADDING_LEVEL = 5;
 
+    private static final String DEFAULT_PADDING = "  ";
+
     @Override
     public boolean supports(ScriptType type) {
         return ScriptType.LIQUIBASE.equals(type);
@@ -204,11 +206,6 @@ public class LiquibaseYamlScriptProcessor extends ScriptProcessor {
     }
 
     private String getPadding(int level) {
-        StringBuilder padding = new StringBuilder();
-        for (int i = 0; i < level; i++) {
-            padding.append('\t');
-        }
-
-        return padding.toString();
+        return DEFAULT_PADDING.repeat(Math.max(0, level));
     }
 }

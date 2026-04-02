@@ -106,6 +106,7 @@ public class FileStorageService {
             case "image/jpeg", "image/jpg" -> ".jpg";
             case "image/png" -> ".png";
             case "image/webp" -> ".webp";
+            case "application/yaml" -> ".yaml";
             default -> throw new ApplicationException("error.files.invalid-media-type");
         };
     }
