@@ -62,7 +62,7 @@ public class ScriptGeneratorService {
         }
         try {
             SchemaStateMetadata schema = stateMapper.toMetadata(version.getSchema());
-            String script = processor.process("test", schema);
+            String script = processor.process(version.getTag(), schema);
             byte[] scriptBytes = script.getBytes(StandardCharsets.UTF_8);
             UUID fileId = fileStorageService.saveFile(version.getTag(),
                     scriptBytes,
@@ -87,7 +87,7 @@ public class ScriptGeneratorService {
 
     private FullScriptProcessor getScriptProcessor(ScriptType type) {
         return scriptProcessors.stream()
-                .filter(processor -> processor.supportsScriptType(type))
+                .filter(processor -> processor.supports(type))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Failed to find script processor for type " + type));
     }

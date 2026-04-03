@@ -24,7 +24,7 @@ public class MySQLFullScriptProcessor extends FullScriptProcessor {
     }
 
     @Override
-    public boolean supportsScriptType(ScriptType scriptType) {
+    public boolean supports(ScriptType scriptType) {
         return ScriptType.MYSQL.equals(scriptType);
     }
 

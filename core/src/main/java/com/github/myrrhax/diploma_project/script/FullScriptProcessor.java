@@ -5,7 +5,7 @@ import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
-import com.github.myrrhax.diploma_project.model.enums.GeneratedScriptType;
+import com.github.myrrhax.diploma_project.model.enums.ScriptType;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 
 import java.util.ArrayList;
@@ -15,14 +15,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public abstract class FullScriptProcessor implements ScriptProcessor {
-
-    @Override
-    public boolean supportsGenerationType(GeneratedScriptType genType) {
-        return GeneratedScriptType.FULL.equals(genType);
-    }
-
-    @Override
+public abstract class FullScriptProcessor {
     public String process(String name, SchemaStateMetadata schema) {
         var clone = schema.clone();
         List<ReferenceMetadata> refsToProcess = new ArrayList<>();
@@ -112,6 +105,7 @@ public abstract class FullScriptProcessor implements ScriptProcessor {
         return sqlBuilder.toString();
     }
 
+    public abstract boolean supports(ScriptType type);
     protected abstract void onEndTableDefinition(StringBuilder sqlBuilder, TableMetadata table);
     protected abstract FullScriptFabric getFabric();
 

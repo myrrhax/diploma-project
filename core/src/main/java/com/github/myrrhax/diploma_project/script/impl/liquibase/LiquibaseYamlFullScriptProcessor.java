@@ -13,17 +13,17 @@ public class LiquibaseYamlFullScriptProcessor extends FullScriptProcessor {
     private FullScriptFabric fullScriptFabric;
 
     @Override
+    public boolean supports(ScriptType type) {
+        return ScriptType.LIQUIBASE.equals(type);
+    }
+
+    @Override
     protected void onEndTableDefinition(StringBuilder sqlBuilder, TableMetadata table) {
     }
 
     @Override
     protected FullScriptFabric getFabric() {
         return fullScriptFabric;
-    }
-
-    @Override
-    public boolean supportsScriptType(ScriptType scriptType) {
-        return ScriptType.LIQUIBASE.equals(scriptType);
     }
 
     @Autowired

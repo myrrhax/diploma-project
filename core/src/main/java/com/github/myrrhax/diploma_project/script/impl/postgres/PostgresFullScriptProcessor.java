@@ -30,7 +30,7 @@ public class PostgresFullScriptProcessor extends FullScriptProcessor {
     }
 
     @Override
-    public boolean supportsScriptType(ScriptType scriptType) {
+    public boolean supports(ScriptType scriptType) {
         return ScriptType.POSTGRES.equals(scriptType);
     }
 }
