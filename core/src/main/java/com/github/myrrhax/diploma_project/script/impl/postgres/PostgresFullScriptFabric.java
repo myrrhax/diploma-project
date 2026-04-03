@@ -2,19 +2,23 @@ package com.github.myrrhax.diploma_project.script.impl.postgres;
 
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.IndexMetadata;
+import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
-import com.github.myrrhax.diploma_project.script.AbstractSqlScriptFabric;
+import com.github.myrrhax.diploma_project.script.AbstractFullSqlScriptFabric;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
-@Component("postgresDialectFabric")
-public class PostgreSQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
+@Component("postgresFullFabric")
+public class PostgresFullScriptFabric extends AbstractFullSqlScriptFabric {
     Map<ColumnMetadata.ColumnType, String> postgresMapping = new HashMap<>() {{
         put(ColumnMetadata.ColumnType.BOOLEAN, "boolean");
         put(ColumnMetadata.ColumnType.SMALLINT, "smallint");
@@ -34,10 +38,26 @@ public class PostgreSQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
         put(ColumnMetadata.ColumnType.TIMESTAMP, "timestamp");
         put(ColumnMetadata.ColumnType.JSON, "jsonb");
     }};
+
     Map<IndexMetadata.IndexType, String> indexMapping = Map.of(
         IndexMetadata.IndexType.B_TREE, "btree",
         IndexMetadata.IndexType.HASH, "hash"
     );
+
+    @Override
+    public void appendPrimaryKeyDefinition(StringBuilder sqlBuilder, TableMetadata table) {
+        sqlBuilder.append("\tPRIMARY KEY (");
+
+        List<UUID> primaryKeyParts = new ArrayList<>(table.getPrimaryKeyParts());
+        for (int i = 0; i < primaryKeyParts.size(); i++) {
+            ColumnMetadata column = table.getColumn(primaryKeyParts.get(i)).orElseThrow();
+            sqlBuilder.append(column.getName());
+            if (i < primaryKeyParts.size() - 1) {
+                sqlBuilder.append(", ");
+            }
+        }
+        sqlBuilder.append(")\n");
+    }
 
     @Override
     public String getMinMaxDefinition(ColumnMetadata column) {
@@ -66,57 +86,6 @@ public class PostgreSQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
         return result.toString();
     }
 
-    @Override
-    public String getColumnDefinition(ColumnMetadata columnMeta) {
-        String typeName = getSuitableType(columnMeta);
-        StringBuilder sb = new StringBuilder();
-        sb.append(columnMeta.getName()).append(" ").append(typeName);
-        List<ColumnMetadata.ConstraintType> constraints = columnMeta.getConstraints();
-
-        for (ColumnMetadata.ConstraintType constraint : constraints) {
-            sb.append(" ").append(constraint.name().replace('_', ' '));
-        }
-
-        if (columnMeta.getDefaultValue() != null) {
-            sb.append(" DEFAULT ").append(columnMeta.getDefaultValue());
-        }
-
-        if (columnMeta.getMin() != null || columnMeta.getMax() != null) {
-            sb.append(getMinMaxDefinition(columnMeta));
-        }
-
-        return sb.toString();
-    }
-
-    @Override
-    public String getIndexDefinition(TableMetadata tableMetadata,
-                                     IndexMetadata indexMeta) {
-        StringBuilder sb = new StringBuilder();
-        String[] affectedCols = indexMeta.getColumnIds().stream()
-                .map(col -> tableMetadata.getColumns().get(col))
-                .map(ColumnMetadata::getName)
-                .toArray(String[]::new);
-
-        sb.append("CREATE ");
-        if (indexMeta.isUnique()) {
-            sb.append("UNIQUE ");
-        }
-        sb.append("INDEX ");
-        if (indexMeta.getIndexName() == null) {
-            indexMeta.computeAndSetName();
-        }
-        sb.append(indexMeta.getIndexName());
-        sb.append(" ON ");
-        sb.append(tableMetadata.getName());
-        sb.append(" USING ");
-        sb.append(indexMapping.get(indexMeta.getIndexType()));
-        sb.append(" (");
-        sb.append(String.join(", ", affectedCols));
-        sb.append(");");
-
-        return sb.toString();
-    }
-
     private String getSuitableType(ColumnMetadata metadata) {
         ColumnMetadata.ColumnType type = metadata.getColumnType();
         if (!Objects.requireNonNullElse(metadata.getAutoIncrement(), false)
@@ -140,7 +109,63 @@ public class PostgreSQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
     }
 
     @Override
-    protected Map<ColumnMetadata.ColumnType, String> getDefinitions() {
+    public Map<ColumnMetadata.ColumnType, String> getDefinitions() {
         return postgresMapping;
+    }
+
+    @Override
+    public void appendHeader(StringBuilder sqlBuilder, SchemaStateMetadata schema, String name) {
+        sqlBuilder.append("/*\n\tGenerated by ErmDev. Version tag: ")
+                .append(name)
+                .append("\n*/\n");
+    }
+
+    @Override
+    public void appendColumnDefinition(StringBuilder sqlBuilder, ColumnMetadata column) {
+        String typeName = getSuitableType(column);
+        sqlBuilder.append('\t')
+                .append(column.getName())
+                .append(" ")
+                .append(typeName);
+        List<ColumnMetadata.ConstraintType> constraints = column.getConstraints();
+
+        for (ColumnMetadata.ConstraintType constraint : constraints) {
+            sqlBuilder.append(" ").append(getConstraintName(constraint));
+        }
+
+        if (column.getDefaultValue() != null) {
+            sqlBuilder.append(" DEFAULT ").append(column.getDefaultValue());
+        }
+
+        if (column.getMin() != null || column.getMax() != null) {
+            sqlBuilder.append(getMinMaxDefinition(column));
+        }
+        sqlBuilder.append(',');
+    }
+
+    @Override
+    public void appendIndexDefinition(StringBuilder indexBuilder, IndexMetadata index) {
+        TableMetadata tableMetadata = index.getTable();
+        String[] affectedCols = index.getColumnIds().stream()
+                .map(col -> tableMetadata.getColumns().get(col))
+                .map(ColumnMetadata::getName)
+                .toArray(String[]::new);
+
+        indexBuilder.append("CREATE ");
+        if (index.isUnique()) {
+            indexBuilder.append("UNIQUE ");
+        }
+        indexBuilder.append("INDEX ");
+        if (index.getIndexName() == null) {
+            index.computeAndSetName();
+        }
+        indexBuilder.append(index.getIndexName());
+        indexBuilder.append(" ON ");
+        indexBuilder.append(tableMetadata.getName());
+        indexBuilder.append(" USING ");
+        indexBuilder.append(indexMapping.get(index.getIndexType()));
+        indexBuilder.append(" (");
+        indexBuilder.append(String.join(", ", affectedCols));
+        indexBuilder.append(");");
     }
 }

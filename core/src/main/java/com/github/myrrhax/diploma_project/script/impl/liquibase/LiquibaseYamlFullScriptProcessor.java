@@ -7,7 +7,7 @@ import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.enums.ScriptType;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
-import com.github.myrrhax.diploma_project.script.ScriptProcessor;
+import com.github.myrrhax.diploma_project.script.FullScriptProcessor;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Component
-public class LiquibaseYamlScriptProcessor extends ScriptProcessor {
+public class LiquibaseYamlFullScriptProcessor {
     private static final int TABLE_PADDING_LEVEL = 3;
     private static final int INDEX_PADDING_LEVEL = 3;
     private static final int COLUMN_PADDING_LEVEL = 5;
@@ -32,12 +32,12 @@ public class LiquibaseYamlScriptProcessor extends ScriptProcessor {
             ColumnMetadata.ColumnType.TIMESTAMP, "CURRENT_TIMESTAMP"
     );
 
-    @Override
+//    @Override
     public boolean supports(ScriptType type) {
         return ScriptType.LIQUIBASE.equals(type);
     }
 
-    @Override
+//    @Override
     protected String generateContent(SchemaStateMetadata metadata, List<TableMetadata> tablesToProcess, List<ReferenceMetadata> referencesToProcess) {
         StringBuilder scriptBuilder = new StringBuilder();
         StringBuilder indexesBuilder = new StringBuilder();
