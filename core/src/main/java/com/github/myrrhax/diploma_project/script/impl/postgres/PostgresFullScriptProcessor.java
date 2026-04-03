@@ -2,6 +2,7 @@ package com.github.myrrhax.diploma_project.script.impl.postgres;
 
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.enums.ScriptType;
+import com.github.myrrhax.diploma_project.script.AbstractFullSqlScriptFabric;
 import com.github.myrrhax.diploma_project.script.FullScriptFabric;
 import com.github.myrrhax.diploma_project.script.FullScriptProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,11 +11,11 @@ import org.springframework.stereotype.Component;
 
 @Component("postgresFullProcessor")
 public class PostgresFullScriptProcessor extends FullScriptProcessor {
-    private PostgresFullScriptFabric scriptFabric;
+    private AbstractFullSqlScriptFabric scriptFabric;
 
     @Autowired
     @Qualifier("postgresFullFabric")
-    public void setScriptFabric(PostgresFullScriptFabric scriptFabric) {
+    public void setScriptFabric(AbstractFullSqlScriptFabric scriptFabric) {
         this.scriptFabric = scriptFabric;
     }
 
