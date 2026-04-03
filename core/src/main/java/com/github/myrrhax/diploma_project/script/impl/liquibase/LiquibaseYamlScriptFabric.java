@@ -6,7 +6,7 @@ import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
-import com.github.myrrhax.diploma_project.script.FullScriptFabric;
+import com.github.myrrhax.diploma_project.script.ScriptFabric;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Component("liquibaseFullFabric")
-public class LiquibaseYamlFullScriptFabric implements FullScriptFabric {
+public class LiquibaseYamlScriptFabric implements ScriptFabric {
     private static final int CHANGELOG_PADDING_LEVEL = 0;
     public static final int CHANGESET_PADDING_LEVEL = 1;
     public static final int HEADER_PADDING_LEVEL = 2;

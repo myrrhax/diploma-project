@@ -5,8 +5,7 @@ import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
-import com.github.myrrhax.diploma_project.script.FullScriptProcessor;
-import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlFullScriptFabric;
+import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptFabric;
 import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlFullScriptProcessor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +17,7 @@ import java.util.UUID;
 @ExtendWith(MockitoExtension.class)
 public class LiquibaseYamlScriptProcessorTest {
     static LiquibaseYamlFullScriptProcessor processor = new LiquibaseYamlFullScriptProcessor();
-    static LiquibaseYamlFullScriptFabric fabric = new LiquibaseYamlFullScriptFabric();
+    static LiquibaseYamlScriptFabric fabric = new LiquibaseYamlScriptFabric();
 
     static {
         processor.setFullScriptFabric(fabric);

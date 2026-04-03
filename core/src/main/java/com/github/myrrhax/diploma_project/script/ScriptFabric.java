@@ -8,7 +8,7 @@ import com.github.myrrhax.diploma_project.model.TableMetadata;
 
 import java.util.Map;
 
-public interface FullScriptFabric {
+public interface ScriptFabric {
     void appendHeader(StringBuilder scriptBuilder, SchemaStateMetadata schema, String name);
     void appendTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
     void appendColumnDefinition(StringBuilder scriptBuilder, ColumnMetadata column);

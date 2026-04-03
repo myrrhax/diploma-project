@@ -4,7 +4,7 @@ import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
-import com.github.myrrhax.diploma_project.script.AbstractFullSqlScriptFabric;
+import com.github.myrrhax.diploma_project.script.AbstractSqlScriptFabric;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import org.springframework.stereotype.Component;
 
@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-@Component("mysqlFullFabric")
-public class MySQLDialectSqlScriptFabric extends AbstractFullSqlScriptFabric {
+@Component("mysqlFabric")
+public class MySQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
 
     private static final Map<ColumnMetadata.ColumnType, String> mysqlMapping = new HashMap<>() {{
         put(ColumnMetadata.ColumnType.BOOLEAN, "boolean");

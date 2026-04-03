@@ -2,8 +2,8 @@ package com.github.myrrhax.diploma_project.script.impl.mysql;
 
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.enums.ScriptType;
-import com.github.myrrhax.diploma_project.script.AbstractFullSqlScriptFabric;
-import com.github.myrrhax.diploma_project.script.FullScriptFabric;
+import com.github.myrrhax.diploma_project.script.AbstractSqlScriptFabric;
+import com.github.myrrhax.diploma_project.script.ScriptFabric;
 import com.github.myrrhax.diploma_project.script.FullScriptProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Component("mysqlFullProcessor")
 public class MySQLFullScriptProcessor extends FullScriptProcessor {
-    private AbstractFullSqlScriptFabric sqlScriptFabric;
+    private AbstractSqlScriptFabric sqlScriptFabric;
 
     @Override
     protected void onEndTableDefinition(StringBuilder sqlBuilder, TableMetadata table) {
@@ -19,7 +19,7 @@ public class MySQLFullScriptProcessor extends FullScriptProcessor {
     }
 
     @Override
-    protected FullScriptFabric getFabric() {
+    protected ScriptFabric getFabric() {
         return sqlScriptFabric;
     }
 
@@ -30,7 +30,7 @@ public class MySQLFullScriptProcessor extends FullScriptProcessor {
 
     @Autowired
     @Qualifier("mysqlFullFabric")
-    public void setScriptFabric(AbstractFullSqlScriptFabric scriptFabric) {
+    public void setScriptFabric(AbstractSqlScriptFabric scriptFabric) {
         this.sqlScriptFabric = scriptFabric;
     }
 }

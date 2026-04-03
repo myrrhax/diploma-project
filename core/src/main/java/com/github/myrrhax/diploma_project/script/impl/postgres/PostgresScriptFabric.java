@@ -3,7 +3,7 @@ package com.github.myrrhax.diploma_project.script.impl.postgres;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
-import com.github.myrrhax.diploma_project.script.AbstractFullSqlScriptFabric;
+import com.github.myrrhax.diploma_project.script.AbstractSqlScriptFabric;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Component("postgresFullFabric")
-public class PostgresFullScriptFabric extends AbstractFullSqlScriptFabric {
+public class PostgresScriptFabric extends AbstractSqlScriptFabric {
     private static final Map<ColumnMetadata.ColumnType, String> postgresMapping = new HashMap<>() {{
         put(ColumnMetadata.ColumnType.BOOLEAN, "boolean");
         put(ColumnMetadata.ColumnType.SMALLINT, "smallint");

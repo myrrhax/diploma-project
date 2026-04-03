@@ -47,7 +47,7 @@ public abstract class FullScriptProcessor {
         StringBuilder sqlBuilder = new StringBuilder();
         StringBuilder indexesBuilder = new StringBuilder();
 
-        FullScriptFabric fabric = getFabric();
+        ScriptFabric fabric = getFabric();
         fabric.appendHeader(sqlBuilder, schema, name);
 
         for (TableMetadata table : tablesToProcess) {
@@ -107,7 +107,7 @@ public abstract class FullScriptProcessor {
 
     public abstract boolean supports(ScriptType type);
     protected abstract void onEndTableDefinition(StringBuilder sqlBuilder, TableMetadata table);
-    protected abstract FullScriptFabric getFabric();
+    protected abstract ScriptFabric getFabric();
 
     private MtmTableProcessingResult buildTableAndRefsFromMtmRef(SchemaStateMetadata metadata,
                                                                  ReferenceMetadata ref) {

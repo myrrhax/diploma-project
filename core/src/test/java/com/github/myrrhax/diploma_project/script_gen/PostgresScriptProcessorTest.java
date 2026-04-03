@@ -5,9 +5,8 @@ import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
-import com.github.myrrhax.diploma_project.script.AbstractFullSqlScriptFabric;
 import com.github.myrrhax.diploma_project.script.FullScriptProcessor;
-import com.github.myrrhax.diploma_project.script.impl.postgres.PostgresFullScriptFabric;
+import com.github.myrrhax.diploma_project.script.impl.postgres.PostgresScriptFabric;
 import com.github.myrrhax.diploma_project.script.impl.postgres.PostgresFullScriptProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -675,7 +674,7 @@ public class PostgresScriptProcessorTest {
     }
 
     private FullScriptProcessor setupProcessor(SchemaStateMetadata state) {
-        PostgresFullScriptFabric fabric = new PostgresFullScriptFabric();
+        PostgresScriptFabric fabric = new PostgresScriptFabric();
         var processor = new PostgresFullScriptProcessor();
         processor.setScriptFabric(fabric);
 
