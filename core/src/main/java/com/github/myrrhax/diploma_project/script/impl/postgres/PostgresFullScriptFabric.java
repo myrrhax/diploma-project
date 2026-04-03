@@ -79,9 +79,9 @@ public class PostgresFullScriptFabric extends AbstractFullSqlScriptFabric {
 
         if (MetadataTypeUtils.lengthLimitedTypes.contains(type) ) {
             if (type != ColumnMetadata.ColumnType.DECIMAL) {
-                return generateLengthLimitedDefinition(metadata);
+                return getLengthLimitedType(metadata);
             }
-            return generateDecimalDefinition(metadata);
+            return getDecimalDefinition(metadata);
         }
 
         return switch (type) {

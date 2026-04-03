@@ -7,8 +7,9 @@ import java.util.Map;
 
 public interface ScriptFabric {
     Map<ColumnMetadata.ColumnType, String> getDefinitions();
+    String getDecimalDefinition(ColumnMetadata column);
 
-    default String generateLengthLimitedDefinition(ColumnMetadata metadata) {
+    default String getLengthLimitedType(ColumnMetadata metadata) {
         Integer length = metadata.getLength();
         if (length == null) {
             return "";

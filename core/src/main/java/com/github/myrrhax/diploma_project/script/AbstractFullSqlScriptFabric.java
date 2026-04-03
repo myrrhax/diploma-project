@@ -29,11 +29,18 @@ public abstract class AbstractFullSqlScriptFabric implements FullScriptFabric {
     }
 
     @Override
-    public void appendReferenceDefinition(StringBuilder sqlBuilder, TableMetadata baseTable, TableMetadata referencedTable, String[] baseColumnNames, String[] referencedColumnNames, ReferenceMetadata.OnDeleteAction onDeleteAction, ReferenceMetadata.OnUpdateAction onUpdateAction) {
+    public void appendReferenceDefinition(StringBuilder sqlBuilder,
+                                          String refName,
+                                          TableMetadata baseTable,
+                                          TableMetadata referencedTable,
+                                          String[] baseColumnNames,
+                                          String[] referencedColumnNames,
+                                          ReferenceMetadata.OnDeleteAction onDeleteAction,
+                                          ReferenceMetadata.OnUpdateAction onUpdateAction) {
         sqlBuilder.append(String.format(
                 FK_TEMPLATE,
                 baseTable.getName(),
-                referencedTable.getName(),
+                refName,
                 String.join(", ", baseColumnNames),
                 referencedTable.getName(),
                 String.join(", ", referencedColumnNames),
@@ -117,8 +124,9 @@ public abstract class AbstractFullSqlScriptFabric implements FullScriptFabric {
         return result.toString();
     }
 
-    protected String generateDecimalDefinition(ColumnMetadata metadata) {
-        return "DECIMAL(" + metadata.getPrecision() + ", " + metadata.getScale() + ")";
+    @Override
+    public String getDecimalDefinition(ColumnMetadata column) {
+        return "DECIMAL(" + column.getPrecision() + ", " + column.getScale() + ")";
     }
 
     protected abstract String getSuitableType(ColumnMetadata column);

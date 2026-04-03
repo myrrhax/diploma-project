@@ -7,12 +7,13 @@ import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 
 public interface FullScriptFabric extends ScriptFabric {
-    void appendHeader(StringBuilder sqlBuilder, SchemaStateMetadata schema, String name);
-    void appendTableDefinition(StringBuilder sqlBuilder, TableMetadata table);
-    void appendColumnDefinition(StringBuilder sqlBuilder, ColumnMetadata column);
+    void appendHeader(StringBuilder scriptBuilder, SchemaStateMetadata schema, String name);
+    void appendTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
+    void appendColumnDefinition(StringBuilder scriptBuilder, ColumnMetadata column);
     void appendIndexDefinition(StringBuilder indexBuilder, IndexMetadata index);
-    void appendEndTablePadding(StringBuilder sqlBuilder);
-    void appendReferenceDefinition(StringBuilder sqlBuilder,
+    void appendEndTablePadding(StringBuilder scriptBuilder);
+    void appendReferenceDefinition(StringBuilder scriptBuilder,
+                                   String refName,
                                    TableMetadata baseTable,
                                    TableMetadata referencedTable,
                                    String[] baseColumnNames,

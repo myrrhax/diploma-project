@@ -70,7 +70,6 @@ public abstract class FullScriptProcessor implements ScriptProcessor {
             }
             onEndTableDefinition(sqlBuilder, table);
             fabric.appendEndTablePadding(sqlBuilder);
-            sqlBuilder.append('\n');
         }
 
         for (ReferenceMetadata ref : refsToProcess) {
@@ -99,6 +98,7 @@ public abstract class FullScriptProcessor implements ScriptProcessor {
                     .toArray(String[]::new);
 
             fabric.appendReferenceDefinition(sqlBuilder,
+                    ref.getName(),
                     baseTable,
                     referencedTable,
                     baseColumnNames,

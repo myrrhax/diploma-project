@@ -47,9 +47,9 @@ public class MySQLDialectSqlScriptFabric extends AbstractFullSqlScriptFabric {
 
         if (MetadataTypeUtils.lengthLimitedTypes.contains(type) && metadata.getLength() != null) {
             if (type != ColumnMetadata.ColumnType.DECIMAL) {
-                baseType = generateLengthLimitedDefinition(metadata);
+                baseType = getLengthLimitedType(metadata);
             } else {
-                baseType = generateDecimalDefinition(metadata);
+                baseType = getDecimalDefinition(metadata);
             }
         } else {
             baseType = mysqlMapping.get(type);
