@@ -45,24 +45,14 @@ public abstract class FullScriptProcessor {
                 });
 
         StringBuilder sqlBuilder = new StringBuilder();
-        StringBuilder indexesBuilder = new StringBuilder();
 
         ScriptFabric fabric = getFabric();
         fabric.appendHeader(sqlBuilder, name);
 
         for (TableMetadata table : tablesToProcess) {
-            fabric.appendTableDefinition(sqlBuilder, table);
-
-            for (ColumnMetadata column : table.getColumns().values()) {
-                fabric.appendColumnDefinition(sqlBuilder, column);
-                sqlBuilder.append("\n");
-            }
-            for (IndexMetadata idx : table.getIndexes().values()) {
-                fabric.appendIndexDefinition(indexesBuilder, idx);
-                indexesBuilder.append("\n");
-            }
-            onEndTableDefinition(sqlBuilder, table);
-            fabric.appendEndTablePadding(sqlBuilder);
+            fabric.addTable(sqlBuilder, table, (builder) -> {
+                onEndTableDefinition(builder, table);
+            });
         }
 
         for (ReferenceMetadata ref : refsToProcess) {
@@ -100,7 +90,6 @@ public abstract class FullScriptProcessor {
                     ref.getOnUpdateAction());
             sqlBuilder.append('\n');
         }
-        sqlBuilder.append(indexesBuilder);
 
         return sqlBuilder.toString();
     }

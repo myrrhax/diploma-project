@@ -5,7 +5,10 @@ import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public abstract class ScriptFabric {
     public String getLengthLimitedType(ColumnMetadata metadata) {
@@ -29,19 +32,40 @@ public abstract class ScriptFabric {
         return actionName.replace('_', ' ');
     }
 
-    public abstract void appendHeader(StringBuilder scriptBuilder, String name);
-    public abstract void appendTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
-    public abstract void appendColumnDefinition(StringBuilder scriptBuilder, ColumnMetadata column);
-    public abstract void appendIndexDefinition(StringBuilder indexBuilder, IndexMetadata index);
-    public abstract void appendEndTablePadding(StringBuilder scriptBuilder);
+    public void addTable(StringBuilder scriptBuilder, TableMetadata table,
+                         Consumer<StringBuilder> onEndTable) {
+        StringBuilder indexesBuilder = new StringBuilder();
+        appendTableDefinition(scriptBuilder, table);
+
+        List<ColumnMetadata> columns = new ArrayList<>(table.getColumns().values());
+        for (int i = 0; i < columns.size(); i++) {
+            appendColumnDefinition(scriptBuilder, columns.get(i));
+            scriptBuilder.append("\n");
+        }
+        onEndTable.accept(scriptBuilder);
+        appendEndTablePart(scriptBuilder);
+        for (IndexMetadata idx : table.getIndexes().values()) {
+            appendIndexDefinition(indexesBuilder, idx);
+            indexesBuilder.append("\n");
+        }
+
+        scriptBuilder.append(indexesBuilder);
+    }
+
     public abstract void appendReferenceDefinition(StringBuilder scriptBuilder,
-                                            String refName,
-                                            TableMetadata baseTable,
-                                            TableMetadata referencedTable,
-                                            String[] baseColumnNames,
-                                            String[] referencedColumnNames,
-                                            ReferenceMetadata.OnDeleteAction onDeleteAction,
-                                            ReferenceMetadata.OnUpdateAction onUpdateAction);
-    public abstract Map<ColumnMetadata.ColumnType, String> getDefinitions();
-    public abstract String getDecimalDefinition(ColumnMetadata column);
+                                                   String refName,
+                                                   TableMetadata baseTable,
+                                                   TableMetadata referencedTable,
+                                                   String[] baseColumnNames,
+                                                   String[] referencedColumnNames,
+                                                   ReferenceMetadata.OnDeleteAction onDeleteAction,
+                                                   ReferenceMetadata.OnUpdateAction onUpdateAction);
+    public abstract void appendHeader(StringBuilder scriptBuilder, String name);
+    protected abstract void appendTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
+    protected abstract void appendColumnDefinition(StringBuilder scriptBuilder, ColumnMetadata column);
+    protected abstract void appendIndexDefinition(StringBuilder indexBuilder, IndexMetadata index);
+    protected abstract void appendEndTablePart(StringBuilder scriptBuilder);
+    protected abstract Map<ColumnMetadata.ColumnType, String> getDefinitions();
+    protected abstract String getDecimalDefinition(ColumnMetadata column);
+    public abstract void appendDropTable(StringBuilder scriptBuilder, TableMetadata fromTable);
 }

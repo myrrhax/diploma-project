@@ -145,7 +145,8 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
     }
 
     @Override
-    public void appendEndTablePadding(StringBuilder scriptBuilder) {
+    protected void appendEndTablePart(StringBuilder scriptBuilder) {
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -180,6 +181,12 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
     @Override
     public String getDecimalDefinition(ColumnMetadata column) {
         return "DECIMAL(" + column.getPrecision() + "," + column.getScale() + ")";
+    }
+
+    @Override
+    public void appendDropTable(StringBuilder scriptBuilder, TableMetadata fromTable) {
+        appendLine(scriptBuilder, "- sql:", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "sql: ", "DROP TABLE IF EXISTS " + fromTable.getName(), TABLE_ELEMENT_PADDING_LEVEL);
     }
 
     private String getPadding(int level) {

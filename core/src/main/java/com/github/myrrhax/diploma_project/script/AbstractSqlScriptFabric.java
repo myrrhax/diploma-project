@@ -2,7 +2,6 @@ package com.github.myrrhax.diploma_project.script;
 
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
-import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 
@@ -57,8 +56,8 @@ public abstract class AbstractSqlScriptFabric extends ScriptFabric {
     }
 
     @Override
-    public void appendEndTablePadding(StringBuilder sqlBuilder) {
-        sqlBuilder.append(");\n");
+    protected void appendEndTablePart(StringBuilder scriptBuilder) {
+        scriptBuilder.append(");\n");
     }
 
     @Override
@@ -82,6 +81,13 @@ public abstract class AbstractSqlScriptFabric extends ScriptFabric {
             sqlBuilder.append(getMinMaxDefinition(column));
         }
         sqlBuilder.append(',');
+    }
+
+    @Override
+    public void appendDropTable(StringBuilder scriptBuilder, TableMetadata fromTable) {
+        scriptBuilder.append("DROP TABLE IF EXISTS ")
+                .append(fromTable.getName())
+                .append(";\n");
     }
 
     public void appendPrimaryKeyDefinition(StringBuilder sqlBuilder, TableMetadata table) {

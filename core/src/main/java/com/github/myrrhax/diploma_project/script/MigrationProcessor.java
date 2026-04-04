@@ -76,11 +76,15 @@ public abstract class MigrationProcessor {
     }
 
     private void dropTable(TableMetadata fromTable, StringBuilder scriptBuilder) {
-
+        ScriptFabric fabric = getFabric();
+        fabric.appendDropTable(scriptBuilder, fromTable);
     }
 
     private void addTable(TableMetadata toTable, StringBuilder scriptBuilder) {
-
+        ScriptFabric fabric = getFabric();
+        fabric.addTable(scriptBuilder, toTable, (builder) -> {
+            onEndTableDefinition(builder, toTable);
+        });
     }
 
     protected abstract ScriptFabric getFabric();
