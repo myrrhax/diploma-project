@@ -22,7 +22,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import static java.util.Map.entry;
 
@@ -77,8 +76,6 @@ public class DifferenceProcessor {
 
         // Таблицы
         Map<TableMetadata, TableMetadata> tableMapping = applyDifference(finalTables, initialTables,
-                initialState::containsTable,
-                initialState::containsTable,
                 id -> initialState.getTable(id).orElse(null),
                 tableName -> initialState.getTable(tableName).orElse(null),
                 changes);
@@ -96,8 +93,6 @@ public class DifferenceProcessor {
 
             applyDifference(finalColumns,
                     fromColumns,
-                    fromTable::containsColumn,
-                    fromTable::containsColumn,
                     colId -> fromTable.getColumn(colId).orElse(null),
                     colName -> fromTable.getColumn(colName).orElse(null),
                     changes);
@@ -108,8 +103,6 @@ public class DifferenceProcessor {
 
             applyDifference(finalIndexes,
                     fromIndexes,
-                    fromTable::containsIndex,
-                    fromTable::containsIndex,
                     idxId -> fromTable.getIndex(idxId).orElse(null),
                     idxName -> fromTable.getIndex(idxName).orElse(null),
                     changes);
@@ -120,8 +113,6 @@ public class DifferenceProcessor {
 
         applyDifference(finalReferences,
                 initialReferences,
-                initialState::containsReference,
-                initialState::containsReference,
                 key -> initialState.getReference(key).orElse(null),
                 refName -> initialState.getReference(refName).orElse(null),
                 changes);
@@ -131,8 +122,6 @@ public class DifferenceProcessor {
 
     protected <T extends AbstractMetadata<V>, V> Map<T, T> applyDifference(Collection<T> finalMetadata,
                                                                          Collection<T> initialMetadata,
-                                                                         Predicate<V> containsById,
-                                                                         Predicate<String> containsByName,
                                                                          Function<V, T> getById,
                                                                          Function<String, T> getByName,
                                                                          List<GenericSchemaChanges<?>> result) {
@@ -140,13 +129,10 @@ public class DifferenceProcessor {
         Map<T, T> elementMapping = new HashMap<>();
 
         for (T to : finalMetadata) {
-            if (containsById.test(to.getId())
-                    || containsByName.test(to.getName())) {
+            T from = Optional.ofNullable(getById.apply(to.getId()))
+                        .orElse(getByName.apply(to.getName()));
+            if (from != null) {
                 // Метаданные изменились
-                T from = getById.apply(to.getId());
-                if (from == null) {
-                    from = getByName.apply(to.getName());
-                }
                 if (!from.getName().equals(to.getName())) {
                     // Имя изменилось
                     result.add(new GenericSchemaChanges<>(from, to, DifferenceType.RENAME));
