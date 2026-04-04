@@ -8,6 +8,7 @@ import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.script.DifferenceProcessor;
 import com.github.myrrhax.diploma_project.script.MigrationProcessor;
 import com.github.myrrhax.diploma_project.script.ScriptFabric;
+import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptFabric;
 import com.github.myrrhax.diploma_project.script.impl.postgres.PostgresScriptFabric;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,13 +24,12 @@ public class MigrationProcessorTest {
     MigrationProcessor migrationProcessor = new MigrationProcessor(new DifferenceProcessor()) {
         @Override
         protected ScriptFabric getFabric() {
-            return new PostgresScriptFabric();
+            return new LiquibaseYamlScriptFabric();
         }
 
         @Override
         protected void onEndTableDefinition(StringBuilder scriptBuilder, TableMetadata table) {
-            PostgresScriptFabric scriptFabric = (PostgresScriptFabric) getFabric();
-            scriptFabric.appendPrimaryKeyDefinition(scriptBuilder, table);
+
         }
     };
 

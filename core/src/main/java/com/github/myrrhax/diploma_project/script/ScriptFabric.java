@@ -61,11 +61,13 @@ public abstract class ScriptFabric {
                                                    ReferenceMetadata.OnDeleteAction onDeleteAction,
                                                    ReferenceMetadata.OnUpdateAction onUpdateAction);
     public abstract void appendHeader(StringBuilder scriptBuilder, String name);
+    public abstract void appendDropTable(StringBuilder scriptBuilder, TableMetadata fromTable);
+    public abstract void appendRenameTable(StringBuilder scriptBuilder, TableMetadata from, TableMetadata to);
+
     protected abstract void appendTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
     protected abstract void appendColumnDefinition(StringBuilder scriptBuilder, ColumnMetadata column);
     protected abstract void appendIndexDefinition(StringBuilder indexBuilder, IndexMetadata index);
     protected abstract void appendEndTablePart(StringBuilder scriptBuilder);
     protected abstract Map<ColumnMetadata.ColumnType, String> getDefinitions();
     protected abstract String getDecimalDefinition(ColumnMetadata column);
-    public abstract void appendDropTable(StringBuilder scriptBuilder, TableMetadata fromTable);
 }

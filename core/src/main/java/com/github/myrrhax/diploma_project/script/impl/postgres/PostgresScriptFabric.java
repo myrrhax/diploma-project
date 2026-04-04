@@ -44,6 +44,15 @@ public class PostgresScriptFabric extends AbstractSqlScriptFabric {
     }
 
     @Override
+    public void appendRenameTable(StringBuilder scriptBuilder, TableMetadata from, TableMetadata to) {
+        scriptBuilder.append("ALTER TABLE ")
+                .append(from.getName())
+                .append(" RENAME TO ")
+                .append(to.getName())
+                .append(";\n");
+    }
+
+    @Override
     public void appendIndexDefinition(StringBuilder indexBuilder, IndexMetadata index) {
         TableMetadata tableMetadata = index.getTable();
         String[] affectedCols = index.getColumnIds().stream()

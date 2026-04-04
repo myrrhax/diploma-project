@@ -189,6 +189,13 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
         appendLine(scriptBuilder, "sql: ", "DROP TABLE IF EXISTS " + fromTable.getName(), TABLE_ELEMENT_PADDING_LEVEL);
     }
 
+    @Override
+    public void appendRenameTable(StringBuilder scriptBuilder, TableMetadata from, TableMetadata to) {
+        appendLine(scriptBuilder, "- renameTable", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "oldTableName: ", from.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "newTableName: ", to.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+    }
+
     private String getPadding(int level) {
         return DEFAULT_PADDING.repeat(Math.max(0, level));
     }

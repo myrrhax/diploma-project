@@ -41,6 +41,15 @@ public class MySQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
     );
 
     @Override
+    public void appendRenameTable(StringBuilder scriptBuilder, TableMetadata from, TableMetadata to) {
+        scriptBuilder.append("ALTER TABLE ")
+                .append(from.getName())
+                .append(" RENAME TO ")
+                .append(to.getName())
+                .append(";\n");
+    }
+
+    @Override
     protected String getSuitableType(ColumnMetadata metadata) {
         ColumnMetadata.ColumnType type = metadata.getColumnType();
         String baseType;

@@ -68,7 +68,8 @@ public abstract class MigrationProcessor {
     }
 
     private void renameTable(TableMetadata fromTable, TableMetadata toTable, StringBuilder scriptBuilder) {
-
+        ScriptFabric fabric = getFabric();
+        fabric.appendRenameTable(scriptBuilder, fromTable, toTable);
     }
 
     private void updateTable(TableMetadata fromTable, TableMetadata toTable, StringBuilder scriptBuilder) {
