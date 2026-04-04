@@ -64,6 +64,8 @@ public abstract class ScriptFabric {
     public abstract void appendHeader(StringBuilder scriptBuilder, String name);
     public abstract void appendDropTable(StringBuilder scriptBuilder, TableMetadata fromTable);
     public abstract void appendRenameTable(StringBuilder scriptBuilder, TableMetadata from, TableMetadata to);
+    public abstract void appendDropPkConstraint(StringBuilder scriptBuilder, TableMetadata toTable);
+    public abstract void appendAndPkConstraint(StringBuilder scriptBuilder, TableMetadata toTable);
 
     protected abstract void appendTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
     protected abstract void appendColumnDefinition(StringBuilder scriptBuilder, ColumnMetadata column);

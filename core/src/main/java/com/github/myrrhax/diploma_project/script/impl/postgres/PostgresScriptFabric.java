@@ -53,6 +53,26 @@ public class PostgresScriptFabric extends AbstractSqlScriptFabric {
     }
 
     @Override
+    public void appendDropPkConstraint(StringBuilder scriptBuilder, TableMetadata toTable) {
+        scriptBuilder.append("ALTER TABLE ")
+                .append(toTable.getName())
+                .append(" DROP CONSTRAINT ")
+                .append("pk_").append(toTable.getName().toLowerCase())
+                .append(";\n");
+    }
+
+    @Override
+    public void appendAndPkConstraint(StringBuilder scriptBuilder, TableMetadata toTable) {
+        scriptBuilder.append("ALTER TABLE ")
+                .append(toTable.getName())
+                .append(" ADD CONSTRAINT ")
+                .append("pk_").append(toTable.getName().toLowerCase())
+                .append(" PRIMARY KEY (")
+                .append(toTable.getPkContated())
+                .append(");\n");
+    }
+
+    @Override
     public void appendIndexDefinition(StringBuilder indexBuilder, IndexMetadata index) {
         TableMetadata tableMetadata = index.getTable();
         String[] affectedCols = index.getColumnIds().stream()

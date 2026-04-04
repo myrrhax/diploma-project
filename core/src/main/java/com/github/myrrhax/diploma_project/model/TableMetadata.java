@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Getter
 @Builder
@@ -228,6 +229,12 @@ public class TableMetadata implements Cloneable, AbstractMetadata<UUID> {
 
     public boolean containsColumn(UUID id) {
         return this.columns.containsKey(id);
+    }
+
+    public String getPkContated() {
+        return this.getPrimaryKeyParts().stream()
+            .map(id -> this.getColumn(id).orElseThrow().getName())
+            .collect(Collectors.joining(", "));
     }
 
     @Override

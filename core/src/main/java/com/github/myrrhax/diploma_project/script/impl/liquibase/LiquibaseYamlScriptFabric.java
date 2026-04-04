@@ -151,12 +151,20 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
     public void appendPrimaryKeyDefinition(StringBuilder sqlBuilder, TableMetadata table) {
         appendLine(sqlBuilder, "- addPrimaryKey:", TABLE_DEFINITION_PADDING_LEVEL);
         appendLine(sqlBuilder, "tableName: ", table.getName(), TABLE_ELEMENT_PADDING_LEVEL);
-        String columnsConcat = table.getPrimaryKeyParts().stream()
-                                    .map(id -> table.getColumn(id).orElseThrow().getName())
-                                    .collect(Collectors.joining(", "));
-
-        appendLine(sqlBuilder, "columnNames: ", columnsConcat, TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(sqlBuilder, "columnNames: ", table.getPkContated(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(sqlBuilder, "constraintName: ", "pk_" + table.getName().toLowerCase(), TABLE_ELEMENT_PADDING_LEVEL);
+    }
+
+    @Override
+    public void appendDropPkConstraint(StringBuilder scriptBuilder, TableMetadata toTable) {
+        appendLine(scriptBuilder, "- dropPrimaryKey:", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", toTable.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "constraintName: ", "pk_" + toTable.getName().toLowerCase(), TABLE_ELEMENT_PADDING_LEVEL);
+    }
+
+    @Override
+    public void appendAndPkConstraint(StringBuilder scriptBuilder, TableMetadata toTable) {
+        appendPrimaryKeyDefinition(scriptBuilder, toTable);
     }
 
     @Override

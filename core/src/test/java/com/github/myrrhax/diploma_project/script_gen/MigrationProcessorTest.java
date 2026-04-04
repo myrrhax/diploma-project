@@ -9,10 +9,13 @@ import com.github.myrrhax.diploma_project.script.DifferenceProcessor;
 import com.github.myrrhax.diploma_project.script.MigrationProcessor;
 import com.github.myrrhax.diploma_project.script.ScriptFabric;
 import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptFabric;
+import com.github.myrrhax.diploma_project.script.impl.postgres.PostgresScriptFabric;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
@@ -21,7 +24,7 @@ public class MigrationProcessorTest {
     MigrationProcessor migrationProcessor = new MigrationProcessor(new DifferenceProcessor()) {
         @Override
         protected ScriptFabric getFabric() {
-            return new LiquibaseYamlScriptFabric();
+            return new PostgresScriptFabric();
         }
 
         @Override
@@ -292,6 +295,82 @@ public class MigrationProcessorTest {
         VersionDTO v2 = new VersionDTO(schemaId, 1, "tag1", state, "hash1");
 
         String script = migrationProcessor.process(v1, v2);
+        System.out.println(script);
+    }
+
+    @Test
+    void shouldCalculatePrimaryKeyDifferenceCorrectly() {
+        UUID tableId = UUID.randomUUID();
+        UUID colUserId = UUID.randomUUID();
+        UUID colRoleId = UUID.randomUUID();
+        UUID schemaId = UUID.randomUUID();
+
+        SchemaStateMetadata stateV1 = new SchemaStateMetadata();
+        stateV1.setSchemaId(schemaId);
+
+        TableMetadata oldTable = TableMetadata.builder()
+                .id(tableId)
+                .name("user_roles")
+                .build();
+
+        ColumnMetadata colV1_1 = ColumnMetadata.builder()
+                .id(colUserId)
+                .schema(stateV1)
+                .table(oldTable)
+                .name("user_id")
+                .columnType(ColumnMetadata.ColumnType.BIGINT)
+                .pkPart(true)
+                .build();
+        oldTable.addColumn(colV1_1);
+
+        ColumnMetadata colV1_2 = ColumnMetadata.builder()
+                .id(colRoleId)
+                .schema(stateV1)
+                .table(oldTable)
+                .name("role_id")
+                .columnType(ColumnMetadata.ColumnType.BIGINT)
+                .build();
+        oldTable.addColumn(colV1_2);
+
+        oldTable.setPrimaryKeyParts(Set.of(colV1_1.getId()));
+
+        stateV1.addTable(oldTable);
+        VersionDTO v1 = new VersionDTO(schemaId, 1, "tag1", stateV1, "hash1");
+
+        SchemaStateMetadata stateV2 = new SchemaStateMetadata();
+        stateV2.setSchemaId(schemaId);
+
+        TableMetadata newTable = TableMetadata.builder()
+                .id(tableId)
+                .name("user_roles")
+                .build();
+
+        ColumnMetadata colV2_1 = ColumnMetadata.builder()
+                .id(colUserId)
+                .schema(stateV2)
+                .table(newTable)
+                .name("user_id")
+                .columnType(ColumnMetadata.ColumnType.BIGINT)
+                .pkPart(true)
+                .build();
+        newTable.addColumn(colV2_1);
+        ColumnMetadata colV2_2 = ColumnMetadata.builder()
+                .id(colRoleId)
+                .schema(stateV2)
+                .table(newTable)
+                .name("role_id")
+                .columnType(ColumnMetadata.ColumnType.BIGINT)
+                .pkPart(true)
+                .build();
+        newTable.addColumn(colV2_2);
+
+        newTable.setPrimaryKeyParts(Set.of(colV2_1.getId(), colV2_2.getId()));
+        stateV2.addTable(newTable);
+        VersionDTO v2 = new VersionDTO(schemaId, 2, "tag2", stateV2, "hash2");
+
+        // --- Выполнение ---
+        String script = migrationProcessor.process(v1, v2);
+        System.out.println("--- Скрипт изменения первичного ключа ---");
         System.out.println(script);
     }
 }

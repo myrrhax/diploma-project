@@ -62,7 +62,7 @@ public abstract class MigrationProcessor {
         switch (change.differenceType()) {
             case ADD -> addTable(toTable, scriptBuilder);
             case DROP -> dropTable(fromTable, scriptBuilder);
-            case UPDATE -> updateTable(fromTable, toTable, scriptBuilder);
+            case UPDATE -> updateTable(toTable, scriptBuilder);
             case RENAME -> renameTable(fromTable, toTable, scriptBuilder);
         }
     }
@@ -72,8 +72,10 @@ public abstract class MigrationProcessor {
         fabric.appendRenameTable(scriptBuilder, fromTable, toTable);
     }
 
-    private void updateTable(TableMetadata fromTable, TableMetadata toTable, StringBuilder scriptBuilder) {
-
+    private void updateTable(TableMetadata toTable, StringBuilder scriptBuilder) {
+        ScriptFabric fabric = getFabric();
+        fabric.appendDropPkConstraint(scriptBuilder, toTable);
+        fabric.appendAndPkConstraint(scriptBuilder, toTable);
     }
 
     private void dropTable(TableMetadata fromTable, StringBuilder scriptBuilder) {

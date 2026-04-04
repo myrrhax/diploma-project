@@ -50,6 +50,22 @@ public class MySQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
     }
 
     @Override
+    public void appendDropPkConstraint(StringBuilder scriptBuilder, TableMetadata toTable) {
+        scriptBuilder.append("ALTER TABLE ")
+                .append(toTable.getName())
+                .append(" DROP PRIMARY KEY;\n");
+    }
+
+    @Override
+    public void appendAndPkConstraint(StringBuilder scriptBuilder, TableMetadata toTable) {
+        scriptBuilder.append("ALTER TABLE ")
+                .append(toTable.getName())
+                .append(" ADD PRIMARY KEY (")
+                .append(toTable.getPkContated())
+                .append(");\n");
+    }
+
+    @Override
     protected String getSuitableType(ColumnMetadata metadata) {
         ColumnMetadata.ColumnType type = metadata.getColumnType();
         String baseType;
