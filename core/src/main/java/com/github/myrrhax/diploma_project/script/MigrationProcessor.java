@@ -20,7 +20,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract class MigrationProcessor {
-    protected List<GenericSchemaChanges<?>> calculateDifference(String name, VersionDTO from, VersionDTO to) {
+    protected List<GenericSchemaChanges<?>> calculateDifference(VersionDTO from, VersionDTO to) {
         List<GenericSchemaChanges<?>> changes = new ArrayList<>();
 
         if (from == to || Objects.equals(from.getHashSum(), to.getHashSum())) {
@@ -98,9 +98,6 @@ public abstract class MigrationProcessor {
         Map<T, T> elementMapping = new HashMap<>();
 
         for (T to : finalMetadata) {
-            if (processed.contains(to.getId())) {
-                continue;
-            }
             if (containsById.test(to.getId())
                 || containsByName.test(to.getName())) {
                 // Метаданные изменились
