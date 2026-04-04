@@ -1,159 +1,70 @@
 package com.github.myrrhax.diploma_project.script;
 
-import com.github.myrrhax.diploma_project.model.AbstractMetadata;
-import com.github.myrrhax.diploma_project.model.ColumnMetadata;
-import com.github.myrrhax.diploma_project.model.IndexMetadata;
-import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
-import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
+@Slf4j
+@RequiredArgsConstructor
 public abstract class MigrationProcessor {
-    public List<GenericSchemaChanges<?>> calculateDifference(VersionDTO from, VersionDTO to) {
-        List<GenericSchemaChanges<?>> changes = new ArrayList<>();
+    protected final DifferenceProcessor differenceProcessor;
 
-        if (from == to || Objects.equals(from.getHashSum(), to.getHashSum())) {
-            return changes;
+    public String process(VersionDTO from, VersionDTO to) {
+        if (from == null || to == null) {
+            throw new ApplicationException("From and To versions cannot be null");
+        }
+        if (from.isWorkingCopy() || to.isWorkingCopy()) {
+            throw new ApplicationException("error.version.generating-on-working-copy");
         }
 
-        SchemaStateMetadata initialState = from.getCurrentState();
-        SchemaStateMetadata finalState = to.getCurrentState();
+        List<DifferenceProcessor.GenericSchemaChanges<?>> changes = differenceProcessor.calculateDifference(from, to);
+        if (changes.isEmpty()) {
+            log.warn("No difference between versions {} and {} of schema {}", from.getTag(), to.getTag(), to.getSchemeId());
+            return "";
+        }
 
-        Collection<TableMetadata> initialTables = initialState.getTables().values();
-        Collection<TableMetadata> finalTables = finalState.getTables().values();
+        ScriptFabric fabric = getFabric();
+        StringBuilder scriptBuilder = new StringBuilder();
+        fabric.appendHeader(scriptBuilder, to.getTag());
 
-        // Таблицы
-        Map<TableMetadata, TableMetadata> tableMapping = applyDifference(finalTables, initialTables,
-                initialState::containsTable,
-                initialState::containsTable,
-                id -> initialState.getTable(id).orElse(null),
-                tableName -> initialState.getTable(tableName).orElse(null),
-                changes);
-
-        for (TableMetadata toTable : finalTables) {
-            // Нет начальной версии таблицы
-            if (!tableMapping.containsKey(toTable)) {
-                continue;
+        for (DifferenceProcessor.GenericSchemaChanges<?> change : changes) {
+            switch (change.getType()) {
+                case TABLE -> applyTableChange(change, scriptBuilder);
+                case REFERENCE -> applyReferenceChange(change, scriptBuilder);
+                case INDEX -> applyIndexChange(change, scriptBuilder);
+                case COLUMN -> applyColumnCommand(change, scriptBuilder);
             }
-            // Расчет изменений колонок
-            TableMetadata fromTable = tableMapping.get(toTable);
-
-            Collection<ColumnMetadata> finalColumns = toTable.getColumns().values();
-            Collection<ColumnMetadata> fromColumns = fromTable.getColumns().values();
-
-            applyDifference(finalColumns,
-                    fromColumns,
-                    fromTable::containsColumn,
-                    fromTable::containsColumn,
-                    colId -> fromTable.getColumn(colId).orElse(null),
-                    colName -> fromTable.getColumn(colName).orElse(null),
-                    changes);
-
-            // Расчет изменений индексов
-            Collection<IndexMetadata> finalIndexes = toTable.getIndexes().values();
-            Collection<IndexMetadata> fromIndexes = fromTable.getIndexes().values();
-
-            applyDifference(finalIndexes,
-                    fromIndexes,
-                    fromTable::containsIndex,
-                    fromTable::containsIndex,
-                    idxId -> fromTable.getIndex(idxId).orElse(null),
-                    idxName -> fromTable.getIndex(idxName).orElse(null),
-                    changes);
         }
 
-        Collection<ReferenceMetadata> initialReferences = initialState.getReferences().values();
-        Collection<ReferenceMetadata> finalReferences = finalState.getReferences().values();
-
-        applyDifference(finalReferences,
-                initialReferences,
-                initialState::containsReference,
-                initialState::containsReference,
-                key -> initialState.getReference(key).orElse(null),
-                refName -> initialState.getReference(refName).orElse(null),
-                changes);
-
-        return changes;
+        return scriptBuilder.toString();
     }
 
-    private <T extends AbstractMetadata<V>, V> Map<T, T> applyDifference(Collection<T> finalMetadata,
-                                          Collection<T> initialMetadata,
-                                          Predicate<V> containsById,
-                                          Predicate<String> containsByName,
-                                          Function<V, T> getById,
-                                          Function<String, T> getByName,
-                                          List<GenericSchemaChanges<?>> result) {
-        Set<V> processed = new HashSet<>();
-        Map<T, T> elementMapping = new HashMap<>();
+    private void applyColumnCommand(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
 
-        for (T to : finalMetadata) {
-            if (containsById.test(to.getId())
-                || containsByName.test(to.getName())) {
-                // Метаданные изменились
-                T from = getById.apply(to.getId());
-                if (from == null) {
-                    from = getByName.apply(to.getName());
-                }
-                if (!from.getName().equals(to.getName())) {
-                    // Имя изменилось
-                    result.add(new GenericSchemaChanges<>(from, to, DifferenceType.RENAME));
-                }
-                elementMapping.put(to, from);
-
-                // Проверка внутреннего содержимого
-                if (!from.contentEquals(to)) {
-                    result.add(new GenericSchemaChanges<>(from, to, DifferenceType.UPDATE));
-                }
-            } else {
-                // Новые метаданные
-                result.add(new GenericSchemaChanges<>(null, to, DifferenceType.ADD));
-            }
-
-            processed.add(to.getId());
-        }
-
-        for (T from : initialMetadata) {
-            if (!processed.contains(from.getId())) {
-                result.add(new GenericSchemaChanges<>(from, null, DifferenceType.DROP));
-            }
-        }
-
-        return elementMapping;
     }
 
-    public record GenericSchemaChanges<T extends AbstractMetadata<?>>(
-        T from,
-        T to,
+    private void applyIndexChange(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
 
-        DifferenceType differenceType
-    ) {
-        public GenericSchemaChanges {
-            Objects.requireNonNull(differenceType);
-            if (differenceType != DifferenceType.ADD) {
-                Objects.requireNonNull(from);
-            }
-            if (differenceType != DifferenceType.DROP) {
-                Objects.requireNonNull(to);
-            }
-        }
     }
 
-    public enum DifferenceType {
-        ADD,
-        DROP,
-        RENAME,
-        UPDATE
+    private void applyReferenceChange(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
+
+    }
+
+    private void applyTableChange(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
+        TableMetadata fromTable = change.from() != null ? (TableMetadata) change.from() : null;
+        TableMetadata toTable = change.to() != null ? (TableMetadata) change.to() : null;
+
+        switch (change.differenceType()) {
+            case ADD -> addTable(toTable, scriptBuilder);
+            case DROP -> dropTable(fromTable, scriptBuilder);
+            case UPDATE -> updateTable(fromTable, toTable, scriptBuilder);
+            case RENAME -> renameTable(fromTable, toTable, scriptBuilder);
+        }
     }
 
     protected abstract ScriptFabric getFabric();

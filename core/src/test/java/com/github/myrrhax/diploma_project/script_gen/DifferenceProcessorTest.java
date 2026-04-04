@@ -2,11 +2,11 @@ package com.github.myrrhax.diploma_project.script_gen;
 
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.IndexMetadata;
-import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
-import com.github.myrrhax.diploma_project.script.MigrationProcessor;
+import com.github.myrrhax.diploma_project.script.DifferenceProcessor;
+import com.github.myrrhax.diploma_project.script.DifferenceProcessor;
 import com.github.myrrhax.diploma_project.script.ScriptFabric;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,17 +19,12 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
-public class MigrationProcessorUnitTest {
-    private MigrationProcessor processor;
+public class DifferenceProcessorTest {
+    private DifferenceProcessor processor;
 
     @BeforeEach
     void setUp() {
-        processor = new MigrationProcessor() {
-            @Override
-            protected ScriptFabric getFabric() { return null; }
-            @Override
-            protected void onEndTableDefinition(StringBuilder scriptBuilder, TableMetadata table) {}
-        };
+        processor = new DifferenceProcessor();
     }
 
     @Test
@@ -89,17 +84,17 @@ public class MigrationProcessorUnitTest {
         VersionDTO v2 = new VersionDTO(schemaId, 2, "tag2", stateV2, "hash2");
 
         // --- Выполнение ---
-        List<MigrationProcessor.GenericSchemaChanges<?>> changes = processor.calculateDifference(v1, v2);
+        List<DifferenceProcessor.GenericSchemaChanges<?>> changes = processor.calculateDifference(v1, v2);
 
         // --- Проверки ---
-        assertThat(changes).anyMatch(c -> c.to() instanceof TableMetadata && c.differenceType() == MigrationProcessor.DifferenceType.ADD && c.to().getName().equals("orders"));
-        assertThat(changes).anyMatch(c -> c.from() instanceof TableMetadata && c.differenceType() == MigrationProcessor.DifferenceType.DROP && c.from().getName().equals("old_data"));
-        assertThat(changes).anyMatch(c -> c.from() instanceof TableMetadata && c.differenceType() == MigrationProcessor.DifferenceType.RENAME && c.from().getName().equals("users") && c.to().getName().equals("system_users"));
+        assertThat(changes).anyMatch(c -> c.to() instanceof TableMetadata && c.differenceType() == DifferenceProcessor.DifferenceType.ADD && c.to().getName().equals("orders"));
+        assertThat(changes).anyMatch(c -> c.from() instanceof TableMetadata && c.differenceType() == DifferenceProcessor.DifferenceType.DROP && c.from().getName().equals("old_data"));
+        assertThat(changes).anyMatch(c -> c.from() instanceof TableMetadata && c.differenceType() == DifferenceProcessor.DifferenceType.RENAME && c.from().getName().equals("users") && c.to().getName().equals("system_users"));
 
-        assertThat(changes).anyMatch(c -> c.from() instanceof ColumnMetadata && c.differenceType() == MigrationProcessor.DifferenceType.RENAME && c.from().getName().equals("username") && c.to().getName().equals("login"));
-        assertThat(changes).anyMatch(c -> c.to() instanceof ColumnMetadata && c.differenceType() == MigrationProcessor.DifferenceType.ADD && c.to().getName().equals("new_desc"));
-        assertThat(changes).anyMatch(c -> c.from() instanceof ColumnMetadata && c.differenceType() == MigrationProcessor.DifferenceType.DROP && c.from().getName().equals("old_desc"));
-        assertThat(changes).anyMatch(c -> c.from() instanceof ColumnMetadata && c.differenceType() == MigrationProcessor.DifferenceType.UPDATE && c.from().getName().equals("price"));
+        assertThat(changes).anyMatch(c -> c.from() instanceof ColumnMetadata && c.differenceType() == DifferenceProcessor.DifferenceType.RENAME && c.from().getName().equals("username") && c.to().getName().equals("login"));
+        assertThat(changes).anyMatch(c -> c.to() instanceof ColumnMetadata && c.differenceType() == DifferenceProcessor.DifferenceType.ADD && c.to().getName().equals("new_desc"));
+        assertThat(changes).anyMatch(c -> c.from() instanceof ColumnMetadata && c.differenceType() == DifferenceProcessor.DifferenceType.DROP && c.from().getName().equals("old_desc"));
+        assertThat(changes).anyMatch(c -> c.from() instanceof ColumnMetadata && c.differenceType() == DifferenceProcessor.DifferenceType.UPDATE && c.from().getName().equals("price"));
     }
 
     @Test
@@ -131,12 +126,12 @@ public class MigrationProcessorUnitTest {
         VersionDTO v2 = new VersionDTO(schemeId, 2, "tag2", stateV2, "hash2");
 
         // --- Выполнение ---
-        List<MigrationProcessor.GenericSchemaChanges<?>> changes = processor.calculateDifference(v1, v2);
+        List<DifferenceProcessor.GenericSchemaChanges<?>> changes = processor.calculateDifference(v1, v2);
 
         // --- Проверки ---
-        assertThat(changes).anyMatch(c -> c.to() instanceof IndexMetadata && c.differenceType() == MigrationProcessor.DifferenceType.ADD && c.to().getName().equals("idx_new_one"));
-        assertThat(changes).anyMatch(c -> c.from() instanceof IndexMetadata && c.differenceType() == MigrationProcessor.DifferenceType.DROP && c.from().getName().equals("idx_to_drop"));
-        assertThat(changes).anyMatch(c -> c.from() instanceof IndexMetadata && c.differenceType() == MigrationProcessor.DifferenceType.RENAME && c.from().getName().equals("idx_users_old") && c.to().getName().equals("idx_users_new"));
+        assertThat(changes).anyMatch(c -> c.to() instanceof IndexMetadata && c.differenceType() == DifferenceProcessor.DifferenceType.ADD && c.to().getName().equals("idx_new_one"));
+        assertThat(changes).anyMatch(c -> c.from() instanceof IndexMetadata && c.differenceType() == DifferenceProcessor.DifferenceType.DROP && c.from().getName().equals("idx_to_drop"));
+        assertThat(changes).anyMatch(c -> c.from() instanceof IndexMetadata && c.differenceType() == DifferenceProcessor.DifferenceType.RENAME && c.from().getName().equals("idx_users_old") && c.to().getName().equals("idx_users_new"));
     }
 
     @Test
@@ -147,7 +142,7 @@ public class MigrationProcessorUnitTest {
         VersionDTO v1 = new VersionDTO(schemaId, 1, "tag1", state, "hash1");
         VersionDTO v2 = new VersionDTO(schemaId, 1, "tag1", state, "hash1");
 
-        List<MigrationProcessor.GenericSchemaChanges<?>> changes = processor.calculateDifference(v1, v2);
+        List<DifferenceProcessor.GenericSchemaChanges<?>> changes = processor.calculateDifference(v1, v2);
 
         assertThat(changes).isEmpty();
     }
