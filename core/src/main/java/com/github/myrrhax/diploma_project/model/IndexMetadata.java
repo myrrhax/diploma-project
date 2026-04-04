@@ -21,7 +21,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class IndexMetadata implements AbstractMetadata {
+public class IndexMetadata implements AbstractMetadata<UUID> {
     @Builder.Default
     private UUID id = UUID.randomUUID();
     private UUID tableId;
@@ -67,6 +67,17 @@ public class IndexMetadata implements AbstractMetadata {
     @Override
     public MetadataType getMetadataType() {
         return MetadataType.INDEX;
+    }
+
+    @Override
+    public boolean contentEquals(AbstractMetadata<UUID> that) {
+        if (that instanceof IndexMetadata otherIdx) {
+            return MetadataTypeUtils.isFullEquals(columnIds, otherIdx.columnIds)
+                    && unique == otherIdx.unique
+                    && indexType == otherIdx.indexType;
+        }
+
+        return false;
     }
 
     public enum IndexType {

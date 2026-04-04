@@ -22,7 +22,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ColumnMetadata implements Cloneable, AbstractMetadata {
+public class ColumnMetadata implements Cloneable, AbstractMetadata<UUID> {
     @Setter
     @Builder.Default
     private UUID id = UUID.randomUUID();
@@ -251,5 +251,22 @@ public class ColumnMetadata implements Cloneable, AbstractMetadata {
         JSON,
         BOOLEAN,
         DATE
+    }
+
+    @Override
+    public boolean contentEquals(AbstractMetadata<UUID> that) {
+        if (that instanceof ColumnMetadata otherCol) {
+            return columnType == otherCol.columnType
+                    && Objects.equals(defaultValue, otherCol.defaultValue)
+                    && Objects.equals(precision, otherCol.precision)
+                    && Objects.equals(scale, otherCol.scale)
+                    && Objects.equals(length, otherCol.length)
+                    && MetadataTypeUtils.isFullEquals(constraints, otherCol.constraints)
+                    && Objects.equals(autoIncrement, otherCol.autoIncrement)
+                    && Objects.equals(min, otherCol.min)
+                    && Objects.equals(max, otherCol.max);
+        }
+
+        return false;
     }
 }

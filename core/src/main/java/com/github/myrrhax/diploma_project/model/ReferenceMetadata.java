@@ -21,7 +21,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReferenceMetadata implements AbstractMetadata {
+public class ReferenceMetadata implements AbstractMetadata<ReferenceMetadata.ReferenceKey> {
     private ReferenceKey key;
     private ReferenceType type;
     private OnDeleteAction onDeleteAction;
@@ -218,8 +218,24 @@ public class ReferenceMetadata implements AbstractMetadata {
     }
 
     @Override
+    public ReferenceKey getId() {
+        return key;
+    }
+
+    @Override
     public MetadataType getMetadataType() {
         return MetadataType.REFERENCE;
+    }
+
+    @Override
+    public boolean contentEquals(AbstractMetadata<ReferenceKey> that) {
+        if (that instanceof ReferenceMetadata otherRef) {
+            return type == otherRef.type
+                    && onUpdateAction == otherRef.onUpdateAction
+                    && onDeleteAction == otherRef.onDeleteAction;
+        }
+
+        return false;
     }
 
     public enum ReferenceType {

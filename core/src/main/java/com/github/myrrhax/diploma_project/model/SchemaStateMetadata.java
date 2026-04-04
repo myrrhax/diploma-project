@@ -244,4 +244,15 @@ public class SchemaStateMetadata implements Cloneable {
 
         linkedColumns.addAll(Arrays.asList(columns));
     }
+
+    public boolean containsReference(String name) {
+        return references.values().stream()
+                .anyMatch(ref -> ref.getName().equals(name));
+    }
+
+    public Optional<ReferenceMetadata> getReference(String refName) {
+        return references.values().stream()
+                .filter(ref -> ref.getName().equals(refName))
+                .findFirst();
+    }
 }

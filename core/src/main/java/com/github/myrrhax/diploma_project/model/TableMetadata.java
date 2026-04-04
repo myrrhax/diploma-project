@@ -25,7 +25,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TableMetadata implements Cloneable, AbstractMetadata {
+public class TableMetadata implements Cloneable, AbstractMetadata<UUID> {
     @Setter
     @Builder.Default
     private UUID id = UUID.randomUUID();
@@ -211,6 +211,16 @@ public class TableMetadata implements Cloneable, AbstractMetadata {
         return Optional.ofNullable(indexes.get(indexId));
     }
 
+    public Optional<IndexMetadata> getIndex(String name) {
+        return indexes.values().stream()
+                .filter(idx -> idx.getName().equals(name))
+                .findFirst();
+    }
+
+    public boolean containsIndex(UUID id) {
+        return indexes.containsKey(id);
+    }
+
     public boolean containsIndex(String name) {
         return indexes.values().stream()
                 .anyMatch(idx -> Objects.equals(name, idx.getName()));
@@ -223,5 +233,13 @@ public class TableMetadata implements Cloneable, AbstractMetadata {
     @Override
     public MetadataType getMetadataType() {
         return MetadataType.TABLE;
+    }
+
+    @Override
+    public boolean contentEquals(AbstractMetadata<UUID> that) {
+        if (that instanceof TableMetadata otherTable) {
+            return MetadataTypeUtils.isFullEquals(this.primaryKeyParts, otherTable.primaryKeyParts);
+        }
+        return false;
     }
 }
