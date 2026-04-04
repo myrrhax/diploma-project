@@ -140,6 +140,12 @@ public abstract class FullScriptProcessor {
                         .collect(Collectors.toSet()))
                 .schemaState(metadata)
                 .build();
+
+        for (ColumnMetadata column : concatMtmCols) {
+            column.setTable(mtmTable);
+            column.setTableId(mtmTable.getId());
+            column.setSchema(metadata);
+        }
         metadata.addTable(mtmTable);
 
         ReferenceMetadata ftmRef = buildRef(mtmTable, fromTable, mtmFrom, fromCols, metadata);

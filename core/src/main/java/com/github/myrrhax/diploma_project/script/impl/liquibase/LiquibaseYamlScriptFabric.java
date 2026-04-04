@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Component("liquibaseFullFabric")
 public class LiquibaseYamlScriptFabric extends ScriptFabric {
@@ -108,9 +109,6 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
                 || column.getMax() != null
                 || !column.getConstraints().isEmpty()) {
             appendLine(scriptBuilder, "constraints:", COLUMN_ELEMENT_PADDING_LEVEL);
-            if (column.isPkPart()) {
-                appendLine(scriptBuilder, "primaryKey: ", "true", COLUMN_CONSTRAINT_LEVEL);
-            }
             if (!column.getConstraints().isEmpty()) {
                 addConstraintsDefinition(column, scriptBuilder);
             }
@@ -147,6 +145,18 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
     @Override
     protected void appendEndTablePart(StringBuilder scriptBuilder) {
         scriptBuilder.append('\n');
+    }
+
+    @Override
+    public void appendPrimaryKeyDefinition(StringBuilder sqlBuilder, TableMetadata table) {
+        appendLine(sqlBuilder, "- addPrimaryKey:", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(sqlBuilder, "tableName: ", table.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        String columnsConcat = table.getPrimaryKeyParts().stream()
+                                    .map(id -> table.getColumn(id).orElseThrow().getName())
+                                    .collect(Collectors.joining(", "));
+
+        appendLine(sqlBuilder, "columnNames: ", columnsConcat, TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(sqlBuilder, "constraintName: ", "pk_" + table.getName().toLowerCase(), TABLE_ELEMENT_PADDING_LEVEL);
     }
 
     @Override

@@ -52,6 +52,7 @@ public abstract class ScriptFabric {
         scriptBuilder.append(indexesBuilder);
     }
 
+    public abstract void appendPrimaryKeyDefinition(StringBuilder sqlBuilder, TableMetadata table);
     public abstract void appendReferenceDefinition(StringBuilder scriptBuilder,
                                                    String refName,
                                                    TableMetadata baseTable,

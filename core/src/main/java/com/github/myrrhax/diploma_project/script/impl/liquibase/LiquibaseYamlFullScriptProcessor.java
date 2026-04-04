@@ -19,6 +19,8 @@ public class LiquibaseYamlFullScriptProcessor extends FullScriptProcessor {
 
     @Override
     protected void onEndTableDefinition(StringBuilder sqlBuilder, TableMetadata table) {
+        ScriptFabric scriptFabric = getFabric();
+        scriptFabric.appendPrimaryKeyDefinition(sqlBuilder, table);
     }
 
     @Override

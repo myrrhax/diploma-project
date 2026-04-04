@@ -91,7 +91,10 @@ public abstract class AbstractSqlScriptFabric extends ScriptFabric {
     }
 
     public void appendPrimaryKeyDefinition(StringBuilder sqlBuilder, TableMetadata table) {
-        sqlBuilder.append("\tPRIMARY KEY (");
+        sqlBuilder.append("\tCONSTRAINT ")
+                .append("pk_")
+                .append(table.getName().toLowerCase());
+        sqlBuilder.append(" PRIMARY KEY (");
 
         List<UUID> primaryKeyParts = new ArrayList<>(table.getPrimaryKeyParts());
         for (int i = 0; i < primaryKeyParts.size(); i++) {
