@@ -86,10 +86,10 @@ public class MySQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
             indexBuilder.append("UNIQUE ");
         }
         indexBuilder.append("INDEX ");
-        if (index.getIndexName() == null) {
+        if (index.getName() == null) {
             index.computeAndSetName();
         }
-        indexBuilder.append(index.getIndexName());
+        indexBuilder.append(index.getName());
         indexBuilder.append(" ON ");
         indexBuilder.append(tableMetadata.getName());
 

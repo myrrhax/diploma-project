@@ -215,6 +215,10 @@ public class SchemaStateMetadata implements Cloneable {
                 .anyMatch(name -> name.equals(tableName));
     }
 
+    public boolean containsTable(UUID tableId) {
+        return tables.containsKey(tableId);
+    }
+
     public SchemaStateMetadata clone() {
         return SchemaStateMetadata.builder()
                 .schemaId(this.schemaId)

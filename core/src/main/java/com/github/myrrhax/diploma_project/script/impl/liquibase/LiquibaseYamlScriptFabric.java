@@ -3,7 +3,6 @@ package com.github.myrrhax.diploma_project.script.impl.liquibase;
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
-import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.script.ScriptFabric;
@@ -63,7 +62,7 @@ public class LiquibaseYamlScriptFabric implements ScriptFabric {
 
 
     @Override
-    public void appendHeader(StringBuilder scriptBuilder, SchemaStateMetadata schema, String name) {
+    public void appendHeader(StringBuilder scriptBuilder, String name) {
         appendLine(scriptBuilder, "databaseChangeLog:", CHANGELOG_PADDING_LEVEL);
         appendLine(scriptBuilder, "- changeSet:", CHANGESET_PADDING_LEVEL);
         appendLine(scriptBuilder, "id: ", name, HEADER_PADDING_LEVEL);
@@ -124,7 +123,7 @@ public class LiquibaseYamlScriptFabric implements ScriptFabric {
     @Override
     public void appendIndexDefinition(StringBuilder indexBuilder, IndexMetadata index) {
         appendLine(indexBuilder, "- createIndex:", INDEX_DEFINITION_PADDING_LEVEL);
-        if (index.getIndexName() == null) {
+        if (index.getName() == null) {
             index.computeAndSetName();
         }
 
@@ -135,7 +134,7 @@ public class LiquibaseYamlScriptFabric implements ScriptFabric {
                 ).getName())
                 .toArray(String[]::new);
 
-        appendLine(indexBuilder, "indexName: ", index.getIndexName(), INDEX_ELEMENT_PADDING_LEVEL);
+        appendLine(indexBuilder, "indexName: ", index.getName(), INDEX_ELEMENT_PADDING_LEVEL);
         appendLine(indexBuilder, "tableName: ", table.getName(), INDEX_ELEMENT_PADDING_LEVEL);
         appendLine(indexBuilder, "columns:", INDEX_ELEMENT_PADDING_LEVEL);
 

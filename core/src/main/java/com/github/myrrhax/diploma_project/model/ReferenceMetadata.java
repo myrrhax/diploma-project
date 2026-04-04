@@ -2,6 +2,7 @@ package com.github.myrrhax.diploma_project.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
+import com.github.myrrhax.diploma_project.model.enums.MetadataType;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import lombok.AllArgsConstructor;
@@ -20,7 +21,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReferenceMetadata {
+public class ReferenceMetadata implements AbstractMetadata {
     private ReferenceKey key;
     private ReferenceType type;
     private OnDeleteAction onDeleteAction;
@@ -214,6 +215,11 @@ public class ReferenceMetadata {
         }
 
         return newReference.build();
+    }
+
+    @Override
+    public MetadataType getMetadataType() {
+        return MetadataType.REFERENCE;
     }
 
     public enum ReferenceType {

@@ -48,7 +48,7 @@ public abstract class FullScriptProcessor {
         StringBuilder indexesBuilder = new StringBuilder();
 
         ScriptFabric fabric = getFabric();
-        fabric.appendHeader(sqlBuilder, schema, name);
+        fabric.appendHeader(sqlBuilder, name);
 
         for (TableMetadata table : tablesToProcess) {
             fabric.appendTableDefinition(sqlBuilder, table);

@@ -2,6 +2,7 @@ package com.github.myrrhax.diploma_project.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.myrrhax.diploma_project.model.enums.ErrorMessageKey;
+import com.github.myrrhax.diploma_project.model.enums.MetadataType;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import lombok.AllArgsConstructor;
@@ -21,7 +22,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ColumnMetadata implements Cloneable {
+public class ColumnMetadata implements Cloneable, AbstractMetadata {
     @Setter
     @Builder.Default
     private UUID id = UUID.randomUUID();
@@ -220,6 +221,11 @@ public class ColumnMetadata implements Cloneable {
 
         this.min = targetMin;
         this.max = targetMax;
+    }
+
+    @Override
+    public MetadataType getMetadataType() {
+        return MetadataType.COLUMN;
     }
 
     public enum ConstraintType {

@@ -2,6 +2,7 @@ package com.github.myrrhax.diploma_project.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.myrrhax.diploma_project.command.SchemaDifference;
+import com.github.myrrhax.diploma_project.model.enums.MetadataType;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -24,7 +25,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TableMetadata implements Cloneable {
+public class TableMetadata implements Cloneable, AbstractMetadata {
     @Setter
     @Builder.Default
     private UUID id = UUID.randomUUID();
@@ -212,6 +213,15 @@ public class TableMetadata implements Cloneable {
 
     public boolean containsIndex(String name) {
         return indexes.values().stream()
-                .anyMatch(idx -> Objects.equals(name, idx.getIndexName()));
+                .anyMatch(idx -> Objects.equals(name, idx.getName()));
+    }
+
+    public boolean containsColumn(UUID id) {
+        return this.columns.containsKey(id);
+    }
+
+    @Override
+    public MetadataType getMetadataType() {
+        return MetadataType.TABLE;
     }
 }
