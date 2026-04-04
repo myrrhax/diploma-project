@@ -5,6 +5,7 @@ import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.util.ViewMarkers;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
@@ -13,6 +14,7 @@ import java.util.UUID;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@NoArgsConstructor
 public class VersionDTO implements Serializable {
         @JsonView(ViewMarkers.Basic.class)
         UUID schemeId;
@@ -32,4 +34,12 @@ public class VersionDTO implements Serializable {
         LocalDateTime versionedAt;
         @JsonView(ViewMarkers.Basic.class)
         long parentId;
+
+        public VersionDTO(UUID schemeId, long versionId, String tag, SchemaStateMetadata currentState, String hashSum) {
+                this.schemeId = schemeId;
+                this.versionId = versionId;
+                this.tag = tag;
+                this.currentState = currentState;
+                this.hashSum = hashSum;
+        }
 }

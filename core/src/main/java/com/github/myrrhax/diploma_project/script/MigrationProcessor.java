@@ -20,7 +20,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract class MigrationProcessor {
-    protected List<GenericSchemaChanges<?>> calculateDifference(VersionDTO from, VersionDTO to) {
+    public List<GenericSchemaChanges<?>> calculateDifference(VersionDTO from, VersionDTO to) {
         List<GenericSchemaChanges<?>> changes = new ArrayList<>();
 
         if (from == to || Objects.equals(from.getHashSum(), to.getHashSum())) {
@@ -132,13 +132,13 @@ public abstract class MigrationProcessor {
         return elementMapping;
     }
 
-    protected record GenericSchemaChanges<T extends AbstractMetadata<?>>(
+    public record GenericSchemaChanges<T extends AbstractMetadata<?>>(
         T from,
         T to,
 
         DifferenceType differenceType
     ) {
-        protected GenericSchemaChanges {
+        public GenericSchemaChanges {
             Objects.requireNonNull(differenceType);
             if (differenceType != DifferenceType.ADD) {
                 Objects.requireNonNull(from);
@@ -149,7 +149,7 @@ public abstract class MigrationProcessor {
         }
     }
 
-    protected enum DifferenceType {
+    public enum DifferenceType {
         ADD,
         DROP,
         RENAME,
