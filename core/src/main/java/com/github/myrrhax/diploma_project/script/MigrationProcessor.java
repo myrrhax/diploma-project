@@ -67,6 +67,22 @@ public abstract class MigrationProcessor {
         }
     }
 
+    private void renameTable(TableMetadata fromTable, TableMetadata toTable, StringBuilder scriptBuilder) {
+
+    }
+
+    private void updateTable(TableMetadata fromTable, TableMetadata toTable, StringBuilder scriptBuilder) {
+
+    }
+
+    private void dropTable(TableMetadata fromTable, StringBuilder scriptBuilder) {
+
+    }
+
+    private void addTable(TableMetadata toTable, StringBuilder scriptBuilder) {
+
+    }
+
     protected abstract ScriptFabric getFabric();
     protected abstract void onEndTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
 }

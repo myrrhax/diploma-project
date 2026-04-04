@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Component("liquibaseFullFabric")
-public class LiquibaseYamlScriptFabric implements ScriptFabric {
+public class LiquibaseYamlScriptFabric extends ScriptFabric {
     private static final int CHANGELOG_PADDING_LEVEL = 0;
     public static final int CHANGESET_PADDING_LEVEL = 1;
     public static final int HEADER_PADDING_LEVEL = 2;

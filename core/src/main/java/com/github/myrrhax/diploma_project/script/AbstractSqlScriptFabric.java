@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public abstract class AbstractSqlScriptFabric implements ScriptFabric {
+public abstract class AbstractSqlScriptFabric extends ScriptFabric {
     protected static final String FK_TEMPLATE =
             """
             ALTER TABLE %s
