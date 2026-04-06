@@ -136,4 +136,24 @@ public class MySQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
         indexBuilder.append(indexMapping.get(index.getIndexType()));
         indexBuilder.append(";");
     }
+
+    @Override
+    public void appendDropIndexDefinition(StringBuilder scriptBuilder, IndexMetadata idx) {
+        scriptBuilder.append("ALTER TABLE ")
+                .append(idx.getTable().getName())
+                .append(" DROP INDEX ")
+                .append(idx.getName())
+                .append(";\n");
+    }
+
+    @Override
+    public void appendRenameIndexDefinition(StringBuilder scriptBuilder, IndexMetadata idx, IndexMetadata toIdx) {
+        scriptBuilder.append("ALTER TABLE ")
+                .append(idx.getTable().getName())
+                .append(" RENAME INDEX ")
+                .append(idx.getName())
+                .append(" TO ")
+                .append(toIdx.getName())
+                .append(";\n");
+    }
 }

@@ -1,6 +1,7 @@
 package com.github.myrrhax.diploma_project.script;
 
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
+import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
@@ -32,7 +33,8 @@ public abstract class AbstractScriptProcessor {
         Collection<TableMetadata> tables = preparedSchema.getTables().values();
         Collection<ReferenceMetadata> references = preparedSchema.getReferences().values();
         for (TableMetadata table : tables) {
-            addTable(table, scriptBuilder);
+            fabric.addTable(scriptBuilder, table, (builder) ->
+                    onEndTableDefinition(builder, table));
         }
 
         for (ReferenceMetadata ref : references) {
@@ -248,15 +250,26 @@ public abstract class AbstractScriptProcessor {
     }
 
     private void applyIndexChange(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
+        IndexMetadata fromIdx = change.from() != null ? (IndexMetadata) change.from() : null;
+        IndexMetadata toIdx = change.to() != null ? (IndexMetadata) change.to() : null;
 
+        ScriptFabric fabric = getFabric();
+        switch (change.differenceType()) {
+            case ADD -> fabric.appendIndexDefinition(scriptBuilder, toIdx);
+            case DROP -> fabric.appendDropIndexDefinition(scriptBuilder, fromIdx);
+            case RENAME -> fabric.appendRenameIndexDefinition(scriptBuilder, fromIdx, toIdx);
+            default -> throw new IllegalStateException("Unexpected difference type for reference: "
+                    + change.differenceType());
+        }
     }
 
     private void applyReferenceChange(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
         ReferenceMetadata ref = (ReferenceMetadata) change.getOne();
+        ScriptFabric fabric = getFabric();
 
         switch (change.differenceType()) {
             case ADD -> addReference(ref, scriptBuilder);
-            case DROP -> dropReference(ref, scriptBuilder);
+            case DROP -> fabric.appendDropFK(ref, scriptBuilder);
             default -> throw new IllegalStateException("Unexpected difference type for reference: "
                     + change.differenceType());
         }
@@ -265,41 +278,18 @@ public abstract class AbstractScriptProcessor {
     private void applyTableChange(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
         TableMetadata fromTable = change.from() != null ? (TableMetadata) change.from() : null;
         TableMetadata toTable = change.to() != null ? (TableMetadata) change.to() : null;
+        ScriptFabric fabric = getFabric();
 
         switch (change.differenceType()) {
-            case ADD -> addTable(toTable, scriptBuilder);
-            case DROP -> dropTable(fromTable, scriptBuilder);
-            case UPDATE -> updateTable(toTable, scriptBuilder);
-            case RENAME -> renameTable(fromTable, toTable, scriptBuilder);
+            case ADD -> fabric.addTable(scriptBuilder, toTable, (builder) ->
+                    onEndTableDefinition(builder, toTable));
+            case DROP -> fabric.appendDropTable(scriptBuilder, fromTable);
+            case UPDATE -> {
+                fabric.appendDropPkConstraint(scriptBuilder, toTable);
+                fabric.appendAndPkConstraint(scriptBuilder, toTable);
+            }
+            case RENAME -> fabric.appendRenameTable(scriptBuilder, fromTable, toTable);
         }
-    }
-
-    private void dropReference(ReferenceMetadata ref, StringBuilder scriptBuilder) {
-        ScriptFabric fabric = getFabric();
-        fabric.appendDropFK(ref, scriptBuilder);
-    }
-
-    private void renameTable(TableMetadata fromTable, TableMetadata toTable, StringBuilder scriptBuilder) {
-        ScriptFabric fabric = getFabric();
-        fabric.appendRenameTable(scriptBuilder, fromTable, toTable);
-    }
-
-    private void updateTable(TableMetadata toTable, StringBuilder scriptBuilder) {
-        ScriptFabric fabric = getFabric();
-        fabric.appendDropPkConstraint(scriptBuilder, toTable);
-        fabric.appendAndPkConstraint(scriptBuilder, toTable);
-    }
-
-    private void dropTable(TableMetadata fromTable, StringBuilder scriptBuilder) {
-        ScriptFabric fabric = getFabric();
-        fabric.appendDropTable(scriptBuilder, fromTable);
-    }
-
-    private void addTable(TableMetadata toTable, StringBuilder scriptBuilder) {
-        ScriptFabric fabric = getFabric();
-        fabric.addTable(scriptBuilder, toTable, (builder) -> {
-            onEndTableDefinition(builder, toTable);
-        });
     }
 
     public abstract boolean supports(ScriptType type);

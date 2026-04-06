@@ -141,6 +141,21 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
     }
 
     @Override
+    public void appendDropIndexDefinition(StringBuilder scriptBuilder, IndexMetadata idx) {
+        appendLine(scriptBuilder, "- dropIndex:", INDEX_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", idx.getTable().getName(), INDEX_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "indexName: ", idx.getName(), INDEX_ELEMENT_PADDING_LEVEL);
+    }
+
+    @Override
+    public void appendRenameIndexDefinition(StringBuilder scriptBuilder, IndexMetadata idx, IndexMetadata toIdx) {
+        appendLine(scriptBuilder, "- renameIndex:", INDEX_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", idx.getTable().getName(), INDEX_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "oldIndexName: ", idx.getName(), INDEX_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "newIndexName: ", toIdx.getName(), INDEX_ELEMENT_PADDING_LEVEL);
+    }
+
+    @Override
     protected void appendEndTablePart(StringBuilder scriptBuilder) {
         scriptBuilder.append('\n');
     }

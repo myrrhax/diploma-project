@@ -67,11 +67,14 @@ public abstract class ScriptFabric {
     public abstract void appendDropPkConstraint(StringBuilder scriptBuilder, TableMetadata toTable);
     public abstract void appendAndPkConstraint(StringBuilder scriptBuilder, TableMetadata toTable);
     public abstract void appendDropFK(ReferenceMetadata ref, StringBuilder scriptBuilder);
+    public abstract void appendIndexDefinition(StringBuilder indexBuilder, IndexMetadata index);
+    public abstract void appendDropIndexDefinition(StringBuilder scriptBuilder, IndexMetadata idx);
+    public abstract void appendRenameIndexDefinition(StringBuilder scriptBuilder, IndexMetadata idx, IndexMetadata toIdx);
 
     protected abstract void appendTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
     protected abstract void appendColumnDefinition(StringBuilder scriptBuilder, ColumnMetadata column);
-    protected abstract void appendIndexDefinition(StringBuilder indexBuilder, IndexMetadata index);
     protected abstract void appendEndTablePart(StringBuilder scriptBuilder);
     protected abstract Map<ColumnMetadata.ColumnType, String> getDefinitions();
     protected abstract String getDecimalDefinition(ColumnMetadata column);
+
 }

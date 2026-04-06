@@ -130,4 +130,20 @@ public class PostgresScriptFabric extends AbstractSqlScriptFabric {
             default -> throw new RuntimeException("Unsupported autoincrement type: " + type);
         };
     }
+
+    @Override
+    public void appendDropIndexDefinition(StringBuilder scriptBuilder, IndexMetadata idx) {
+        scriptBuilder.append("DROP INDEX ")
+                .append(idx.getName())
+                .append(";\n");
+    }
+
+    @Override
+    public void appendRenameIndexDefinition(StringBuilder scriptBuilder, IndexMetadata idx, IndexMetadata toIdx) {
+        scriptBuilder.append("ALTER INDEX ")
+                .append(idx.getName())
+                .append(" RENAME TO ")
+                .append(toIdx.getName())
+                .append(";\n");
+    }
 }

@@ -160,7 +160,8 @@ public class DifferenceProcessor {
             MetadataType type = change.getType();
             DifferenceType diffType = change.differenceType();
 
-            if (type == MetadataType.REFERENCE && diffType == DifferenceType.UPDATE) {
+            if (((type == MetadataType.REFERENCE || type == MetadataType.INDEX) && diffType == DifferenceType.UPDATE)
+                    || (type == MetadataType.REFERENCE && diffType == DifferenceType.RENAME)) {
                 processedChanges.add(new GenericSchemaChanges<>(change.from(), null, DifferenceType.DROP));
                 processedChanges.add(new GenericSchemaChanges<>(null, change.to(), DifferenceType.ADD));
             } else {

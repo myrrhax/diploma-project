@@ -10,6 +10,8 @@ import com.github.myrrhax.diploma_project.script.AbstractScriptProcessor;
 import com.github.myrrhax.diploma_project.script.DifferenceProcessor;
 import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptFabric;
 import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptProcessor;
+import com.github.myrrhax.diploma_project.script.impl.postgres.PostgresScriptFabric;
+import com.github.myrrhax.diploma_project.script.impl.postgres.PostgresScriptProcessor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,10 +22,10 @@ import java.util.UUID;
 @ExtendWith(MockitoExtension.class)
 public class MigrationProcessorTest {
 
-    static AbstractScriptProcessor migrationProcessor = new LiquibaseYamlScriptProcessor(new DifferenceProcessor());
+    static AbstractScriptProcessor migrationProcessor = new PostgresScriptProcessor(new DifferenceProcessor());
 
     static {
-        ((LiquibaseYamlScriptProcessor)migrationProcessor).setScriptFabric(new LiquibaseYamlScriptFabric());
+        ((PostgresScriptProcessor)migrationProcessor).setScriptFabric(new PostgresScriptFabric());
     }
 
     @Test
@@ -174,13 +176,16 @@ public class MigrationProcessorTest {
                 .name("orders") // ADD таблицы
                 .build();
 
-        newOrdersTable.addColumn(ColumnMetadata.builder()
+        ColumnMetadata orderId = ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .schema(stateV2)
                 .table(newOrdersTable)
                 .name("id")
                 .columnType(ColumnMetadata.ColumnType.UUID)
-                .build());
+                .pkPart(true)
+                .build();
+        newOrdersTable.addColumn(orderId);
+        newOrdersTable.addPkPart(orderId.getId());
 
         stateV2.addTable(newUsersTable);
         stateV2.addTable(newProductsTable);
@@ -222,10 +227,12 @@ public class MigrationProcessorTest {
                 IndexMetadata.builder()
                         .id(idxRenameId)
                         .name("idx_users_old")
+                        .table(oldTable)
                         .build(),
                 IndexMetadata.builder()
                         .id(idxDropId)
                         .name("idx_to_drop")
+                        .table(oldTable)
                         .build()
         );
 
@@ -252,10 +259,12 @@ public class MigrationProcessorTest {
                 IndexMetadata.builder()
                         .id(idxRenameId)
                         .name("idx_users_new") // RENAME
+                        .table(newTable)
                         .build(),
                 IndexMetadata.builder()
                         .id(idxAddId)
                         .name("idx_new_one") // ADD
+                        .table(newTable)
                         .build()
         );
 
@@ -350,7 +359,6 @@ public class MigrationProcessorTest {
         VersionDTO v2 = new VersionDTO(schemaId, 2, "tag2", stateV2, "hash2");
 
         String script = migrationProcessor.processMigration(v1, v2);
-        System.out.println("--- Скрипт изменения первичного ключа ---");
         System.out.println(script);
     }
 
