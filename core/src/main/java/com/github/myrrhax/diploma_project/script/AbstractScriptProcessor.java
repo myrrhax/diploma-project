@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
@@ -26,78 +27,84 @@ public abstract class AbstractScriptProcessor {
         var clone = schema.clone();
         List<ReferenceMetadata> refsToProcess = new ArrayList<>();
         List<TableMetadata> tablesToProcess = new ArrayList<>(clone.getTables().values());
-
-        List<ReferenceMetadata> references = schema.getReferences().values()
-                .stream()
-                .peek(refsToProcess::add)
-                .toList();
-
-        // Обработка M-M связей
-        references.stream()
-                .filter(ref -> ref.getType() == ReferenceMetadata.ReferenceType.MANY_TO_MANY)
-                .forEach(mtmRef -> {
-                    refsToProcess.remove(mtmRef);
-                    MtmTableProcessingResult res = buildTableAndRefsFromMtmRef(schema, mtmRef);
-                    tablesToProcess.add(res.mtmTable());
-                    refsToProcess.addAll(Arrays.asList(res.betweenRefs()));
-                });
-
-        // Разворот 1-M связей
-        references.stream()
-                .filter(ref -> ref.getType() == ReferenceMetadata.ReferenceType.ONE_TO_MANY)
-                .forEach(otmRef -> {
-                    refsToProcess.remove(otmRef);
-                    refsToProcess.add(rotateOtmReference(otmRef, clone));
-                });
-
+        prepareData(schema, refsToProcess, tablesToProcess, clone);
         StringBuilder sqlBuilder = new StringBuilder();
 
         ScriptFabric fabric = getFabric();
         fabric.appendHeader(sqlBuilder, name);
 
         for (TableMetadata table : tablesToProcess) {
-            fabric.addTable(sqlBuilder, table, (builder) -> {
-                onEndTableDefinition(builder, table);
-            });
+            fabric.addTable(sqlBuilder, table, (builder) -> onEndTableDefinition(builder, table));
         }
 
         for (ReferenceMetadata ref : refsToProcess) {
             if (ref.getName() == null) {
                 ref.computeAndSetName();
             }
-            TableMetadata baseTable = tablesToProcess.stream()
-                    .filter(table -> table.getId().equals(ref.getKey().getFromTableId()))
-                    .findFirst()
-                    .orElseThrow(() -> new ApplicationException("error.table.notfound"));
-
-            TableMetadata referencedTable = tablesToProcess.stream()
-                    .filter(table -> table.getId().equals(ref.getKey().getToTableId()))
-                    .findFirst()
-                    .orElseThrow(() -> new ApplicationException("error.table.notfound"));
-
-            String[] baseColumnNames = Arrays.stream(ref.getKey().getFromColumns())
-                    .map(colId -> baseTable.getColumn(colId)
-                            .map(ColumnMetadata::getName)
-                            .orElseThrow(() -> new ApplicationException("error.column.notfound")))
-                    .toArray(String[]::new);
-            String[] referencedColumnNames = Arrays.stream(ref.getKey().getToColumns())
-                    .map(colId -> referencedTable.getColumn(colId)
-                            .map(ColumnMetadata::getName)
-                            .orElseThrow(() -> new ApplicationException("error.column.notfound")))
-                    .toArray(String[]::new);
-
-            fabric.appendReferenceDefinition(sqlBuilder,
-                    ref.getName(),
-                    baseTable,
-                    referencedTable,
-                    baseColumnNames,
-                    referencedColumnNames,
-                    ref.getOnDeleteAction(),
-                    ref.getOnUpdateAction());
-            sqlBuilder.append('\n');
+            addReference(ref, tablesToProcess, fabric, sqlBuilder);
         }
 
         return sqlBuilder.toString();
+    }
+
+    private static void addReference(ReferenceMetadata ref, List<TableMetadata> tablesToProcess, ScriptFabric fabric, StringBuilder sqlBuilder) {
+        TableMetadata baseTable = tablesToProcess.stream()
+                .filter(table -> table.getId().equals(ref.getKey().getFromTableId()))
+                .findFirst()
+                .orElseThrow(() -> new ApplicationException("error.table.notfound"));
+
+        TableMetadata referencedTable = tablesToProcess.stream()
+                .filter(table -> table.getId().equals(ref.getKey().getToTableId()))
+                .findFirst()
+                .orElseThrow(() -> new ApplicationException("error.table.notfound"));
+
+        String[] baseColumnNames = Arrays.stream(ref.getKey().getFromColumns())
+                .map(colId -> baseTable.getColumn(colId)
+                        .map(ColumnMetadata::getName)
+                        .orElseThrow(() -> new ApplicationException("error.column.notfound")))
+                .toArray(String[]::new);
+        String[] referencedColumnNames = Arrays.stream(ref.getKey().getToColumns())
+                .map(colId -> referencedTable.getColumn(colId)
+                        .map(ColumnMetadata::getName)
+                        .orElseThrow(() -> new ApplicationException("error.column.notfound")))
+                .toArray(String[]::new);
+
+        fabric.appendReferenceDefinition(sqlBuilder,
+                ref.getName(),
+                baseTable,
+                referencedTable,
+                baseColumnNames,
+                referencedColumnNames,
+                ref.getOnDeleteAction(),
+                ref.getOnUpdateAction());
+    }
+
+    private void prepareData(SchemaStateMetadata schema,
+                             List<ReferenceMetadata> refsToProcess,
+                             List<TableMetadata> tablesToProcess,
+                             SchemaStateMetadata clone) {
+        Collection<ReferenceMetadata> references = schema.getReferences().values();
+        refsToProcess.addAll(references);
+
+        // Обработка M-M связей
+        for (ReferenceMetadata ref : references) {
+            if (ref.getType() != ReferenceMetadata.ReferenceType.MANY_TO_MANY) {
+                continue;
+            }
+            refsToProcess.remove(ref);
+            MtmTableProcessingResult res = buildTableAndRefsFromMtmRef(clone, ref);
+            tablesToProcess.add(res.mtmTable());
+            refsToProcess.addAll(Arrays.asList(res.betweenRefs()));
+        }
+
+        // Разворот 1-M связей
+        for (ReferenceMetadata ref : references) {
+            if (ref.getType() != ReferenceMetadata.ReferenceType.ONE_TO_MANY) {
+                continue;
+            }
+            refsToProcess.remove(ref);
+            refsToProcess.add(rotateOtmReference(ref, clone));
+        }
     }
 
     public String processMigration(VersionDTO from, VersionDTO to) {
