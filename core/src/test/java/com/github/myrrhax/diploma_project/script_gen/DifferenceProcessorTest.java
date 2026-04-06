@@ -82,7 +82,7 @@ public class DifferenceProcessorTest {
         VersionDTO v2 = new VersionDTO(schemaId, 2, "tag2", stateV2, "hash2");
 
         // --- Выполнение ---
-        List<DifferenceProcessor.GenericSchemaChanges<?>> changes = processor.calculateDifference(v1, v2);
+        List<DifferenceProcessor.GenericSchemaChanges<?>> changes = processor.calculateDifference(stateV1, stateV2);
 
         // --- Проверки ---
         assertThat(changes).anyMatch(c -> c.to() instanceof TableMetadata && c.differenceType() == DifferenceProcessor.DifferenceType.ADD && c.to().getName().equals("orders"));
@@ -124,7 +124,7 @@ public class DifferenceProcessorTest {
         VersionDTO v2 = new VersionDTO(schemeId, 2, "tag2", stateV2, "hash2");
 
         // --- Выполнение ---
-        List<DifferenceProcessor.GenericSchemaChanges<?>> changes = processor.calculateDifference(v1, v2);
+        List<DifferenceProcessor.GenericSchemaChanges<?>> changes = processor.calculateDifference(stateV1, stateV2);
 
         // --- Проверки ---
         assertThat(changes).anyMatch(c -> c.to() instanceof IndexMetadata && c.differenceType() == DifferenceProcessor.DifferenceType.ADD && c.to().getName().equals("idx_new_one"));
@@ -140,7 +140,7 @@ public class DifferenceProcessorTest {
         VersionDTO v1 = new VersionDTO(schemaId, 1, "tag1", state, "hash1");
         VersionDTO v2 = new VersionDTO(schemaId, 1, "tag1", state, "hash1");
 
-        List<DifferenceProcessor.GenericSchemaChanges<?>> changes = processor.calculateDifference(v1, v2);
+        List<DifferenceProcessor.GenericSchemaChanges<?>> changes = processor.calculateDifference(state, state);
 
         assertThat(changes).isEmpty();
     }

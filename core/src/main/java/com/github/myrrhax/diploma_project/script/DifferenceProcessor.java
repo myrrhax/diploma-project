@@ -6,7 +6,6 @@ import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
-import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.model.enums.MetadataType;
 import org.antlr.v4.runtime.misc.Pair;
 import org.springframework.stereotype.Component;
@@ -61,15 +60,9 @@ public class DifferenceProcessor {
             entry(new Pair<>(MetadataType.COLUMN, DifferenceType.ADD), ADD_COLUMN_PRIORITY)
     );
 
-    public List<GenericSchemaChanges<?>> calculateDifference(VersionDTO from, VersionDTO to) {
+    public List<GenericSchemaChanges<?>> calculateDifference(SchemaStateMetadata initialState,
+                                                             SchemaStateMetadata finalState) {
         List<GenericSchemaChanges<?>> changes = new ArrayList<>();
-
-        if (from == to || Objects.equals(from.getHashSum(), to.getHashSum())) {
-            return changes;
-        }
-
-        SchemaStateMetadata initialState = from.getCurrentState();
-        SchemaStateMetadata finalState = to.getCurrentState();
 
         Collection<TableMetadata> initialTables = initialState.getTables().values();
         Collection<TableMetadata> finalTables = finalState.getTables().values();
@@ -205,6 +198,10 @@ public class DifferenceProcessor {
             return Optional.<AbstractMetadata<?>>ofNullable(from)
                     .orElse(to)
                     .getMetadataType();
+        }
+
+        public T getOne() {
+            return from != null ? from : to;
         }
     }
 

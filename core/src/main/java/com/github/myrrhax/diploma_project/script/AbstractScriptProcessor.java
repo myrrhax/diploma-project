@@ -24,87 +24,25 @@ public abstract class AbstractScriptProcessor {
     protected final DifferenceProcessor differenceProcessor;
 
     public String processFullScript(String name, SchemaStateMetadata schema) {
-        var clone = schema.clone();
-        List<ReferenceMetadata> refsToProcess = new ArrayList<>();
-        List<TableMetadata> tablesToProcess = new ArrayList<>(clone.getTables().values());
-        prepareData(schema, refsToProcess, tablesToProcess, clone);
-        StringBuilder sqlBuilder = new StringBuilder();
-
+        StringBuilder scriptBuilder = new StringBuilder();
+        SchemaStateMetadata preparedSchema = prepareSchema(schema);
         ScriptFabric fabric = getFabric();
-        fabric.appendHeader(sqlBuilder, name);
+        fabric.appendHeader(scriptBuilder, name);
 
-        for (TableMetadata table : tablesToProcess) {
-            fabric.addTable(sqlBuilder, table, (builder) -> onEndTableDefinition(builder, table));
+        Collection<TableMetadata> tables = preparedSchema.getTables().values();
+        Collection<ReferenceMetadata> references = preparedSchema.getReferences().values();
+        for (TableMetadata table : tables) {
+            addTable(table, scriptBuilder);
         }
 
-        for (ReferenceMetadata ref : refsToProcess) {
+        for (ReferenceMetadata ref : references) {
             if (ref.getName() == null) {
                 ref.computeAndSetName();
             }
-            addReference(ref, tablesToProcess, fabric, sqlBuilder);
+            addReference(ref, scriptBuilder);
         }
 
-        return sqlBuilder.toString();
-    }
-
-    private static void addReference(ReferenceMetadata ref, List<TableMetadata> tablesToProcess, ScriptFabric fabric, StringBuilder sqlBuilder) {
-        TableMetadata baseTable = tablesToProcess.stream()
-                .filter(table -> table.getId().equals(ref.getKey().getFromTableId()))
-                .findFirst()
-                .orElseThrow(() -> new ApplicationException("error.table.notfound"));
-
-        TableMetadata referencedTable = tablesToProcess.stream()
-                .filter(table -> table.getId().equals(ref.getKey().getToTableId()))
-                .findFirst()
-                .orElseThrow(() -> new ApplicationException("error.table.notfound"));
-
-        String[] baseColumnNames = Arrays.stream(ref.getKey().getFromColumns())
-                .map(colId -> baseTable.getColumn(colId)
-                        .map(ColumnMetadata::getName)
-                        .orElseThrow(() -> new ApplicationException("error.column.notfound")))
-                .toArray(String[]::new);
-        String[] referencedColumnNames = Arrays.stream(ref.getKey().getToColumns())
-                .map(colId -> referencedTable.getColumn(colId)
-                        .map(ColumnMetadata::getName)
-                        .orElseThrow(() -> new ApplicationException("error.column.notfound")))
-                .toArray(String[]::new);
-
-        fabric.appendReferenceDefinition(sqlBuilder,
-                ref.getName(),
-                baseTable,
-                referencedTable,
-                baseColumnNames,
-                referencedColumnNames,
-                ref.getOnDeleteAction(),
-                ref.getOnUpdateAction());
-    }
-
-    private void prepareData(SchemaStateMetadata schema,
-                             List<ReferenceMetadata> refsToProcess,
-                             List<TableMetadata> tablesToProcess,
-                             SchemaStateMetadata clone) {
-        Collection<ReferenceMetadata> references = schema.getReferences().values();
-        refsToProcess.addAll(references);
-
-        // Обработка M-M связей
-        for (ReferenceMetadata ref : references) {
-            if (ref.getType() != ReferenceMetadata.ReferenceType.MANY_TO_MANY) {
-                continue;
-            }
-            refsToProcess.remove(ref);
-            MtmTableProcessingResult res = buildTableAndRefsFromMtmRef(clone, ref);
-            tablesToProcess.add(res.mtmTable());
-            refsToProcess.addAll(Arrays.asList(res.betweenRefs()));
-        }
-
-        // Разворот 1-M связей
-        for (ReferenceMetadata ref : references) {
-            if (ref.getType() != ReferenceMetadata.ReferenceType.ONE_TO_MANY) {
-                continue;
-            }
-            refsToProcess.remove(ref);
-            refsToProcess.add(rotateOtmReference(ref, clone));
-        }
+        return scriptBuilder.toString();
     }
 
     public String processMigration(VersionDTO from, VersionDTO to) {
@@ -115,7 +53,9 @@ public abstract class AbstractScriptProcessor {
             throw new ApplicationException("error.version.generating-on-working-copy");
         }
 
-        List<DifferenceProcessor.GenericSchemaChanges<?>> changes = differenceProcessor.calculateDifference(from, to);
+        SchemaStateMetadata preparedFromSchema = prepareSchema(from.getCurrentState());
+        SchemaStateMetadata preparedToSchema = prepareSchema(to.getCurrentState());
+        List<DifferenceProcessor.GenericSchemaChanges<?>> changes = differenceProcessor.calculateDifference(preparedFromSchema, preparedToSchema);
         if (changes.isEmpty()) {
             log.warn("No difference between versions {} and {} of schema {}", from.getTag(), to.getTag(), to.getSchemeId());
             return "";
@@ -137,8 +77,64 @@ public abstract class AbstractScriptProcessor {
         return scriptBuilder.toString();
     }
 
-    private MtmTableProcessingResult buildTableAndRefsFromMtmRef(SchemaStateMetadata metadata,
-                                                                                     ReferenceMetadata ref) {
+    private void addReference(ReferenceMetadata ref,
+                              StringBuilder scriptBuilder) {
+        SchemaStateMetadata schema = ref.getSchemaState();
+        TableMetadata baseTable = schema.getTable(ref.getKey().getFromTableId())
+                .orElseThrow(() -> new ApplicationException("error.table.notfound"));
+        TableMetadata referencedTable = schema.getTable(ref.getKey().getToTableId())
+                .orElseThrow(() -> new ApplicationException("error.table.notfound"));
+
+        String[] baseColumnNames = Arrays.stream(ref.getKey().getFromColumns())
+                .map(colId -> baseTable.getColumn(colId)
+                        .map(ColumnMetadata::getName)
+                        .orElseThrow(() -> new ApplicationException("error.column.notfound")))
+                .toArray(String[]::new);
+        String[] referencedColumnNames = Arrays.stream(ref.getKey().getToColumns())
+                .map(colId -> referencedTable.getColumn(colId)
+                        .map(ColumnMetadata::getName)
+                        .orElseThrow(() -> new ApplicationException("error.column.notfound")))
+                .toArray(String[]::new);
+
+        ScriptFabric fabric = getFabric();
+        fabric.appendReferenceDefinition(scriptBuilder,
+                ref.getName(),
+                baseTable,
+                referencedTable,
+                baseColumnNames,
+                referencedColumnNames,
+                ref.getOnDeleteAction(),
+                ref.getOnUpdateAction());
+    }
+
+    private SchemaStateMetadata prepareSchema(SchemaStateMetadata schema) {
+        var clone = schema.clone();
+
+        Collection<ReferenceMetadata> references = schema.getReferences().values();
+
+        // Обработка M-M связей
+        for (ReferenceMetadata ref : references) {
+            if (ref.getType() != ReferenceMetadata.ReferenceType.MANY_TO_MANY) {
+                continue;
+            }
+            clone.removeReference(ref.getKey());
+            addMtmRefToSchema(clone, ref);
+        }
+
+        // Разворот 1-M связей
+        for (ReferenceMetadata ref : references) {
+            if (ref.getType() != ReferenceMetadata.ReferenceType.ONE_TO_MANY) {
+                continue;
+            }
+            clone.removeReference(ref.getKey());
+            clone.addReference(rotateOtmReference(ref, clone));
+        }
+
+        return clone;
+    }
+
+    private void addMtmRefToSchema(SchemaStateMetadata metadata,
+                                                       ReferenceMetadata ref) {
         TableMetadata fromTable = metadata.getTables().get(ref.getKey()
                 .getFromTableId());
         TableMetadata toTable = metadata.getTables().get(ref.getKey()
@@ -191,8 +187,6 @@ public abstract class AbstractScriptProcessor {
         ReferenceMetadata mttRef = buildRef(mtmTable, toTable, mtmTo, toCols, metadata);
         metadata.addReference(ftmRef);
         metadata.addReference(mttRef);
-
-        return new MtmTableProcessingResult(mtmTable, new ReferenceMetadata[]{ftmRef, mttRef});
     }
 
     private ReferenceMetadata buildRef(TableMetadata fromTable,
@@ -217,7 +211,7 @@ public abstract class AbstractScriptProcessor {
                 .build();
     }
 
-    private static String computeMtmTableName(TableMetadata fromTable, TableMetadata toTable) {
+    protected static String computeMtmTableName(TableMetadata fromTable, TableMetadata toTable) {
         return String.format("mtm_%s_%s", fromTable.getName(), toTable.getName());
     }
 
@@ -236,7 +230,7 @@ public abstract class AbstractScriptProcessor {
                 .build();
     }
 
-    private ColumnMetadata cloneColumn(TableMetadata table, ColumnMetadata origin) {
+    protected ColumnMetadata cloneColumn(TableMetadata table, ColumnMetadata origin) {
         return ColumnMetadata.builder()
                 .id(UUID.randomUUID())
                 .name(table.getName() + "_" + origin.getName())
@@ -250,8 +244,7 @@ public abstract class AbstractScriptProcessor {
     private record MtmTableProcessingResult(
             TableMetadata mtmTable,
             ReferenceMetadata[] betweenRefs
-    ) {
-    }
+    ) { }
 
     private void applyColumnCommand(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
 
@@ -262,7 +255,14 @@ public abstract class AbstractScriptProcessor {
     }
 
     private void applyReferenceChange(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
+        ReferenceMetadata ref = (ReferenceMetadata) change.getOne();
 
+        switch (change.differenceType()) {
+            case ADD -> addReference(ref, scriptBuilder);
+            case DROP -> dropReference(ref, scriptBuilder);
+            default -> throw new IllegalStateException("Unexpected difference type for reference: "
+                    + change.differenceType());
+        }
     }
 
     private void applyTableChange(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
@@ -275,6 +275,11 @@ public abstract class AbstractScriptProcessor {
             case UPDATE -> updateTable(toTable, scriptBuilder);
             case RENAME -> renameTable(fromTable, toTable, scriptBuilder);
         }
+    }
+
+    private void dropReference(ReferenceMetadata ref, StringBuilder scriptBuilder) {
+        ScriptFabric fabric = getFabric();
+        fabric.appendDropFK(ref, scriptBuilder);
     }
 
     private void renameTable(TableMetadata fromTable, TableMetadata toTable, StringBuilder scriptBuilder) {
