@@ -305,7 +305,7 @@ public abstract class AbstractScriptProcessor {
                         fabric.appendDropMinMax(scriptBuilder, fromColumn, toColumn);
                     }
                     if (toColumn.getMin() != null || toColumn.getMax() != null) {
-                        fabric.appendAddMinMax(scriptBuilder, fromColumn, toColumn);
+                        fabric.appendMinMaxConstraint(scriptBuilder, toColumn);
                     }
                 }
             }

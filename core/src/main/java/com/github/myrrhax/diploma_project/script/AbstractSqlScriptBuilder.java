@@ -61,7 +61,7 @@ public abstract class AbstractSqlScriptBuilder extends AbstractScriptBuilder {
 
     @Override
     protected void appendEndTablePart(StringBuilder scriptBuilder) {
-        scriptBuilder.append(");\n");
+        scriptBuilder.append(");\n\n");
     }
 
     @Override
@@ -85,7 +85,6 @@ public abstract class AbstractSqlScriptBuilder extends AbstractScriptBuilder {
         if (!addExisting) {
             sqlBuilder.append(',');
         }
-        sqlBuilder.append('\n');
     }
 
     @Override
@@ -96,7 +95,7 @@ public abstract class AbstractSqlScriptBuilder extends AbstractScriptBuilder {
     }
 
     public void appendPrimaryKeyDefinition(StringBuilder sqlBuilder, TableMetadata table) {
-        sqlBuilder.append("\tCONSTRAINT ")
+        sqlBuilder.append("CONSTRAINT ")
                 .append("pk_")
                 .append(table.getName().toLowerCase());
         sqlBuilder.append(" PRIMARY KEY (");
@@ -150,14 +149,22 @@ public abstract class AbstractSqlScriptBuilder extends AbstractScriptBuilder {
                 .append(table.getName())
                 .append(" ADD COLUMN ");
         appendColumnDefinition(scriptBuilder, column, true);
-        scriptBuilder.setCharAt(scriptBuilder.length() - 1, ';');
-        scriptBuilder.append('\n');
+
         if (column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)) {
+            scriptBuilder.append(",\nADD ");
             addUniqueConstraint(scriptBuilder, column);
         }
         if (column.getMin() != null || column.getMax() != null) {
+            scriptBuilder.append(",\nADD ");
             addMinMaxConstraint(scriptBuilder, column);
         }
+
+        if (scriptBuilder.charAt(scriptBuilder.length() - 1) == ',') {
+            scriptBuilder.setCharAt((scriptBuilder.length() - 1), ';');
+        } else {
+            scriptBuilder.append(';');
+        }
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -187,36 +194,39 @@ public abstract class AbstractSqlScriptBuilder extends AbstractScriptBuilder {
 
         for (ColumnMetadata column : columns) {
             if (column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)) {
+                scriptBuilder.append('\t');
                 addUniqueConstraint(scriptBuilder, column);
+                scriptBuilder.append(",\n");
             }
 
             if (column.getMin() != null || column.getMax() != null) {
+                scriptBuilder.append('\t');
                 addMinMaxConstraint(scriptBuilder, column);
+                scriptBuilder.append(",\n");
             }
         }
 
+        scriptBuilder.append('\t');
         appendPrimaryKeyDefinition(scriptBuilder, table);
     }
 
     protected void addMinMaxConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
         String tableName = column.getTable().getName();
-        scriptBuilder.append("\tCONSTRAINT ")
+        scriptBuilder.append("CONSTRAINT ")
                 .append(CHECK_CONSTRAINT_PATTERN.formatted(tableName.toLowerCase(),
                         column.getName().toLowerCase()))
                 .append(" ")
-                .append(getMinMaxDefinition(column))
-                .append(",\n");
+                .append(getMinMaxDefinition(column));
     }
 
     protected void addUniqueConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
         String tableName = column.getTable().getName();
-        scriptBuilder.append("\tCONSTRAINT ")
+        scriptBuilder.append("CONSTRAINT ")
                 .append(UQ_CONSTRAINT_PATTERN.formatted(tableName.toLowerCase(),
                         column.getName().toLowerCase()))
                 .append(" UNIQUE (")
                 .append(column.getName())
-                .append("),");
-        scriptBuilder.append('\n');
+                .append(')');;
     }
 
 }

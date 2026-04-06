@@ -129,9 +129,10 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
     }
 
     @Override
-    public void appendAddMinMax(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata toColumn) {
+    public void appendMinMaxConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
 
     }
+
 
     @Override
     public Map<ColumnMetadata.ColumnType, String> getDefinitions() {

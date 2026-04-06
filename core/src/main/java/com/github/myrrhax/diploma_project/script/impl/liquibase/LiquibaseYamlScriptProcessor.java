@@ -29,7 +29,7 @@ public class LiquibaseYamlScriptProcessor extends AbstractScriptProcessor {
 
     @Autowired
     @Qualifier("liquibaseYamlBuilder")
-    public void setScriptFabric(AbstractScriptBuilder abstractScriptBuilder) {
+    public void setScriptBuilder(AbstractScriptBuilder abstractScriptBuilder) {
         this.scriptBuilder = abstractScriptBuilder;
     }
 }

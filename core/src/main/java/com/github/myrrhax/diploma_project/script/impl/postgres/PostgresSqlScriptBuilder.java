@@ -157,7 +157,7 @@ public class PostgresSqlScriptBuilder extends AbstractSqlScriptBuilder {
     }
 
     @Override
-    public void appendAddMinMax(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata toColumn) {
+    public void appendMinMaxConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
 
     }
 

@@ -42,6 +42,7 @@ public abstract class AbstractScriptBuilder {
         List<ColumnMetadata> columns = new ArrayList<>(table.getColumns().values());
         for (ColumnMetadata column : columns) {
             appendColumnDefinition(scriptBuilder, column, false);
+            scriptBuilder.append('\n');
         }
         onEndTableDefinition(scriptBuilder, table);
         appendEndTablePart(scriptBuilder);
@@ -120,5 +121,5 @@ public abstract class AbstractScriptBuilder {
 
     public abstract void appendDropMinMax(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn);
 
-    public abstract void appendAddMinMax(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata toColumn);
+    public abstract void appendMinMaxConstraint(StringBuilder scriptBuilder, ColumnMetadata column);
 }

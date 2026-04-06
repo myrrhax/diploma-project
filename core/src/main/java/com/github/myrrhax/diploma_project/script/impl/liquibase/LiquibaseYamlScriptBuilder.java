@@ -15,9 +15,9 @@ import java.util.Objects;
 
 @Component("liquibaseYamlBuilder")
 public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
-    private static final int CHANGELOG_PADDING_LEVEL = 0;
     public static final int CHANGESET_PADDING_LEVEL = 1;
     public static final int HEADER_PADDING_LEVEL = 2;
+    private static final int CHANGELOG_PADDING_LEVEL = 0;
     private static final int TABLE_DEFINITION_PADDING_LEVEL = 3;
     private static final int REFERENCE_DEFINITION_PADDING_LEVEL = 3;
     private static final int INDEX_DEFINITION_PADDING_LEVEL = 3;
@@ -105,9 +105,6 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         if (!column.getConstraints().isEmpty()) {
             addConstraintsDefinition(column, scriptBuilder);
         }
-        if (column.getMin() != null || column.getMax() != null) {
-            addMinMaxDefinition(column, scriptBuilder);
-        }
     }
 
     private void appendAutoIncrement(StringBuilder scriptBuilder) {
@@ -160,8 +157,27 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
     }
 
     @Override
-    public void appendAddMinMax(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata toColumn) {
+    public void appendMinMaxConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
+        StringBuilder valueBuilder = new StringBuilder();
+        boolean isBetween = column.getMin() != null && column.getMax() != null;
+        if (column.getMin() != null) {
+            valueBuilder.append(column.getName()).append(">=").append(column.getMin());
+        }
+        if (isBetween) {
+            valueBuilder.append(" AND ");
+        }
+        if (column.getMax() != null) {
+            valueBuilder.append(column.getName()).append("<=").append(column.getMax());
+        }
 
+        appendLine(scriptBuilder, "- addCheckConstraint: ", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), COLUMN_CONSTRAINT_LEVEL);
+        appendLine(scriptBuilder, "checkConstraint: ", valueBuilder.toString(), COLUMN_CONSTRAINT_LEVEL);
+        appendLine(scriptBuilder,
+                "constraintName: ",
+                CHECK_CONSTRAINT_PATTERN.formatted(column.getTable().getName().toLowerCase(),
+                        column.getName().toLowerCase()),
+                COLUMN_CONSTRAINT_LEVEL);
     }
 
     @Override
@@ -182,7 +198,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(indexBuilder, "tableName: ", table.getName(), INDEX_ELEMENT_PADDING_LEVEL);
         appendLine(indexBuilder, "columns:", INDEX_ELEMENT_PADDING_LEVEL);
 
-        for (String colName: columnNames) {
+        for (String colName : columnNames) {
             appendLine(indexBuilder, "- column:", INDEX_COLUMN_PADDING_LEVEL);
             appendLine(indexBuilder, "name: ", colName, INDEX_COLUMN_PADDING_LEVEL + 1);
         }
@@ -206,9 +222,12 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
     @Override
     public void addColumnToTable(StringBuilder scriptBuilder, ColumnMetadata column) {
         appendLine(scriptBuilder, "- addColumn: ", TABLE_DEFINITION_PADDING_LEVEL);
-        appendLine(scriptBuilder, "tablaName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "columns: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendColumnDefinition(scriptBuilder, column, true);
+        if (column.getMin() != null || column.getMax() != null) {
+            appendMinMaxConstraint(scriptBuilder, column);
+        }
     }
 
     @Override
@@ -254,6 +273,11 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
     @Override
     protected void onEndTableDefinition(StringBuilder scriptBuilder, TableMetadata table) {
         appendPrimaryKeyDefinition(scriptBuilder, table);
+        for (ColumnMetadata column : table.getColumns().values()) {
+            if (column.getMin() != null || column.getMax() != null) {
+                appendMinMaxConstraint(scriptBuilder, column);
+            }
+        }
     }
 
     @Override
@@ -354,23 +378,10 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         }
         if (column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)) {
             appendLine(scriptBuilder, "unique: ", "true", COLUMN_CONSTRAINT_LEVEL);
+            appendLine(scriptBuilder, "uniqueConstraintName: ", UQ_CONSTRAINT_PATTERN
+                            .formatted(column.getTable().getName().toLowerCase(), column.getName().toLowerCase()),
+                    COLUMN_CONSTRAINT_LEVEL);
         }
-    }
-
-    private void addMinMaxDefinition(ColumnMetadata column, StringBuilder scriptBuilder) {
-        StringBuilder valueBuilder = new StringBuilder();
-        boolean isBetween = column.getMin() != null && column.getMax() != null;
-        if (column.getMin() != null) {
-            valueBuilder.append(column.getName()).append(">=").append(column.getMin());
-        }
-        if (isBetween) {
-            valueBuilder.append(" AND ");
-        }
-        if (column.getMax() != null) {
-            valueBuilder.append(column.getName()).append("<=").append(column.getMax());
-        }
-
-        appendLine(scriptBuilder, "checkConstraint: ", valueBuilder.toString(), COLUMN_CONSTRAINT_LEVEL);
     }
 
 }

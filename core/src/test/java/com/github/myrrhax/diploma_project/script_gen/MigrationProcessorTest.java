@@ -10,20 +10,23 @@ import com.github.myrrhax.diploma_project.script.AbstractScriptProcessor;
 import com.github.myrrhax.diploma_project.script.DifferenceProcessor;
 import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptBuilder;
 import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptProcessor;
+import com.github.myrrhax.diploma_project.script.impl.postgres.PostgresScriptProcessor;
+import com.github.myrrhax.diploma_project.script.impl.postgres.PostgresSqlScriptBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
 public class MigrationProcessorTest {
 
-    static AbstractScriptProcessor migrationProcessor = new LiquibaseYamlScriptProcessor(new DifferenceProcessor());
+    static LiquibaseYamlScriptProcessor migrationProcessor = new LiquibaseYamlScriptProcessor(new DifferenceProcessor());
 
     static {
-        ((LiquibaseYamlScriptProcessor)migrationProcessor).setScriptFabric(new LiquibaseYamlScriptBuilder());
+        ((LiquibaseYamlScriptProcessor)migrationProcessor).setScriptBuilder(new LiquibaseYamlScriptBuilder());
     }
 
     @Test
@@ -166,7 +169,10 @@ public class MigrationProcessorTest {
                 .schema(stateV2)
                 .table(newProductsTable)
                 .name("new_desc")
-                .columnType(ColumnMetadata.ColumnType.TEXT)
+                .constraints(List.of(ColumnMetadata.ConstraintType.NOT_NULL, ColumnMetadata.ConstraintType.UNIQUE))
+                .min(15.0)
+                .max(25.0)
+                .columnType(ColumnMetadata.ColumnType.INT)
                 .build()); // ADD
 
         TableMetadata newOrdersTable = TableMetadata.builder()

@@ -21,7 +21,7 @@ public class LiquibaseYamlScriptProcessorTest {
     static LiquibaseYamlScriptBuilder fabric = new LiquibaseYamlScriptBuilder();
 
     static {
-        processor.setScriptFabric(fabric);
+        processor.setScriptBuilder(fabric);
     }
 
     @Test
