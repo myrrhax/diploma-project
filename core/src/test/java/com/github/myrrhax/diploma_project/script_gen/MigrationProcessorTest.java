@@ -2,11 +2,13 @@ package com.github.myrrhax.diploma_project.script_gen;
 
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.IndexMetadata;
+import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.script.AbstractScriptProcessor;
 import com.github.myrrhax.diploma_project.script.DifferenceProcessor;
+import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptFabric;
 import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptProcessor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +20,11 @@ import java.util.UUID;
 @ExtendWith(MockitoExtension.class)
 public class MigrationProcessorTest {
 
-    AbstractScriptProcessor migrationProcessor = new LiquibaseYamlScriptProcessor(new DifferenceProcessor());
+    static AbstractScriptProcessor migrationProcessor = new LiquibaseYamlScriptProcessor(new DifferenceProcessor());
+
+    static {
+        ((LiquibaseYamlScriptProcessor)migrationProcessor).setScriptFabric(new LiquibaseYamlScriptFabric());
+    }
 
     @Test
     void shouldCalculateTableAndColumnDifferencesCorrectly() {
@@ -36,9 +42,6 @@ public class MigrationProcessorTest {
         UUID colDescAddId = UUID.randomUUID();
         UUID schemaId = UUID.randomUUID();
 
-        // ==========================================
-        // --- Версия 1 (Initial) ---
-        // ==========================================
         SchemaStateMetadata stateV1 = new SchemaStateMetadata();
         stateV1.setSchemaId(schemaId);
 
@@ -112,9 +115,6 @@ public class MigrationProcessorTest {
 
         VersionDTO v1 = new VersionDTO(schemaId, 1, "tag1", stateV1, "hash1");
 
-        // ==========================================
-        // --- Версия 2 (Final) ---
-        // ==========================================
         SchemaStateMetadata stateV2 = new SchemaStateMetadata();
         stateV2.setSchemaId(schemaId);
 
@@ -202,9 +202,6 @@ public class MigrationProcessorTest {
         UUID colId = UUID.randomUUID();
         UUID schemeId = UUID.randomUUID();
 
-        // ==========================================
-        // --- Версия 1 ---
-        // ==========================================
         SchemaStateMetadata stateV1 = new SchemaStateMetadata();
         stateV1.setSchemaId(schemeId);
 
@@ -235,9 +232,6 @@ public class MigrationProcessorTest {
         stateV1.addTable(oldTable);
         VersionDTO v1 = new VersionDTO(schemeId, 1, "tag1", stateV1, "hash1");
 
-        // ==========================================
-        // --- Версия 2 ---
-        // ==========================================
         SchemaStateMetadata stateV2 = new SchemaStateMetadata();
         stateV2.setSchemaId(schemeId);
 
@@ -268,7 +262,6 @@ public class MigrationProcessorTest {
         stateV2.addTable(newTable);
         VersionDTO v2 = new VersionDTO(schemeId, 2, "tag2", stateV2, "hash2");
 
-        // --- Выполнение ---
         String script = migrationProcessor.processMigration(v1, v2);
         System.out.println(script);
     }
@@ -356,9 +349,314 @@ public class MigrationProcessorTest {
         stateV2.addTable(newTable);
         VersionDTO v2 = new VersionDTO(schemaId, 2, "tag2", stateV2, "hash2");
 
-        // --- Выполнение ---
         String script = migrationProcessor.processMigration(v1, v2);
         System.out.println("--- Скрипт изменения первичного ключа ---");
+        System.out.println(script);
+    }
+
+    @Test
+    void shouldAddManyToOneReferenceInNewVersion() {
+        UUID t1Id = UUID.randomUUID();
+        UUID t2Id = UUID.randomUUID();
+        UUID t1ColId = UUID.randomUUID();
+        UUID t2ColId = UUID.randomUUID();
+        UUID t2FkColId = UUID.randomUUID();
+        UUID schemaId = UUID.randomUUID();
+
+        SchemaStateMetadata stateV1 = new SchemaStateMetadata();
+        stateV1.setSchemaId(schemaId);
+
+        TableMetadata t1V1 = TableMetadata.builder().id(t1Id).name("t1").build();
+        t1V1.addColumn(ColumnMetadata.builder().id(t1ColId).schema(stateV1).table(t1V1).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t1V1.setPrimaryKeyParts(Set.of(t1ColId));
+
+        TableMetadata t2V1 = TableMetadata.builder().id(t2Id).name("t2").build();
+        t2V1.addColumn(ColumnMetadata.builder().id(t2ColId).schema(stateV1).table(t2V1).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t2V1.addColumn(ColumnMetadata.builder().id(t2FkColId).schema(stateV1).table(t2V1).name("t1_id").columnType(ColumnMetadata.ColumnType.BIGINT).build());
+        t2V1.setPrimaryKeyParts(Set.of(t2ColId));
+
+        stateV1.addTable(t1V1);
+        stateV1.addTable(t2V1);
+        VersionDTO v1 = new VersionDTO(schemaId, 1, "tag1", stateV1, "hash1");
+
+        SchemaStateMetadata stateV2 = new SchemaStateMetadata();
+        stateV2.setSchemaId(schemaId);
+
+        TableMetadata t1V2 = TableMetadata.builder().id(t1Id).name("t1").build();
+        t1V2.addColumn(ColumnMetadata.builder().id(t1ColId).schema(stateV2).table(t1V2).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t1V2.setPrimaryKeyParts(Set.of(t1ColId));
+
+        TableMetadata t2V2 = TableMetadata.builder().id(t2Id).name("t2").build();
+        t2V2.addColumn(ColumnMetadata.builder().id(t2ColId).schema(stateV2).table(t2V2).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t2V2.addColumn(ColumnMetadata.builder().id(t2FkColId).schema(stateV2).table(t2V2).name("t1_id").columnType(ColumnMetadata.ColumnType.BIGINT).build());
+        t2V2.setPrimaryKeyParts(Set.of(t2ColId));
+
+        stateV2.addTable(t1V2);
+        stateV2.addTable(t2V2);
+
+        ReferenceMetadata.ReferenceKey refKey = ReferenceMetadata.ReferenceKey.builder()
+                .fromTableId(t2Id)
+                .fromColumns(new UUID[]{t2FkColId})
+                .toTableId(t1Id)
+                .toColumns(new UUID[]{t1ColId})
+                .build();
+
+        ReferenceMetadata ref = ReferenceMetadata.builder()
+                .key(refKey)
+                .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
+                .schemaState(stateV2)
+                .nameAutogenerated(true)
+                .build();
+        ref.computeAndSetName();
+        stateV2.addReference(ref);
+
+        VersionDTO v2 = new VersionDTO(schemaId, 2, "tag2", stateV2, "hash2");
+
+        String script = migrationProcessor.processMigration(v1, v2);
+        System.out.println(script);
+    }
+
+    @Test
+    void shouldAddManyToManyReferenceInNewVersion() {
+        UUID t1Id = UUID.randomUUID();
+        UUID t2Id = UUID.randomUUID();
+        UUID t1ColId = UUID.randomUUID();
+        UUID t2ColId = UUID.randomUUID();
+        UUID schemaId = UUID.randomUUID();
+
+        SchemaStateMetadata stateV1 = new SchemaStateMetadata();
+        stateV1.setSchemaId(schemaId);
+
+        TableMetadata t1V1 = TableMetadata.builder().id(t1Id).name("t1").build();
+        t1V1.addColumn(ColumnMetadata.builder().id(t1ColId).schema(stateV1).table(t1V1).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t1V1.setPrimaryKeyParts(Set.of(t1ColId));
+
+        TableMetadata t2V1 = TableMetadata.builder().id(t2Id).name("t2").build();
+        t2V1.addColumn(ColumnMetadata.builder().id(t2ColId).schema(stateV1).table(t2V1).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t2V1.setPrimaryKeyParts(Set.of(t2ColId));
+
+        stateV1.addTable(t1V1);
+        stateV1.addTable(t2V1);
+        VersionDTO v1 = new VersionDTO(schemaId, 1, "tag1", stateV1, "hash1");
+
+        SchemaStateMetadata stateV2 = new SchemaStateMetadata();
+        stateV2.setSchemaId(schemaId);
+
+        TableMetadata t1V2 = TableMetadata.builder().id(t1Id).name("t1").build();
+        t1V2.addColumn(ColumnMetadata.builder().id(t1ColId).schema(stateV2).table(t1V2).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t1V2.setPrimaryKeyParts(Set.of(t1ColId));
+
+        TableMetadata t2V2 = TableMetadata.builder().id(t2Id).name("t2").build();
+        t2V2.addColumn(ColumnMetadata.builder().id(t2ColId).schema(stateV2).table(t2V2).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t2V2.setPrimaryKeyParts(Set.of(t2ColId));
+
+        stateV2.addTable(t1V2);
+        stateV2.addTable(t2V2);
+
+        ReferenceMetadata.ReferenceKey refKey = ReferenceMetadata.ReferenceKey.builder()
+                .fromTableId(t1Id)
+                .fromColumns(new UUID[]{t1ColId})
+                .toTableId(t2Id)
+                .toColumns(new UUID[]{t2ColId})
+                .build();
+
+        ReferenceMetadata ref = ReferenceMetadata.builder()
+                .key(refKey)
+                .type(ReferenceMetadata.ReferenceType.MANY_TO_MANY)
+                .schemaState(stateV2)
+                .nameAutogenerated(true)
+                .build();
+        ref.computeAndSetName();
+        stateV2.addReference(ref);
+
+        VersionDTO v2 = new VersionDTO(schemaId, 2, "tag2", stateV2, "hash2");
+
+        String script = migrationProcessor.processMigration(v1, v2);
+        System.out.println(script);
+    }
+
+    @Test
+    void shouldAddOneToManyReferenceInNewVersion() {
+        UUID t1Id = UUID.randomUUID();
+        UUID t2Id = UUID.randomUUID();
+        UUID t1ColId = UUID.randomUUID();
+        UUID t2ColId = UUID.randomUUID();
+        UUID t2FkColId = UUID.randomUUID();
+        UUID schemaId = UUID.randomUUID();
+
+        SchemaStateMetadata stateV1 = new SchemaStateMetadata();
+        stateV1.setSchemaId(schemaId);
+
+        TableMetadata t1V1 = TableMetadata.builder().id(t1Id).name("t1").build();
+        t1V1.addColumn(ColumnMetadata.builder().id(t1ColId).schema(stateV1).table(t1V1).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t1V1.setPrimaryKeyParts(Set.of(t1ColId));
+
+        TableMetadata t2V1 = TableMetadata.builder().id(t2Id).name("t2").build();
+        t2V1.addColumn(ColumnMetadata.builder().id(t2ColId).schema(stateV1).table(t2V1).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t2V1.addColumn(ColumnMetadata.builder().id(t2FkColId).schema(stateV1).table(t2V1).name("t1_id").columnType(ColumnMetadata.ColumnType.BIGINT).build());
+        t2V1.setPrimaryKeyParts(Set.of(t2ColId));
+
+        stateV1.addTable(t1V1);
+        stateV1.addTable(t2V1);
+        VersionDTO v1 = new VersionDTO(schemaId, 1, "tag1", stateV1, "hash1");
+
+        SchemaStateMetadata stateV2 = new SchemaStateMetadata();
+        stateV2.setSchemaId(schemaId);
+
+        TableMetadata t1V2 = TableMetadata.builder().id(t1Id).name("t1").build();
+        t1V2.addColumn(ColumnMetadata.builder().id(t1ColId).schema(stateV2).table(t1V2).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t1V2.setPrimaryKeyParts(Set.of(t1ColId));
+
+        TableMetadata t2V2 = TableMetadata.builder().id(t2Id).name("t2").build();
+        t2V2.addColumn(ColumnMetadata.builder().id(t2ColId).schema(stateV2).table(t2V2).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t2V2.addColumn(ColumnMetadata.builder().id(t2FkColId).schema(stateV2).table(t2V2).name("t1_id").columnType(ColumnMetadata.ColumnType.BIGINT).build());
+        t2V2.setPrimaryKeyParts(Set.of(t2ColId));
+
+        stateV2.addTable(t1V2);
+        stateV2.addTable(t2V2);
+
+        ReferenceMetadata.ReferenceKey refKey = ReferenceMetadata.ReferenceKey.builder()
+                .fromTableId(t1Id)
+                .fromColumns(new UUID[]{t1ColId})
+                .toTableId(t2Id)
+                .toColumns(new UUID[]{t2FkColId})
+                .build();
+
+        ReferenceMetadata ref = ReferenceMetadata.builder()
+                .key(refKey)
+                .type(ReferenceMetadata.ReferenceType.ONE_TO_MANY)
+                .schemaState(stateV2)
+                .nameAutogenerated(true)
+                .build();
+        ref.computeAndSetName();
+        stateV2.addReference(ref);
+
+        VersionDTO v2 = new VersionDTO(schemaId, 2, "tag2", stateV2, "hash2");
+
+        String script = migrationProcessor.processMigration(v1, v2);
+        System.out.println(script);
+    }
+
+    @Test
+    void shouldDropManyToOneReferenceInNewVersion() {
+        UUID t1Id = UUID.randomUUID();
+        UUID t2Id = UUID.randomUUID();
+        UUID t1ColId = UUID.randomUUID();
+        UUID t2ColId = UUID.randomUUID();
+        UUID t2FkColId = UUID.randomUUID();
+        UUID schemaId = UUID.randomUUID();
+
+        SchemaStateMetadata stateV1 = new SchemaStateMetadata();
+        stateV1.setSchemaId(schemaId);
+
+        TableMetadata t1V1 = TableMetadata.builder().id(t1Id).name("t1").build();
+        t1V1.addColumn(ColumnMetadata.builder().id(t1ColId).schema(stateV1).table(t1V1).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t1V1.setPrimaryKeyParts(Set.of(t1ColId));
+
+        TableMetadata t2V1 = TableMetadata.builder().id(t2Id).name("t2").build();
+        t2V1.addColumn(ColumnMetadata.builder().id(t2ColId).schema(stateV1).table(t2V1).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t2V1.addColumn(ColumnMetadata.builder().id(t2FkColId).schema(stateV1).table(t2V1).name("t1_id").columnType(ColumnMetadata.ColumnType.BIGINT).build());
+        t2V1.setPrimaryKeyParts(Set.of(t2ColId));
+
+        stateV1.addTable(t1V1);
+        stateV1.addTable(t2V1);
+
+        ReferenceMetadata.ReferenceKey refKey = ReferenceMetadata.ReferenceKey.builder()
+                .fromTableId(t2Id)
+                .fromColumns(new UUID[]{t2FkColId})
+                .toTableId(t1Id)
+                .toColumns(new UUID[]{t1ColId})
+                .build();
+
+        ReferenceMetadata ref = ReferenceMetadata.builder()
+                .key(refKey)
+                .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
+                .schemaState(stateV1)
+                .nameAutogenerated(true)
+                .build();
+        ref.computeAndSetName();
+        stateV1.addReference(ref);
+
+        VersionDTO v1 = new VersionDTO(schemaId, 1, "tag1", stateV1, "hash1");
+
+        SchemaStateMetadata stateV2 = new SchemaStateMetadata();
+        stateV2.setSchemaId(schemaId);
+
+        TableMetadata t1V2 = TableMetadata.builder().id(t1Id).name("t1").build();
+        t1V2.addColumn(ColumnMetadata.builder().id(t1ColId).schema(stateV2).table(t1V2).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t1V2.setPrimaryKeyParts(Set.of(t1ColId));
+
+        TableMetadata t2V2 = TableMetadata.builder().id(t2Id).name("t2").build();
+        t2V2.addColumn(ColumnMetadata.builder().id(t2ColId).schema(stateV2).table(t2V2).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t2V2.addColumn(ColumnMetadata.builder().id(t2FkColId).schema(stateV2).table(t2V2).name("t1_id").columnType(ColumnMetadata.ColumnType.BIGINT).build());
+        t2V2.setPrimaryKeyParts(Set.of(t2ColId));
+
+        stateV2.addTable(t1V2);
+        stateV2.addTable(t2V2);
+
+        VersionDTO v2 = new VersionDTO(schemaId, 2, "tag2", stateV2, "hash2");
+
+        String script = migrationProcessor.processMigration(v1, v2);
+        System.out.println(script);
+    }
+
+    @Test
+    void shouldDropManyToManyReferenceInNewVersion() {
+        UUID t1Id = UUID.randomUUID();
+        UUID t2Id = UUID.randomUUID();
+        UUID t1ColId = UUID.randomUUID();
+        UUID t2ColId = UUID.randomUUID();
+        UUID schemaId = UUID.randomUUID();
+
+        SchemaStateMetadata stateV1 = new SchemaStateMetadata();
+        stateV1.setSchemaId(schemaId);
+
+        TableMetadata t1V1 = TableMetadata.builder().id(t1Id).name("t1").build();
+        t1V1.addColumn(ColumnMetadata.builder().id(t1ColId).schema(stateV1).table(t1V1).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t1V1.setPrimaryKeyParts(Set.of(t1ColId));
+
+        TableMetadata t2V1 = TableMetadata.builder().id(t2Id).name("t2").build();
+        t2V1.addColumn(ColumnMetadata.builder().id(t2ColId).schema(stateV1).table(t2V1).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t2V1.setPrimaryKeyParts(Set.of(t2ColId));
+
+        stateV1.addTable(t1V1);
+        stateV1.addTable(t2V1);
+
+        ReferenceMetadata.ReferenceKey refKey = ReferenceMetadata.ReferenceKey.builder()
+                .fromTableId(t1Id)
+                .fromColumns(new UUID[]{t1ColId})
+                .toTableId(t2Id)
+                .toColumns(new UUID[]{t2ColId})
+                .build();
+
+        ReferenceMetadata ref = ReferenceMetadata.builder()
+                .key(refKey)
+                .type(ReferenceMetadata.ReferenceType.MANY_TO_MANY)
+                .schemaState(stateV1)
+                .nameAutogenerated(true)
+                .build();
+        ref.computeAndSetName();
+        stateV1.addReference(ref);
+
+        VersionDTO v1 = new VersionDTO(schemaId, 1, "tag1", stateV1, "hash1");
+
+        SchemaStateMetadata stateV2 = new SchemaStateMetadata();
+        stateV2.setSchemaId(schemaId);
+
+        TableMetadata t1V2 = TableMetadata.builder().id(t1Id).name("t1").build();
+        t1V2.addColumn(ColumnMetadata.builder().id(t1ColId).schema(stateV2).table(t1V2).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t1V2.setPrimaryKeyParts(Set.of(t1ColId));
+
+        TableMetadata t2V2 = TableMetadata.builder().id(t2Id).name("t2").build();
+        t2V2.addColumn(ColumnMetadata.builder().id(t2ColId).schema(stateV2).table(t2V2).name("id").columnType(ColumnMetadata.ColumnType.BIGINT).pkPart(true).build());
+        t2V2.setPrimaryKeyParts(Set.of(t2ColId));
+
+        stateV2.addTable(t1V2);
+        stateV2.addTable(t2V2);
+
+        VersionDTO v2 = new VersionDTO(schemaId, 2, "tag2", stateV2, "hash2");
+
+        String script = migrationProcessor.processMigration(v1, v2);
         System.out.println(script);
     }
 }

@@ -79,21 +79,14 @@ public abstract class AbstractScriptProcessor {
 
     private void addReference(ReferenceMetadata ref,
                               StringBuilder scriptBuilder) {
-        SchemaStateMetadata schema = ref.getSchemaState();
-        TableMetadata baseTable = schema.getTable(ref.getKey().getFromTableId())
-                .orElseThrow(() -> new ApplicationException("error.table.notfound"));
-        TableMetadata referencedTable = schema.getTable(ref.getKey().getToTableId())
-                .orElseThrow(() -> new ApplicationException("error.table.notfound"));
+        TableMetadata baseTable = ref.getBaseTable();
+        TableMetadata referencedTable = ref.getReferencedTable();
 
-        String[] baseColumnNames = Arrays.stream(ref.getKey().getFromColumns())
-                .map(colId -> baseTable.getColumn(colId)
-                        .map(ColumnMetadata::getName)
-                        .orElseThrow(() -> new ApplicationException("error.column.notfound")))
+        String[] baseColumnNames = Arrays.stream(ref.getBaseColumns())
+                .map(ColumnMetadata::getName)
                 .toArray(String[]::new);
-        String[] referencedColumnNames = Arrays.stream(ref.getKey().getToColumns())
-                .map(colId -> referencedTable.getColumn(colId)
-                        .map(ColumnMetadata::getName)
-                        .orElseThrow(() -> new ApplicationException("error.column.notfound")))
+        String[] referencedColumnNames = Arrays.stream(ref.getReferencedColumns())
+                .map(ColumnMetadata::getName)
                 .toArray(String[]::new);
 
         ScriptFabric fabric = getFabric();
@@ -185,6 +178,9 @@ public abstract class AbstractScriptProcessor {
 
         ReferenceMetadata ftmRef = buildRef(mtmTable, fromTable, mtmFrom, fromCols, metadata);
         ReferenceMetadata mttRef = buildRef(mtmTable, toTable, mtmTo, toCols, metadata);
+        ftmRef.computeAndSetName();
+        mttRef.computeAndSetName();
+
         metadata.addReference(ftmRef);
         metadata.addReference(mttRef);
     }
@@ -194,7 +190,7 @@ public abstract class AbstractScriptProcessor {
                                        ColumnMetadata[] fromCols,
                                        ColumnMetadata[] toCols,
                                        SchemaStateMetadata metadata) {
-        return ReferenceMetadata.builder()
+        var ref = ReferenceMetadata.builder()
                 .key(ReferenceMetadata.ReferenceKey.builder()
                         .fromTableId(fromTable.getId())
                         .toTableId(toTable.getId())
@@ -209,6 +205,9 @@ public abstract class AbstractScriptProcessor {
                 .onDeleteAction(ReferenceMetadata.OnDeleteAction.CASCADE)
                 .schemaState(metadata)
                 .build();
+        ref.computeAndSetName();
+
+        return ref;
     }
 
     protected static String computeMtmTableName(TableMetadata fromTable, TableMetadata toTable) {
@@ -216,7 +215,7 @@ public abstract class AbstractScriptProcessor {
     }
 
     private ReferenceMetadata rotateOtmReference(ReferenceMetadata otmRef, SchemaStateMetadata metadata) {
-        return ReferenceMetadata.builder()
+        ReferenceMetadata ref =  ReferenceMetadata.builder()
                 .type(ReferenceMetadata.ReferenceType.MANY_TO_ONE)
                 .onUpdateAction(otmRef.getOnUpdateAction())
                 .onDeleteAction(otmRef.getOnDeleteAction())
@@ -228,6 +227,9 @@ public abstract class AbstractScriptProcessor {
                         .build())
                 .schemaState(metadata)
                 .build();
+
+        ref.computeAndSetName();
+        return ref;
     }
 
     protected ColumnMetadata cloneColumn(TableMetadata table, ColumnMetadata origin) {
@@ -240,11 +242,6 @@ public abstract class AbstractScriptProcessor {
                 .defaultValue(origin.getDefaultValue())
                 .build();
     }
-
-    private record MtmTableProcessingResult(
-            TableMetadata mtmTable,
-            ReferenceMetadata[] betweenRefs
-    ) { }
 
     private void applyColumnCommand(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
 

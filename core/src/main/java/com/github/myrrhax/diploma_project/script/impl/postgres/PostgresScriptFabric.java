@@ -2,6 +2,7 @@ package com.github.myrrhax.diploma_project.script.impl.postgres;
 
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.IndexMetadata;
+import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.script.AbstractSqlScriptFabric;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
@@ -70,6 +71,15 @@ public class PostgresScriptFabric extends AbstractSqlScriptFabric {
                 .append(" PRIMARY KEY (")
                 .append(toTable.getPkContated())
                 .append(");\n");
+    }
+
+    @Override
+    public void appendDropFK(ReferenceMetadata ref, StringBuilder scriptBuilder) {
+        scriptBuilder.append("ALTER TABLE ")
+                .append(ref.getBaseTable().getName())
+                .append(" DROP CONSTRAINT ")
+                .append(ref.getName())
+                .append(";\n");
     }
 
     @Override

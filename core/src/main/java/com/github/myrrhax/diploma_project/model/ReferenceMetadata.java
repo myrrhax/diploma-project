@@ -217,6 +217,34 @@ public class ReferenceMetadata implements AbstractMetadata<ReferenceMetadata.Ref
         return newReference.build();
     }
 
+    public TableMetadata getBaseTable() {
+        return schemaState.getTable(key.getFromTableId())
+                .orElseThrow(() -> new ApplicationException("error.table.notfound"));
+    }
+
+    public TableMetadata getReferencedTable() {
+        return schemaState.getTable(key.getToTableId())
+                .orElseThrow(() -> new ApplicationException("error.table.notfound"));
+    }
+
+    public ColumnMetadata[] getBaseColumns() {
+        TableMetadata baseTable = getBaseTable();
+
+        return Arrays.stream(key.getFromColumns())
+                .map(col -> baseTable.getColumn(col).orElseThrow(() ->
+                        new ApplicationException("error.column.notfound")))
+                .toArray(ColumnMetadata[]::new);
+    }
+
+    public ColumnMetadata[] getReferencedColumns() {
+        TableMetadata referencedTable = getReferencedTable();
+
+        return Arrays.stream(key.getToColumns())
+                .map(col -> referencedTable.getColumn(col).orElseThrow(() ->
+                        new ApplicationException("error.column.notfound")))
+                .toArray(ColumnMetadata[]::new);
+    }
+
     @Override
     public ReferenceKey getId() {
         return key;

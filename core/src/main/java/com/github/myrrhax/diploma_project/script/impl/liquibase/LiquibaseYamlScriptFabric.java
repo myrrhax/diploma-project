@@ -103,10 +103,9 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
             appendLine(scriptBuilder, "autoIncrement: ", "true", COLUMN_ELEMENT_PADDING_LEVEL);
         }
 
-        if (column.isPkPart()
+        if (!column.getConstraints().isEmpty()
                 || column.getMin() != null
-                || column.getMax() != null
-                || !column.getConstraints().isEmpty()) {
+                || column.getMax() != null) {
             appendLine(scriptBuilder, "constraints:", COLUMN_ELEMENT_PADDING_LEVEL);
             if (!column.getConstraints().isEmpty()) {
                 addConstraintsDefinition(column, scriptBuilder);
@@ -164,6 +163,14 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
     @Override
     public void appendAndPkConstraint(StringBuilder scriptBuilder, TableMetadata toTable) {
         appendPrimaryKeyDefinition(scriptBuilder, toTable);
+    }
+
+    @Override
+    public void appendDropFK(ReferenceMetadata ref, StringBuilder scriptBuilder) {
+        TableMetadata baseTable = ref.getBaseTable();
+        appendLine(scriptBuilder, "- dropForeignKey: ", REFERENCE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "baseTableName: ", baseTable.getName(), REFERENCE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "constraintName: ", ref.getName(), REFERENCE_ELEMENT_PADDING_LEVEL);
     }
 
     @Override
