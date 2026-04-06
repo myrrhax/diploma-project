@@ -8,6 +8,7 @@ import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.model.enums.ScriptType;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
+import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,6 +17,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -27,7 +29,7 @@ public abstract class AbstractScriptProcessor {
     public String processFullScript(String name, SchemaStateMetadata schema) {
         StringBuilder scriptBuilder = new StringBuilder();
         SchemaStateMetadata preparedSchema = prepareSchema(schema);
-        ScriptFabric fabric = getFabric();
+        AbstractScriptBuilder fabric = getFabric();
         fabric.appendHeader(scriptBuilder, name);
 
         Collection<TableMetadata> tables = preparedSchema.getTables().values();
@@ -63,7 +65,7 @@ public abstract class AbstractScriptProcessor {
             return "";
         }
 
-        ScriptFabric fabric = getFabric();
+        AbstractScriptBuilder fabric = getFabric();
         StringBuilder scriptBuilder = new StringBuilder();
         fabric.appendHeader(scriptBuilder, to.getTag());
 
@@ -91,7 +93,7 @@ public abstract class AbstractScriptProcessor {
                 .map(ColumnMetadata::getName)
                 .toArray(String[]::new);
 
-        ScriptFabric fabric = getFabric();
+        AbstractScriptBuilder fabric = getFabric();
         fabric.appendReferenceDefinition(scriptBuilder,
                 ref.getName(),
                 baseTable,
@@ -248,12 +250,66 @@ public abstract class AbstractScriptProcessor {
     private void applyColumnCommand(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
         ColumnMetadata fromColumn = change.from() != null ? (ColumnMetadata) change.from() : null;
         ColumnMetadata toColumn = change.to() != null ? (ColumnMetadata) change.to() : null;
-        ScriptFabric fabric = getFabric();
+        AbstractScriptBuilder fabric = getFabric();
 
         switch (change.differenceType()) {
             case ADD -> fabric.addColumnToTable(scriptBuilder, toColumn);
             case DROP -> fabric.appendDropColumn(scriptBuilder, fromColumn);
             case RENAME -> fabric.appendRenameColumn(scriptBuilder, fromColumn, toColumn);
+            case UPDATE -> {
+                if (fromColumn == null || toColumn == null) {
+                    throw new IllegalStateException("Cannot apply change to null columns");
+                }
+
+                boolean typeChanged = fromColumn.getColumnType() != toColumn.getColumnType()
+                        || !Objects.equals(fromColumn.getLength(), toColumn.getLength())
+                        || !Objects.equals(fromColumn.getPrecision(), toColumn.getPrecision())
+                        || !Objects.equals(fromColumn.getScale(), toColumn.getScale());
+
+                if (typeChanged) {
+                    fabric.appendChangeColumnType(scriptBuilder, toColumn);
+                }
+
+                if (!MetadataTypeUtils.isFullEquals(fromColumn.getConstraints(), toColumn.getConstraints())) {
+                    boolean fromNotNull = fromColumn.getConstraints().contains(ColumnMetadata.ConstraintType.NOT_NULL);
+                    boolean toNotNull = toColumn.getConstraints().contains(ColumnMetadata.ConstraintType.NOT_NULL);
+
+                    if (fromNotNull && !toNotNull) {
+                        fabric.appendDropNotNull(scriptBuilder, fromColumn, toColumn);
+                    } else if (!fromNotNull && toNotNull) {
+                        fabric.appendNotNullConstraint(scriptBuilder, toColumn);
+                    }
+
+                    boolean fromUnique = fromColumn.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE);
+                    boolean toUnique = toColumn.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE); // ИСПРАВЛЕНО
+
+                    if (fromUnique && !toUnique) {
+                        fabric.appendDropUnique(scriptBuilder, fromColumn, toColumn);
+                    } else if (!fromUnique && toUnique) {
+                        fabric.appendAddUnique(scriptBuilder, toColumn);
+                    }
+                }
+
+                if (!Objects.equals(fromColumn.getDefaultValue(), toColumn.getDefaultValue())) { // ИСПРАВЛЕНО
+                    if (fromColumn.getDefaultValue() == null) {
+                        fabric.addDefaultValue(scriptBuilder, toColumn);
+                    } else if (toColumn.getDefaultValue() == null) {
+                        fabric.dropDefaultValue(scriptBuilder, toColumn);
+                    } else {
+                        fabric.updateDefaultValue(scriptBuilder, fromColumn, toColumn);
+                    }
+                }
+
+                if (!Objects.equals(fromColumn.getMin(), toColumn.getMin())
+                        || !Objects.equals(fromColumn.getMax(), toColumn.getMax())) {
+                    if (fromColumn.getMin() != null || fromColumn.getMax() != null) {
+                        fabric.appendDropMinMax(scriptBuilder, fromColumn, toColumn);
+                    }
+                    if (toColumn.getMin() != null || toColumn.getMax() != null) {
+                        fabric.appendAddMinMax(scriptBuilder, fromColumn, toColumn);
+                    }
+                }
+            }
         }
     }
 
@@ -261,7 +317,7 @@ public abstract class AbstractScriptProcessor {
         IndexMetadata fromIdx = change.from() != null ? (IndexMetadata) change.from() : null;
         IndexMetadata toIdx = change.to() != null ? (IndexMetadata) change.to() : null;
 
-        ScriptFabric fabric = getFabric();
+        AbstractScriptBuilder fabric = getFabric();
         switch (change.differenceType()) {
             case ADD -> fabric.appendIndexDefinition(scriptBuilder, toIdx);
             case DROP -> fabric.appendDropIndexDefinition(scriptBuilder, fromIdx);
@@ -273,7 +329,7 @@ public abstract class AbstractScriptProcessor {
 
     private void applyReferenceChange(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
         ReferenceMetadata ref = (ReferenceMetadata) change.getOne();
-        ScriptFabric fabric = getFabric();
+        AbstractScriptBuilder fabric = getFabric();
 
         switch (change.differenceType()) {
             case ADD -> addReference(ref, scriptBuilder);
@@ -286,7 +342,7 @@ public abstract class AbstractScriptProcessor {
     private void applyTableChange(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
         TableMetadata fromTable = change.from() != null ? (TableMetadata) change.from() : null;
         TableMetadata toTable = change.to() != null ? (TableMetadata) change.to() : null;
-        ScriptFabric fabric = getFabric();
+        AbstractScriptBuilder fabric = getFabric();
 
         switch (change.differenceType()) {
             case ADD -> fabric.addTable(scriptBuilder, toTable, (builder) ->
@@ -301,6 +357,6 @@ public abstract class AbstractScriptProcessor {
     }
 
     public abstract boolean supports(ScriptType type);
-    protected abstract ScriptFabric getFabric();
+    protected abstract AbstractScriptBuilder getFabric();
     protected abstract void onEndTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
 }

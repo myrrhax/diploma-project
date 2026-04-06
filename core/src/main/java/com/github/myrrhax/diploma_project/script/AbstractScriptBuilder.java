@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public abstract class ScriptFabric {
+public abstract class AbstractScriptBuilder {
     public String getLengthLimitedType(ColumnMetadata metadata) {
         Integer length = metadata.getLength();
         if (length == null) {
@@ -71,6 +71,10 @@ public abstract class ScriptFabric {
     public abstract void addColumnToTable(StringBuilder scriptBuilder, ColumnMetadata column);
     public abstract void appendDropColumn(StringBuilder scriptBuilder, ColumnMetadata column);
     public abstract void appendRenameColumn(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn);
+    public abstract void appendChangeColumnType(StringBuilder scriptBuilder, ColumnMetadata column);
+    public abstract void appendNotNullConstraint(StringBuilder scriptBuilder, ColumnMetadata column);
+    public abstract void appendDropNotNull(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata column);
+    public abstract void appendDropUnique(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn);
 
     protected abstract void appendTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
     protected abstract void appendColumnDefinition(StringBuilder scriptBuilder, ColumnMetadata column, boolean addExisting);
@@ -78,4 +82,16 @@ public abstract class ScriptFabric {
     protected abstract Map<ColumnMetadata.ColumnType, String> getDefinitions();
     protected abstract String getDecimalDefinition(ColumnMetadata column);
     protected abstract String getSuitableType(ColumnMetadata column);
+
+    public abstract void appendAddUnique(StringBuilder scriptBuilder, ColumnMetadata column);
+
+    public abstract void addDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column);
+
+    public abstract void dropDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column);
+
+    public abstract void updateDefaultValue(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn);
+
+    public abstract void appendDropMinMax(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn);
+
+    public abstract void appendAddMinMax(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata toColumn);
 }

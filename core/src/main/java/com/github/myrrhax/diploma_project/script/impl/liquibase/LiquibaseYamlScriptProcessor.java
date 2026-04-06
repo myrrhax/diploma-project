@@ -4,14 +4,14 @@ import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.enums.ScriptType;
 import com.github.myrrhax.diploma_project.script.AbstractScriptProcessor;
 import com.github.myrrhax.diploma_project.script.DifferenceProcessor;
-import com.github.myrrhax.diploma_project.script.ScriptFabric;
+import com.github.myrrhax.diploma_project.script.AbstractScriptBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component("liquibaseYamlProcessor")
 public class LiquibaseYamlScriptProcessor extends AbstractScriptProcessor {
-    private ScriptFabric scriptFabric;
+    private AbstractScriptBuilder scriptBuilder;
 
     public LiquibaseYamlScriptProcessor(DifferenceProcessor differenceProcessor) {
         super(differenceProcessor);
@@ -24,18 +24,18 @@ public class LiquibaseYamlScriptProcessor extends AbstractScriptProcessor {
 
     @Override
     protected void onEndTableDefinition(StringBuilder sqlBuilder, TableMetadata table) {
-        ScriptFabric scriptFabric = getFabric();
-        scriptFabric.appendPrimaryKeyDefinition(sqlBuilder, table);
+        AbstractScriptBuilder abstractScriptBuilder = getFabric();
+        abstractScriptBuilder.appendPrimaryKeyDefinition(sqlBuilder, table);
     }
 
     @Override
-    protected ScriptFabric getFabric() {
-        return scriptFabric;
+    protected AbstractScriptBuilder getFabric() {
+        return scriptBuilder;
     }
 
     @Autowired
-    @Qualifier("liquibaseFabric")
-    public void setScriptFabric(ScriptFabric scriptFabric) {
-        this.scriptFabric = scriptFabric;
+    @Qualifier("liquibaseYamlBuilder")
+    public void setScriptFabric(AbstractScriptBuilder abstractScriptBuilder) {
+        this.scriptBuilder = abstractScriptBuilder;
     }
 }

@@ -6,7 +6,7 @@ import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.script.DifferenceProcessor;
-import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptFabric;
+import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptBuilder;
 import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptProcessor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @ExtendWith(MockitoExtension.class)
 public class LiquibaseYamlScriptProcessorTest {
     static LiquibaseYamlScriptProcessor processor = new LiquibaseYamlScriptProcessor(new DifferenceProcessor());
-    static LiquibaseYamlScriptFabric fabric = new LiquibaseYamlScriptFabric();
+    static LiquibaseYamlScriptBuilder fabric = new LiquibaseYamlScriptBuilder();
 
     static {
         processor.setScriptFabric(fabric);

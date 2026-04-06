@@ -5,7 +5,7 @@ import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
-import com.github.myrrhax.diploma_project.script.ScriptFabric;
+import com.github.myrrhax.diploma_project.script.AbstractScriptBuilder;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import org.springframework.stereotype.Component;
 
@@ -13,8 +13,8 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
 
-@Component("liquibaseFabric")
-public class LiquibaseYamlScriptFabric extends ScriptFabric {
+@Component("liquibaseYamlBuilder")
+public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
     private static final int CHANGELOG_PADDING_LEVEL = 0;
     public static final int CHANGESET_PADDING_LEVEL = 1;
     public static final int HEADER_PADDING_LEVEL = 2;
@@ -135,6 +135,36 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
     }
 
     @Override
+    public void appendAddUnique(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void addDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void dropDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void updateDefaultValue(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+
+    }
+
+    @Override
+    public void appendDropMinMax(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+
+    }
+
+    @Override
+    public void appendAddMinMax(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata toColumn) {
+
+    }
+
+    @Override
     public void appendIndexDefinition(StringBuilder indexBuilder, IndexMetadata index) {
         appendLine(indexBuilder, "- createIndex:", INDEX_DEFINITION_PADDING_LEVEL);
         if (index.getName() == null) {
@@ -195,6 +225,26 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
         appendLine(scriptBuilder, "oldColumnName: ", oldColumn.getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "newColumnName: ", newColumn.getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "columnDataType: ", getSuitableType(newColumn), TABLE_ELEMENT_PADDING_LEVEL);
+    }
+
+    @Override
+    public void appendChangeColumnType(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void appendNotNullConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void appendDropNotNull(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void appendDropUnique(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+
     }
 
     @Override

@@ -5,7 +5,7 @@ import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
-import com.github.myrrhax.diploma_project.script.AbstractSqlScriptFabric;
+import com.github.myrrhax.diploma_project.script.AbstractSqlScriptBuilder;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import org.springframework.stereotype.Component;
 
@@ -13,8 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-@Component("mysqlFabric")
-public class MySQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
+@Component("mysqlBuilder")
+public class MysqlSqlScriptBuilder extends AbstractSqlScriptBuilder {
 
     private static final Map<ColumnMetadata.ColumnType, String> mysqlMapping = new HashMap<>() {{
         put(ColumnMetadata.ColumnType.BOOLEAN, "boolean");
@@ -104,6 +104,36 @@ public class MySQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
     }
 
     @Override
+    public void appendAddUnique(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void addDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void dropDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void updateDefaultValue(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+
+    }
+
+    @Override
+    public void appendDropMinMax(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+
+    }
+
+    @Override
+    public void appendAddMinMax(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata toColumn) {
+
+    }
+
+    @Override
     public Map<ColumnMetadata.ColumnType, String> getDefinitions() {
         return mysqlMapping;
     }
@@ -155,5 +185,25 @@ public class MySQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
                 .append(" TO ")
                 .append(toIdx.getName())
                 .append(";\n");
+    }
+
+    @Override
+    public void appendChangeColumnType(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void appendNotNullConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void appendDropNotNull(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void appendDropUnique(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+
     }
 }

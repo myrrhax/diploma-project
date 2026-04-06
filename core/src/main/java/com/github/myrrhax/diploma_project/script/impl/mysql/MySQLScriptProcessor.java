@@ -3,16 +3,16 @@ package com.github.myrrhax.diploma_project.script.impl.mysql;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.enums.ScriptType;
 import com.github.myrrhax.diploma_project.script.AbstractScriptProcessor;
-import com.github.myrrhax.diploma_project.script.AbstractSqlScriptFabric;
+import com.github.myrrhax.diploma_project.script.AbstractSqlScriptBuilder;
 import com.github.myrrhax.diploma_project.script.DifferenceProcessor;
-import com.github.myrrhax.diploma_project.script.ScriptFabric;
+import com.github.myrrhax.diploma_project.script.AbstractScriptBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component("mysqlProcessor")
 public class MySQLScriptProcessor extends AbstractScriptProcessor {
-    private AbstractSqlScriptFabric sqlScriptFabric;
+    private AbstractSqlScriptBuilder scriptBuilder;
 
     public MySQLScriptProcessor(DifferenceProcessor differenceProcessor) {
         super(differenceProcessor);
@@ -20,12 +20,12 @@ public class MySQLScriptProcessor extends AbstractScriptProcessor {
 
     @Override
     protected void onEndTableDefinition(StringBuilder sqlBuilder, TableMetadata table) {
-        sqlScriptFabric.appendPrimaryKeyDefinition(sqlBuilder, table);
+        scriptBuilder.appendPrimaryKeyDefinition(sqlBuilder, table);
     }
 
     @Override
-    protected ScriptFabric getFabric() {
-        return sqlScriptFabric;
+    protected AbstractScriptBuilder getFabric() {
+        return scriptBuilder;
     }
 
     @Override
@@ -34,8 +34,8 @@ public class MySQLScriptProcessor extends AbstractScriptProcessor {
     }
 
     @Autowired
-    @Qualifier("mysqlFabric")
-    public void setScriptFabric(AbstractSqlScriptFabric scriptFabric) {
-        this.sqlScriptFabric = scriptFabric;
+    @Qualifier("mysqlBuilder")
+    public void setScriptFabric(AbstractSqlScriptBuilder scriptFabric) {
+        this.scriptBuilder = scriptFabric;
     }
 }

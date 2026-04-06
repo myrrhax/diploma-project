@@ -4,7 +4,7 @@ import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
-import com.github.myrrhax.diploma_project.script.AbstractSqlScriptFabric;
+import com.github.myrrhax.diploma_project.script.AbstractSqlScriptBuilder;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 import org.springframework.stereotype.Component;
 
@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-@Component("postgresFabric")
-public class PostgresScriptFabric extends AbstractSqlScriptFabric {
+@Component("postgresBuilder")
+public class PostgresSqlScriptBuilder extends AbstractSqlScriptBuilder {
     private static final Map<ColumnMetadata.ColumnType, String> postgresMapping = new HashMap<>() {{
         put(ColumnMetadata.ColumnType.BOOLEAN, "boolean");
         put(ColumnMetadata.ColumnType.SMALLINT, "smallint");
@@ -132,6 +132,36 @@ public class PostgresScriptFabric extends AbstractSqlScriptFabric {
     }
 
     @Override
+    public void appendAddUnique(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void addDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void dropDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void updateDefaultValue(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+
+    }
+
+    @Override
+    public void appendDropMinMax(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+
+    }
+
+    @Override
+    public void appendAddMinMax(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata toColumn) {
+
+    }
+
+    @Override
     public void appendDropIndexDefinition(StringBuilder scriptBuilder, IndexMetadata idx) {
         scriptBuilder.append("DROP INDEX ")
                 .append(idx.getName())
@@ -145,5 +175,25 @@ public class PostgresScriptFabric extends AbstractSqlScriptFabric {
                 .append(" RENAME TO ")
                 .append(toIdx.getName())
                 .append(";\n");
+    }
+
+    @Override
+    public void appendChangeColumnType(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void appendNotNullConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void appendDropNotNull(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void appendDropUnique(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+
     }
 }
