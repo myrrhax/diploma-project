@@ -151,9 +151,4 @@ public class PostgresScriptFabric extends AbstractSqlScriptFabric {
     public void appendDropColumn(StringBuilder scriptBuilder, ColumnMetadata column) {
 
     }
-
-    @Override
-    public void appendRenameColumn(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
-
-    }
 }

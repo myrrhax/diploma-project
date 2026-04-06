@@ -81,39 +81,57 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
     public void appendColumnDefinition(StringBuilder scriptBuilder, ColumnMetadata column, boolean addExisting) {
         appendLine(scriptBuilder, "- column:", COLUMN_DEFINITION_PADDING_LEVEL);
         appendLine(scriptBuilder, "name: ", column.getName(), COLUMN_ELEMENT_PADDING_LEVEL);
-        String type = column.getColumnType().name();
+        String type = getSuitableType(column);
+        appendLine(scriptBuilder, "type: ", type, COLUMN_ELEMENT_PADDING_LEVEL);
+
+        if (column.getDefaultValue() != null) {
+            appendDefaultValue(scriptBuilder, column);
+        }
+
+        if (MetadataTypeUtils.isValidAutoincrement(column)
+                && Objects.equals(column.getAutoIncrement(), Boolean.TRUE)) {
+            appendAutoIncrement(scriptBuilder);
+        }
+
+        if (!column.getConstraints().isEmpty()
+                || column.getMin() != null
+                || column.getMax() != null) {
+            appendConstraints(scriptBuilder, column);
+        }
+    }
+
+    private void appendConstraints(StringBuilder scriptBuilder, ColumnMetadata column) {
+        appendLine(scriptBuilder, "constraints:", COLUMN_ELEMENT_PADDING_LEVEL);
+        if (!column.getConstraints().isEmpty()) {
+            addConstraintsDefinition(column, scriptBuilder);
+        }
+        if (column.getMin() != null || column.getMax() != null) {
+            addMinMaxDefinition(column, scriptBuilder);
+        }
+    }
+
+    private void appendAutoIncrement(StringBuilder scriptBuilder) {
+        appendLine(scriptBuilder, "autoIncrement: ", "true", COLUMN_ELEMENT_PADDING_LEVEL);
+    }
+
+    private void appendDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column) {
+        String defaultValue = column.getDefaultValue();
+        if (MetadataTypeUtils.timeTypes.contains(column.getColumnType())) {
+            defaultValue = defaultTimeValuesMap.get(column.getColumnType());
+        }
+        appendLine(scriptBuilder, "defaultValue: ", defaultValue, COLUMN_ELEMENT_PADDING_LEVEL);
+    }
+
+    @Override
+    protected String getSuitableType(ColumnMetadata column) {
+        String type = LIQUIBASE_TYPES.get(column.getColumnType());
         if (MetadataTypeUtils.lengthLimitedTypes.contains(column.getColumnType())
                 && column.getLength() != null) {
             type = getLengthLimitedType(column);
         } else if (column.getColumnType() == ColumnMetadata.ColumnType.DECIMAL) {
             type = getDecimalDefinition(column);
         }
-        appendLine(scriptBuilder, "type: ", type, COLUMN_ELEMENT_PADDING_LEVEL);
-
-        if (column.getDefaultValue() != null) {
-            String defaultValue = column.getDefaultValue();
-            if (MetadataTypeUtils.timeTypes.contains(column.getColumnType())) {
-                defaultValue = defaultTimeValuesMap.get(column.getColumnType());
-            }
-            appendLine(scriptBuilder, "defaultValue: ", defaultValue, COLUMN_ELEMENT_PADDING_LEVEL);
-        }
-
-        if (MetadataTypeUtils.isValidAutoincrement(column)
-                && Objects.equals(column.getAutoIncrement(), Boolean.TRUE)) {
-            appendLine(scriptBuilder, "autoIncrement: ", "true", COLUMN_ELEMENT_PADDING_LEVEL);
-        }
-
-        if (!column.getConstraints().isEmpty()
-                || column.getMin() != null
-                || column.getMax() != null) {
-            appendLine(scriptBuilder, "constraints:", COLUMN_ELEMENT_PADDING_LEVEL);
-            if (!column.getConstraints().isEmpty()) {
-                addConstraintsDefinition(column, scriptBuilder);
-            }
-            if (column.getMin() != null || column.getMax() != null) {
-                addMinMaxDefinition(column, scriptBuilder);
-            }
-        }
+        return type;
     }
 
     @Override
@@ -170,12 +188,15 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
 
     @Override
     public void appendRenameColumn(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
-
+        appendLine(scriptBuilder, "- renameColumn:", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", newColumn.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "oldColumnName: ", oldColumn.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "newColumnName: ", newColumn.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "columnDataType: ", getSuitableType(newColumn), TABLE_ELEMENT_PADDING_LEVEL);
     }
 
     @Override
     protected void appendEndTablePart(StringBuilder scriptBuilder) {
-        scriptBuilder.append('\n');
     }
 
     @Override
@@ -215,7 +236,6 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
                                           String[] referencedColumnNames,
                                           ReferenceMetadata.OnDeleteAction onDeleteAction,
                                           ReferenceMetadata.OnUpdateAction onUpdateAction) {
-
         appendLine(scriptBuilder, "- addForeignKeyConstraint:", REFERENCE_DEFINITION_PADDING_LEVEL);
         appendLine(scriptBuilder, "constraintName: ", refName, REFERENCE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "baseTableName: ", baseTable.getName(), REFERENCE_ELEMENT_PADDING_LEVEL);
@@ -248,7 +268,7 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
 
     @Override
     public void appendRenameTable(StringBuilder scriptBuilder, TableMetadata from, TableMetadata to) {
-        appendLine(scriptBuilder, "- renameTable", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "- renameTable:", TABLE_DEFINITION_PADDING_LEVEL);
         appendLine(scriptBuilder, "oldTableName: ", from.getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "newTableName: ", to.getName(), TABLE_ELEMENT_PADDING_LEVEL);
     }

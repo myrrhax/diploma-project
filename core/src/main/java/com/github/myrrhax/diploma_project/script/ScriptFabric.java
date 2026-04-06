@@ -77,5 +77,5 @@ public abstract class ScriptFabric {
     protected abstract void appendEndTablePart(StringBuilder scriptBuilder);
     protected abstract Map<ColumnMetadata.ColumnType, String> getDefinitions();
     protected abstract String getDecimalDefinition(ColumnMetadata column);
-
+    protected abstract String getSuitableType(ColumnMetadata column);
 }

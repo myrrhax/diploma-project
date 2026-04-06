@@ -84,7 +84,7 @@ public abstract class AbstractSqlScriptFabric extends ScriptFabric {
             sqlBuilder.append(getMinMaxDefinition(column));
         }
         if (!addExisting) {
-            sqlBuilder.append(';');
+            sqlBuilder.append(',');
         }
         sqlBuilder.append('\n');
     }
@@ -155,5 +155,14 @@ public abstract class AbstractSqlScriptFabric extends ScriptFabric {
         scriptBuilder.append('\n');
     }
 
-    protected abstract String getSuitableType(ColumnMetadata column);
+    @Override
+    public void appendRenameColumn(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+        scriptBuilder.append("ALTER TABLE ")
+                .append(newColumn.getTable().getName())
+                .append(" RENAME COLUMN ")
+                .append(oldColumn.getName())
+                .append(" TO ")
+                .append(newColumn.getName())
+                .append(";\n");
+    }
 }
