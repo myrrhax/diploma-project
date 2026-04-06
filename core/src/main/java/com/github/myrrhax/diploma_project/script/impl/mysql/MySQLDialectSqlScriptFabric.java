@@ -134,7 +134,7 @@ public class MySQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
 
         indexBuilder.append(" USING ");
         indexBuilder.append(indexMapping.get(index.getIndexType()));
-        indexBuilder.append(";");
+        indexBuilder.append(";\n");
     }
 
     @Override
@@ -155,5 +155,15 @@ public class MySQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
                 .append(" TO ")
                 .append(toIdx.getName())
                 .append(";\n");
+    }
+
+    @Override
+    public void appendDropColumn(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void appendRenameColumn(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+
     }
 }

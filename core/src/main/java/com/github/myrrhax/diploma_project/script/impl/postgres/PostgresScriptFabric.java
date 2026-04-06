@@ -105,7 +105,7 @@ public class PostgresScriptFabric extends AbstractSqlScriptFabric {
         indexBuilder.append(indexMapping.get(index.getIndexType()));
         indexBuilder.append(" (");
         indexBuilder.append(String.join(", ", affectedCols));
-        indexBuilder.append(");");
+        indexBuilder.append(");\n");
     }
 
     @Override
@@ -145,5 +145,15 @@ public class PostgresScriptFabric extends AbstractSqlScriptFabric {
                 .append(" RENAME TO ")
                 .append(toIdx.getName())
                 .append(";\n");
+    }
+
+    @Override
+    public void appendDropColumn(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void appendRenameColumn(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+
     }
 }

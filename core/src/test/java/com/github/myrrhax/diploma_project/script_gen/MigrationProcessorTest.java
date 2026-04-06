@@ -22,10 +22,10 @@ import java.util.UUID;
 @ExtendWith(MockitoExtension.class)
 public class MigrationProcessorTest {
 
-    static AbstractScriptProcessor migrationProcessor = new PostgresScriptProcessor(new DifferenceProcessor());
+    static AbstractScriptProcessor migrationProcessor = new LiquibaseYamlScriptProcessor(new DifferenceProcessor());
 
     static {
-        ((PostgresScriptProcessor)migrationProcessor).setScriptFabric(new PostgresScriptFabric());
+        ((LiquibaseYamlScriptProcessor)migrationProcessor).setScriptFabric(new LiquibaseYamlScriptFabric());
     }
 
     @Test

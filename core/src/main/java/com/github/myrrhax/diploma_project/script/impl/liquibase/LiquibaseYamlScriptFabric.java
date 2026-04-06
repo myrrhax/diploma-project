@@ -78,7 +78,7 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
     }
 
     @Override
-    public void appendColumnDefinition(StringBuilder scriptBuilder, ColumnMetadata column) {
+    public void appendColumnDefinition(StringBuilder scriptBuilder, ColumnMetadata column, boolean addExisting) {
         appendLine(scriptBuilder, "- column:", COLUMN_DEFINITION_PADDING_LEVEL);
         appendLine(scriptBuilder, "name: ", column.getName(), COLUMN_ELEMENT_PADDING_LEVEL);
         String type = column.getColumnType().name();
@@ -153,6 +153,24 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
         appendLine(scriptBuilder, "tableName: ", idx.getTable().getName(), INDEX_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "oldIndexName: ", idx.getName(), INDEX_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "newIndexName: ", toIdx.getName(), INDEX_ELEMENT_PADDING_LEVEL);
+    }
+
+    @Override
+    public void addColumnToTable(StringBuilder scriptBuilder, ColumnMetadata column) {
+        appendLine(scriptBuilder, "- addColumn: ", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tablaName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "columns: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendColumnDefinition(scriptBuilder, column, true);
+    }
+
+    @Override
+    public void appendDropColumn(StringBuilder scriptBuilder, ColumnMetadata column) {
+
+    }
+
+    @Override
+    public void appendRenameColumn(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+
     }
 
     @Override

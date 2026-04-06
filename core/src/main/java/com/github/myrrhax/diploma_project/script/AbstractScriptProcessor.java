@@ -246,7 +246,15 @@ public abstract class AbstractScriptProcessor {
     }
 
     private void applyColumnCommand(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
+        ColumnMetadata fromColumn = change.from() != null ? (ColumnMetadata) change.from() : null;
+        ColumnMetadata toColumn = change.to() != null ? (ColumnMetadata) change.to() : null;
+        ScriptFabric fabric = getFabric();
 
+        switch (change.differenceType()) {
+            case ADD -> fabric.addColumnToTable(scriptBuilder, toColumn);
+            case DROP -> fabric.appendDropColumn(scriptBuilder, fromColumn);
+            case RENAME -> fabric.appendRenameColumn(scriptBuilder, fromColumn, toColumn);
+        }
     }
 
     private void applyIndexChange(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {

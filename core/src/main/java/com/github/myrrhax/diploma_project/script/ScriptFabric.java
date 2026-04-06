@@ -39,14 +39,12 @@ public abstract class ScriptFabric {
 
         List<ColumnMetadata> columns = new ArrayList<>(table.getColumns().values());
         for (int i = 0; i < columns.size(); i++) {
-            appendColumnDefinition(scriptBuilder, columns.get(i));
-            scriptBuilder.append("\n");
+            appendColumnDefinition(scriptBuilder, columns.get(i), false);
         }
         onEndTable.accept(scriptBuilder);
         appendEndTablePart(scriptBuilder);
         for (IndexMetadata idx : table.getIndexes().values()) {
             appendIndexDefinition(indexesBuilder, idx);
-            indexesBuilder.append("\n");
         }
 
         scriptBuilder.append(indexesBuilder);
@@ -70,9 +68,12 @@ public abstract class ScriptFabric {
     public abstract void appendIndexDefinition(StringBuilder indexBuilder, IndexMetadata index);
     public abstract void appendDropIndexDefinition(StringBuilder scriptBuilder, IndexMetadata idx);
     public abstract void appendRenameIndexDefinition(StringBuilder scriptBuilder, IndexMetadata idx, IndexMetadata toIdx);
+    public abstract void addColumnToTable(StringBuilder scriptBuilder, ColumnMetadata column);
+    public abstract void appendDropColumn(StringBuilder scriptBuilder, ColumnMetadata column);
+    public abstract void appendRenameColumn(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn);
 
     protected abstract void appendTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
-    protected abstract void appendColumnDefinition(StringBuilder scriptBuilder, ColumnMetadata column);
+    protected abstract void appendColumnDefinition(StringBuilder scriptBuilder, ColumnMetadata column, boolean addExisting);
     protected abstract void appendEndTablePart(StringBuilder scriptBuilder);
     protected abstract Map<ColumnMetadata.ColumnType, String> getDefinitions();
     protected abstract String getDecimalDefinition(ColumnMetadata column);

@@ -62,10 +62,12 @@ public abstract class AbstractSqlScriptFabric extends ScriptFabric {
     }
 
     @Override
-    public void appendColumnDefinition(StringBuilder sqlBuilder, ColumnMetadata column) {
+    public void appendColumnDefinition(StringBuilder sqlBuilder, ColumnMetadata column, boolean addExisting) {
         String typeName = getSuitableType(column);
-        sqlBuilder.append('\t')
-                .append(column.getName())
+        if (!addExisting) {
+            sqlBuilder.append('\t');
+        }
+        sqlBuilder.append(column.getName())
                 .append(" ")
                 .append(typeName);
         List<ColumnMetadata.ConstraintType> constraints = column.getConstraints();
@@ -81,7 +83,10 @@ public abstract class AbstractSqlScriptFabric extends ScriptFabric {
         if (column.getMin() != null || column.getMax() != null) {
             sqlBuilder.append(getMinMaxDefinition(column));
         }
-        sqlBuilder.append(',');
+        if (!addExisting) {
+            sqlBuilder.append(';');
+        }
+        sqlBuilder.append('\n');
     }
 
     @Override
@@ -137,6 +142,17 @@ public abstract class AbstractSqlScriptFabric extends ScriptFabric {
     @Override
     public String getDecimalDefinition(ColumnMetadata column) {
         return "DECIMAL(" + column.getPrecision() + ", " + column.getScale() + ")";
+    }
+
+    @Override
+    public void addColumnToTable(StringBuilder scriptBuilder, ColumnMetadata column) {
+        TableMetadata table = column.getTable();
+        scriptBuilder.append("ALTER TABLE ")
+                .append(table.getName())
+                .append(" ADD COLUMN ");
+        appendColumnDefinition(scriptBuilder, column, true);
+        scriptBuilder.setCharAt(scriptBuilder.length() - 1, ';');
+        scriptBuilder.append('\n');
     }
 
     protected abstract String getSuitableType(ColumnMetadata column);
