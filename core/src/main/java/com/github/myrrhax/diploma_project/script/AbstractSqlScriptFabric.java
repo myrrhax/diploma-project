@@ -18,6 +18,7 @@ public abstract class AbstractSqlScriptFabric extends ScriptFabric {
             REFERENCES %s (%s)
             ON DELETE %s
             ON UPDATE %s;
+            
             """;
 
     @Override
