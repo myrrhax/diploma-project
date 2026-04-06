@@ -75,16 +75,12 @@ public abstract class AbstractSqlScriptBuilder extends AbstractScriptBuilder {
                 .append(typeName);
         List<ColumnMetadata.ConstraintType> constraints = column.getConstraints();
 
-        for (ColumnMetadata.ConstraintType constraint : constraints) {
-            sqlBuilder.append(" ").append(getConstraintName(constraint));
+        if (constraints.contains(ColumnMetadata.ConstraintType.NOT_NULL)) {
+            sqlBuilder.append(" NOT NULL");
         }
 
         if (column.getDefaultValue() != null) {
             sqlBuilder.append(" DEFAULT ").append(column.getDefaultValue());
-        }
-
-        if (column.getMin() != null || column.getMax() != null) {
-            sqlBuilder.append(getMinMaxDefinition(column));
         }
         if (!addExisting) {
             sqlBuilder.append(',');
@@ -125,7 +121,7 @@ public abstract class AbstractSqlScriptBuilder extends AbstractScriptBuilder {
         }
         boolean hasBetween = hasMin && hasMax;
         StringBuilder result = new StringBuilder();
-        result.append(" CHECK(");
+        result.append("CHECK(");
         result.append(column.getName());
 
         if (hasBetween) {
@@ -156,6 +152,12 @@ public abstract class AbstractSqlScriptBuilder extends AbstractScriptBuilder {
         appendColumnDefinition(scriptBuilder, column, true);
         scriptBuilder.setCharAt(scriptBuilder.length() - 1, ';');
         scriptBuilder.append('\n');
+        if (column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)) {
+            addUniqueConstraint(scriptBuilder, column);
+        }
+        if (column.getMin() != null || column.getMax() != null) {
+            addMinMaxConstraint(scriptBuilder, column);
+        }
     }
 
     @Override
@@ -182,24 +184,39 @@ public abstract class AbstractSqlScriptBuilder extends AbstractScriptBuilder {
     protected void onEndTableDefinition(StringBuilder scriptBuilder, TableMetadata table) {
         List<ColumnMetadata> columns = table.getColumns().values().stream()
                 .toList();
-        String tableName = table.getName();
 
-        for (int i = 0; i < columns.size(); i++) {
-            ColumnMetadata column = columns.get(i);
+        for (ColumnMetadata column : columns) {
             if (column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)) {
-                scriptBuilder.append("\tCONSTRAINT ")
-                        .append(UQ_CONSTRAINT_PATTERN.formatted(tableName.toLowerCase(),
-                                column.getName().toLowerCase()))
-                        .append(" UNIQUE (")
-                        .append(column.getName())
-                        .append(")");
-                if (i < columns.size() - 1) {
-                    scriptBuilder.append(",");
-                }
-                scriptBuilder.append('\n');
+                addUniqueConstraint(scriptBuilder, column);
+            }
+
+            if (column.getMin() != null || column.getMax() != null) {
+                addMinMaxConstraint(scriptBuilder, column);
             }
         }
 
         appendPrimaryKeyDefinition(scriptBuilder, table);
     }
+
+    protected void addMinMaxConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
+        String tableName = column.getTable().getName();
+        scriptBuilder.append("\tCONSTRAINT ")
+                .append(CHECK_CONSTRAINT_PATTERN.formatted(tableName.toLowerCase(),
+                        column.getName().toLowerCase()))
+                .append(" ")
+                .append(getMinMaxDefinition(column))
+                .append(",\n");
+    }
+
+    protected void addUniqueConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
+        String tableName = column.getTable().getName();
+        scriptBuilder.append("\tCONSTRAINT ")
+                .append(UQ_CONSTRAINT_PATTERN.formatted(tableName.toLowerCase(),
+                        column.getName().toLowerCase()))
+                .append(" UNIQUE (")
+                .append(column.getName())
+                .append("),");
+        scriptBuilder.append('\n');
+    }
+
 }

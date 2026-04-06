@@ -11,6 +11,7 @@ import java.util.Map;
 
 public abstract class AbstractScriptBuilder {
     public static final String UQ_CONSTRAINT_PATTERN = "uq_%s_%s";
+    public static final String CHECK_CONSTRAINT_PATTERN = "chk_%s_%s_min_max";
 
     public String getLengthLimitedType(ColumnMetadata metadata) {
         Integer length = metadata.getLength();
