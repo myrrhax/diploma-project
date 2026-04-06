@@ -10,7 +10,7 @@ import com.github.myrrhax.diploma_project.model.enums.ScriptType;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.repository.ScriptRepository;
 import com.github.myrrhax.diploma_project.repository.VersionRepository;
-import com.github.myrrhax.diploma_project.script.FullScriptProcessor;
+import com.github.myrrhax.diploma_project.script.AbstractScriptProcessor;
 import com.github.myrrhax.diploma_project.util.JsonSchemaStateMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ public class ScriptGeneratorService {
     private final VersionRepository versionRepository;
     private final ScriptMapper scriptMapper;
     private final JsonSchemaStateMapper stateMapper;
-    private final List<FullScriptProcessor> scriptProcessors;
+    private final List<AbstractScriptProcessor> scriptProcessors;
     private final FileStorageService fileStorageService;
 
     @Transactional(readOnly = true)
@@ -54,7 +54,7 @@ public class ScriptGeneratorService {
             throw new ApplicationException("error.script.already-exists");
         }
 
-        FullScriptProcessor processor = getScriptProcessor(type);
+        AbstractScriptProcessor processor = getScriptProcessor(type);
         VersionEntity version = versionRepository.findById(versionId)
                 .orElseThrow(() -> new ApplicationException("error.version.notfound"));
         if (version.getIsWorkingCopy()) {
@@ -62,7 +62,7 @@ public class ScriptGeneratorService {
         }
         try {
             SchemaStateMetadata schema = stateMapper.toMetadata(version.getSchema());
-            String script = processor.process(version.getTag(), schema);
+            String script = processor.processFullScript(version.getTag(), schema);
             byte[] scriptBytes = script.getBytes(StandardCharsets.UTF_8);
             UUID fileId = fileStorageService.saveFile(version.getTag(),
                     scriptBytes,
@@ -85,7 +85,7 @@ public class ScriptGeneratorService {
         };
     }
 
-    private FullScriptProcessor getScriptProcessor(ScriptType type) {
+    private AbstractScriptProcessor getScriptProcessor(ScriptType type) {
         return scriptProcessors.stream()
                 .filter(processor -> processor.supports(type))
                 .findFirst()

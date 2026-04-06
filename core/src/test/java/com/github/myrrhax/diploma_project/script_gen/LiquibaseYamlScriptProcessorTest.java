@@ -5,8 +5,9 @@ import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
+import com.github.myrrhax.diploma_project.script.DifferenceProcessor;
 import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptFabric;
-import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlFullScriptProcessor;
+import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptProcessor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -16,18 +17,18 @@ import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
 public class LiquibaseYamlScriptProcessorTest {
-    static LiquibaseYamlFullScriptProcessor processor = new LiquibaseYamlFullScriptProcessor();
+    static LiquibaseYamlScriptProcessor processor = new LiquibaseYamlScriptProcessor(new DifferenceProcessor());
     static LiquibaseYamlScriptFabric fabric = new LiquibaseYamlScriptFabric();
 
     static {
-        processor.setFullScriptFabric(fabric);
+        processor.setScriptFabric(fabric);
     }
 
     @Test
     public void test() {
         SchemaStateMetadata schema = prepareSchema();
 
-        String data = processor.process("Version 1", schema);
+        String data = processor.processFullScript("Version 1", schema);
         System.out.println(data);
     }
 

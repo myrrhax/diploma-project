@@ -5,9 +5,11 @@ import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
-import com.github.myrrhax.diploma_project.script.FullScriptProcessor;
+import com.github.myrrhax.diploma_project.script.AbstractScriptProcessor;
+import com.github.myrrhax.diploma_project.script.DifferenceProcessor;
 import com.github.myrrhax.diploma_project.script.impl.postgres.PostgresScriptFabric;
-import com.github.myrrhax.diploma_project.script.impl.postgres.PostgresFullScriptProcessor;
+import com.github.myrrhax.diploma_project.script.impl.postgres.PostgresScriptProcessor;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -673,9 +675,9 @@ public class PostgresScriptProcessorTest {
                         }));
     }
 
-    private FullScriptProcessor setupProcessor(SchemaStateMetadata state) {
+    private AbstractScriptProcessor setupProcessor(SchemaStateMetadata state) {
         PostgresScriptFabric fabric = new PostgresScriptFabric();
-        var processor = new PostgresFullScriptProcessor();
+        var processor = new PostgresScriptProcessor(new DifferenceProcessor());
         processor.setScriptFabric(fabric);
 
         return processor;
@@ -685,8 +687,8 @@ public class PostgresScriptProcessorTest {
     public void givenUsersTableMetadata_whenGenerateScript_ThenScriptIsValid() {
         SchemaStateMetadata stateMetadata = new SchemaStateMetadata();
         addUsersTable(stateMetadata);
-        FullScriptProcessor processor = setupProcessor(stateMetadata);
-        String script = processor.process("Версия 1", stateMetadata);
+        AbstractScriptProcessor processor = setupProcessor(stateMetadata);
+        String script = processor.processFullScript("Версия 1", stateMetadata);
         System.out.println(script);
         jdbcTemplate.execute(script);
 
@@ -701,8 +703,8 @@ public class PostgresScriptProcessorTest {
         SchemaStateMetadata stateMetadata = new SchemaStateMetadata();
         addFlightsTable(stateMetadata);
 
-        FullScriptProcessor processor = setupProcessor(stateMetadata);
-        String script = processor.process("Версия 1", stateMetadata);
+        AbstractScriptProcessor processor = setupProcessor(stateMetadata);
+        String script = processor.processFullScript("Версия 1", stateMetadata);
         System.out.println(script);
         jdbcTemplate.execute(script);
 
@@ -719,8 +721,8 @@ public class PostgresScriptProcessorTest {
         addFlightsTable(stateMetadata);
         addBookingsTable(stateMetadata);
 
-        FullScriptProcessor processor = setupProcessor(stateMetadata);
-        String script = processor.process("Версия 1", stateMetadata);
+        AbstractScriptProcessor processor = setupProcessor(stateMetadata);
+        String script = processor.processFullScript("Версия 1", stateMetadata);
         System.out.println(script);
 
         jdbcTemplate.execute(script);
@@ -740,8 +742,8 @@ public class PostgresScriptProcessorTest {
         addClientsTable(stateMetadata);
         addItemsTable(stateMetadata);
 
-        FullScriptProcessor processor = setupProcessor(stateMetadata);
-        String script = processor.process("Версия 1", stateMetadata);
+        AbstractScriptProcessor processor = setupProcessor(stateMetadata);
+        String script = processor.processFullScript("Версия 1", stateMetadata);
         System.out.println(script);
 
         jdbcTemplate.execute(script);
@@ -784,8 +786,8 @@ public class PostgresScriptProcessorTest {
                         .build());
         state.addTable(table);
         // when
-        FullScriptProcessor processor = setupProcessor(state);
-        String script = processor.process("Версия 1", state);
+        AbstractScriptProcessor processor = setupProcessor(state);
+        String script = processor.processFullScript("Версия 1", state);
         System.out.println(script);
 
         // then
@@ -828,8 +830,8 @@ public class PostgresScriptProcessorTest {
                 .build());
         state.addTable(table);
         // when
-        FullScriptProcessor processor = setupProcessor(state);
-        String script = processor.process("Версия 1", state);
+        AbstractScriptProcessor processor = setupProcessor(state);
+        String script = processor.processFullScript("Версия 1", state);
         System.out.println(script);
 
         // then
@@ -872,8 +874,8 @@ public class PostgresScriptProcessorTest {
                 .build());
         state.addTable(table);
         // when
-        FullScriptProcessor processor = setupProcessor(state);
-        String script = processor.process("Версия 1", state);
+        AbstractScriptProcessor processor = setupProcessor(state);
+        String script = processor.processFullScript("Версия 1", state);
         System.out.println(script);
 
         // then

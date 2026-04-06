@@ -5,32 +5,20 @@ import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
+import com.github.myrrhax.diploma_project.script.AbstractScriptProcessor;
 import com.github.myrrhax.diploma_project.script.DifferenceProcessor;
-import com.github.myrrhax.diploma_project.script.MigrationProcessor;
-import com.github.myrrhax.diploma_project.script.ScriptFabric;
-import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptFabric;
-import com.github.myrrhax.diploma_project.script.impl.postgres.PostgresScriptFabric;
+import com.github.myrrhax.diploma_project.script.impl.liquibase.LiquibaseYamlScriptProcessor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
 public class MigrationProcessorTest {
 
-    MigrationProcessor migrationProcessor = new MigrationProcessor(new DifferenceProcessor()) {
-        @Override
-        protected ScriptFabric getFabric() {
-            return new PostgresScriptFabric();
-        }
-
-        @Override
-        protected void onEndTableDefinition(StringBuilder scriptBuilder, TableMetadata table) {
-        }
-    };
+    AbstractScriptProcessor migrationProcessor = new LiquibaseYamlScriptProcessor(new DifferenceProcessor());
 
     @Test
     void shouldCalculateTableAndColumnDifferencesCorrectly() {
@@ -201,7 +189,7 @@ public class MigrationProcessorTest {
         VersionDTO v2 = new VersionDTO(schemaId, 2, "tag2", stateV2, "hash2");
 
         // --- Выполнение ---
-        String script = migrationProcessor.process(v1, v2);
+        String script = migrationProcessor.processMigration(v1, v2);
         System.out.println(script);
     }
 
@@ -281,7 +269,7 @@ public class MigrationProcessorTest {
         VersionDTO v2 = new VersionDTO(schemeId, 2, "tag2", stateV2, "hash2");
 
         // --- Выполнение ---
-        String script = migrationProcessor.process(v1, v2);
+        String script = migrationProcessor.processMigration(v1, v2);
         System.out.println(script);
     }
 
@@ -294,7 +282,7 @@ public class MigrationProcessorTest {
         VersionDTO v1 = new VersionDTO(schemaId, 1, "tag1", state, "hash1");
         VersionDTO v2 = new VersionDTO(schemaId, 1, "tag1", state, "hash1");
 
-        String script = migrationProcessor.process(v1, v2);
+        String script = migrationProcessor.processMigration(v1, v2);
         System.out.println(script);
     }
 
@@ -369,7 +357,7 @@ public class MigrationProcessorTest {
         VersionDTO v2 = new VersionDTO(schemaId, 2, "tag2", stateV2, "hash2");
 
         // --- Выполнение ---
-        String script = migrationProcessor.process(v1, v2);
+        String script = migrationProcessor.processMigration(v1, v2);
         System.out.println("--- Скрипт изменения первичного ключа ---");
         System.out.println(script);
     }

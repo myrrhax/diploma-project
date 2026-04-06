@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-@Component("postgresFullFabric")
+@Component("postgresFabric")
 public class PostgresScriptFabric extends AbstractSqlScriptFabric {
     private static final Map<ColumnMetadata.ColumnType, String> postgresMapping = new HashMap<>() {{
         put(ColumnMetadata.ColumnType.BOOLEAN, "boolean");

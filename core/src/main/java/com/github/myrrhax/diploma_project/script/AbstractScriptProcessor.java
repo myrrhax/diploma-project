@@ -1,12 +1,14 @@
 package com.github.myrrhax.diploma_project.script;
 
 import com.github.myrrhax.diploma_project.model.ColumnMetadata;
-import com.github.myrrhax.diploma_project.model.IndexMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
+import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import com.github.myrrhax.diploma_project.model.enums.ScriptType;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,8 +17,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public abstract class FullScriptProcessor {
-    public String process(String name, SchemaStateMetadata schema) {
+@Slf4j
+@RequiredArgsConstructor
+public abstract class AbstractScriptProcessor {
+    protected final DifferenceProcessor differenceProcessor;
+
+    public String processFullScript(String name, SchemaStateMetadata schema) {
         var clone = schema.clone();
         List<ReferenceMetadata> refsToProcess = new ArrayList<>();
         List<TableMetadata> tablesToProcess = new ArrayList<>(clone.getTables().values());
@@ -94,12 +100,38 @@ public abstract class FullScriptProcessor {
         return sqlBuilder.toString();
     }
 
-    public abstract boolean supports(ScriptType type);
-    protected abstract void onEndTableDefinition(StringBuilder sqlBuilder, TableMetadata table);
-    protected abstract ScriptFabric getFabric();
+    public String processMigration(VersionDTO from, VersionDTO to) {
+        if (from == null || to == null) {
+            throw new ApplicationException("From and To versions cannot be null");
+        }
+        if (from.isWorkingCopy() || to.isWorkingCopy()) {
+            throw new ApplicationException("error.version.generating-on-working-copy");
+        }
+
+        List<DifferenceProcessor.GenericSchemaChanges<?>> changes = differenceProcessor.calculateDifference(from, to);
+        if (changes.isEmpty()) {
+            log.warn("No difference between versions {} and {} of schema {}", from.getTag(), to.getTag(), to.getSchemeId());
+            return "";
+        }
+
+        ScriptFabric fabric = getFabric();
+        StringBuilder scriptBuilder = new StringBuilder();
+        fabric.appendHeader(scriptBuilder, to.getTag());
+
+        for (DifferenceProcessor.GenericSchemaChanges<?> change : changes) {
+            switch (change.getType()) {
+                case TABLE -> applyTableChange(change, scriptBuilder);
+                case REFERENCE -> applyReferenceChange(change, scriptBuilder);
+                case INDEX -> applyIndexChange(change, scriptBuilder);
+                case COLUMN -> applyColumnCommand(change, scriptBuilder);
+            }
+        }
+
+        return scriptBuilder.toString();
+    }
 
     private MtmTableProcessingResult buildTableAndRefsFromMtmRef(SchemaStateMetadata metadata,
-                                                                 ReferenceMetadata ref) {
+                                                                                     ReferenceMetadata ref) {
         TableMetadata fromTable = metadata.getTables().get(ref.getKey()
                 .getFromTableId());
         TableMetadata toTable = metadata.getTables().get(ref.getKey()
@@ -213,4 +245,55 @@ public abstract class FullScriptProcessor {
             ReferenceMetadata[] betweenRefs
     ) {
     }
+
+    private void applyColumnCommand(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
+
+    }
+
+    private void applyIndexChange(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
+
+    }
+
+    private void applyReferenceChange(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
+
+    }
+
+    private void applyTableChange(DifferenceProcessor.GenericSchemaChanges<?> change, StringBuilder scriptBuilder) {
+        TableMetadata fromTable = change.from() != null ? (TableMetadata) change.from() : null;
+        TableMetadata toTable = change.to() != null ? (TableMetadata) change.to() : null;
+
+        switch (change.differenceType()) {
+            case ADD -> addTable(toTable, scriptBuilder);
+            case DROP -> dropTable(fromTable, scriptBuilder);
+            case UPDATE -> updateTable(toTable, scriptBuilder);
+            case RENAME -> renameTable(fromTable, toTable, scriptBuilder);
+        }
+    }
+
+    private void renameTable(TableMetadata fromTable, TableMetadata toTable, StringBuilder scriptBuilder) {
+        ScriptFabric fabric = getFabric();
+        fabric.appendRenameTable(scriptBuilder, fromTable, toTable);
+    }
+
+    private void updateTable(TableMetadata toTable, StringBuilder scriptBuilder) {
+        ScriptFabric fabric = getFabric();
+        fabric.appendDropPkConstraint(scriptBuilder, toTable);
+        fabric.appendAndPkConstraint(scriptBuilder, toTable);
+    }
+
+    private void dropTable(TableMetadata fromTable, StringBuilder scriptBuilder) {
+        ScriptFabric fabric = getFabric();
+        fabric.appendDropTable(scriptBuilder, fromTable);
+    }
+
+    private void addTable(TableMetadata toTable, StringBuilder scriptBuilder) {
+        ScriptFabric fabric = getFabric();
+        fabric.addTable(scriptBuilder, toTable, (builder) -> {
+            onEndTableDefinition(builder, toTable);
+        });
+    }
+
+    public abstract boolean supports(ScriptType type);
+    protected abstract ScriptFabric getFabric();
+    protected abstract void onEndTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
 }

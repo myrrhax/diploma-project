@@ -12,9 +12,8 @@ import org.springframework.stereotype.Component;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
-@Component("liquibaseFullFabric")
+@Component("liquibaseFabric")
 public class LiquibaseYamlScriptFabric extends ScriptFabric {
     private static final int CHANGELOG_PADDING_LEVEL = 0;
     public static final int CHANGESET_PADDING_LEVEL = 1;

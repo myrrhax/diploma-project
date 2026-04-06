@@ -2,19 +2,24 @@ package com.github.myrrhax.diploma_project.script.impl.postgres;
 
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.enums.ScriptType;
+import com.github.myrrhax.diploma_project.script.AbstractScriptProcessor;
 import com.github.myrrhax.diploma_project.script.AbstractSqlScriptFabric;
+import com.github.myrrhax.diploma_project.script.DifferenceProcessor;
 import com.github.myrrhax.diploma_project.script.ScriptFabric;
-import com.github.myrrhax.diploma_project.script.FullScriptProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-@Component("postgresFullProcessor")
-public class PostgresFullScriptProcessor extends FullScriptProcessor {
+@Component("postgresProcessor")
+public class PostgresScriptProcessor extends AbstractScriptProcessor {
     private AbstractSqlScriptFabric scriptFabric;
 
+    public PostgresScriptProcessor(DifferenceProcessor differenceProcessor) {
+        super(differenceProcessor);
+    }
+
     @Autowired
-    @Qualifier("postgresFullFabric")
+    @Qualifier("postgresFabric")
     public void setScriptFabric(AbstractSqlScriptFabric scriptFabric) {
         this.scriptFabric = scriptFabric;
     }
