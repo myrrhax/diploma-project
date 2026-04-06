@@ -35,8 +35,7 @@ public abstract class AbstractScriptProcessor {
         Collection<TableMetadata> tables = preparedSchema.getTables().values();
         Collection<ReferenceMetadata> references = preparedSchema.getReferences().values();
         for (TableMetadata table : tables) {
-            fabric.addTable(scriptBuilder, table, (builder) ->
-                    onEndTableDefinition(builder, table));
+            fabric.addTable(scriptBuilder, table);
         }
 
         for (ReferenceMetadata ref : references) {
@@ -345,8 +344,7 @@ public abstract class AbstractScriptProcessor {
         AbstractScriptBuilder fabric = getFabric();
 
         switch (change.differenceType()) {
-            case ADD -> fabric.addTable(scriptBuilder, toTable, (builder) ->
-                    onEndTableDefinition(builder, toTable));
+            case ADD -> fabric.addTable(scriptBuilder, toTable);
             case DROP -> fabric.appendDropTable(scriptBuilder, fromTable);
             case UPDATE -> {
                 fabric.appendDropPkConstraint(scriptBuilder, toTable);
@@ -358,5 +356,4 @@ public abstract class AbstractScriptProcessor {
 
     public abstract boolean supports(ScriptType type);
     protected abstract AbstractScriptBuilder getFabric();
-    protected abstract void onEndTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
 }

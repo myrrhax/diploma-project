@@ -6,6 +6,9 @@ import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -175,4 +178,28 @@ public abstract class AbstractSqlScriptBuilder extends AbstractScriptBuilder {
                 .append(";\n");
     }
 
+    @Override
+    protected void onEndTableDefinition(StringBuilder scriptBuilder, TableMetadata table) {
+        List<ColumnMetadata> columns = table.getColumns().values().stream()
+                .toList();
+        String tableName = table.getName();
+
+        for (int i = 0; i < columns.size(); i++) {
+            ColumnMetadata column = columns.get(i);
+            if (column.getConstraints().contains(ColumnMetadata.ConstraintType.UNIQUE)) {
+                scriptBuilder.append("\tCONSTRAINT ")
+                        .append(UQ_CONSTRAINT_PATTERN.formatted(tableName.toLowerCase(),
+                                column.getName().toLowerCase()))
+                        .append(" UNIQUE (")
+                        .append(column.getName())
+                        .append(")");
+                if (i < columns.size() - 1) {
+                    scriptBuilder.append(",");
+                }
+                scriptBuilder.append('\n');
+            }
+        }
+
+        appendPrimaryKeyDefinition(scriptBuilder, table);
+    }
 }

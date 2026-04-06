@@ -8,9 +8,10 @@ import com.github.myrrhax.diploma_project.model.TableMetadata;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 public abstract class AbstractScriptBuilder {
+    public static final String UQ_CONSTRAINT_PATTERN = "uq_%s_%s";
+
     public String getLengthLimitedType(ColumnMetadata metadata) {
         Integer length = metadata.getLength();
         if (length == null) {
@@ -32,17 +33,18 @@ public abstract class AbstractScriptBuilder {
         return actionName.replace('_', ' ');
     }
 
-    public void addTable(StringBuilder scriptBuilder, TableMetadata table,
-                         Consumer<StringBuilder> onEndTable) {
+    public void addTable(StringBuilder scriptBuilder,
+                         TableMetadata table) {
         StringBuilder indexesBuilder = new StringBuilder();
         appendTableDefinition(scriptBuilder, table);
 
         List<ColumnMetadata> columns = new ArrayList<>(table.getColumns().values());
-        for (int i = 0; i < columns.size(); i++) {
-            appendColumnDefinition(scriptBuilder, columns.get(i), false);
+        for (ColumnMetadata column : columns) {
+            appendColumnDefinition(scriptBuilder, column, false);
         }
-        onEndTable.accept(scriptBuilder);
+        onEndTableDefinition(scriptBuilder, table);
         appendEndTablePart(scriptBuilder);
+
         for (IndexMetadata idx : table.getIndexes().values()) {
             appendIndexDefinition(indexesBuilder, idx);
         }
@@ -50,7 +52,10 @@ public abstract class AbstractScriptBuilder {
         scriptBuilder.append(indexesBuilder);
     }
 
+    protected abstract void onEndTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
+
     public abstract void appendPrimaryKeyDefinition(StringBuilder sqlBuilder, TableMetadata table);
+
     public abstract void appendReferenceDefinition(StringBuilder scriptBuilder,
                                                    String refName,
                                                    TableMetadata baseTable,
@@ -59,28 +64,49 @@ public abstract class AbstractScriptBuilder {
                                                    String[] referencedColumnNames,
                                                    ReferenceMetadata.OnDeleteAction onDeleteAction,
                                                    ReferenceMetadata.OnUpdateAction onUpdateAction);
+
     public abstract void appendHeader(StringBuilder scriptBuilder, String name);
+
     public abstract void appendDropTable(StringBuilder scriptBuilder, TableMetadata fromTable);
+
     public abstract void appendRenameTable(StringBuilder scriptBuilder, TableMetadata from, TableMetadata to);
+
     public abstract void appendDropPkConstraint(StringBuilder scriptBuilder, TableMetadata toTable);
+
     public abstract void appendAndPkConstraint(StringBuilder scriptBuilder, TableMetadata toTable);
+
     public abstract void appendDropFK(ReferenceMetadata ref, StringBuilder scriptBuilder);
+
     public abstract void appendIndexDefinition(StringBuilder indexBuilder, IndexMetadata index);
+
     public abstract void appendDropIndexDefinition(StringBuilder scriptBuilder, IndexMetadata idx);
+
     public abstract void appendRenameIndexDefinition(StringBuilder scriptBuilder, IndexMetadata idx, IndexMetadata toIdx);
+
     public abstract void addColumnToTable(StringBuilder scriptBuilder, ColumnMetadata column);
+
     public abstract void appendDropColumn(StringBuilder scriptBuilder, ColumnMetadata column);
+
     public abstract void appendRenameColumn(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn);
+
     public abstract void appendChangeColumnType(StringBuilder scriptBuilder, ColumnMetadata column);
+
     public abstract void appendNotNullConstraint(StringBuilder scriptBuilder, ColumnMetadata column);
+
     public abstract void appendDropNotNull(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata column);
+
     public abstract void appendDropUnique(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn);
 
     protected abstract void appendTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
+
     protected abstract void appendColumnDefinition(StringBuilder scriptBuilder, ColumnMetadata column, boolean addExisting);
+
     protected abstract void appendEndTablePart(StringBuilder scriptBuilder);
+
     protected abstract Map<ColumnMetadata.ColumnType, String> getDefinitions();
+
     protected abstract String getDecimalDefinition(ColumnMetadata column);
+
     protected abstract String getSuitableType(ColumnMetadata column);
 
     public abstract void appendAddUnique(StringBuilder scriptBuilder, ColumnMetadata column);

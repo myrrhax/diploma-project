@@ -252,6 +252,11 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
     }
 
     @Override
+    protected void onEndTableDefinition(StringBuilder scriptBuilder, TableMetadata table) {
+        appendPrimaryKeyDefinition(scriptBuilder, table);
+    }
+
+    @Override
     public void appendPrimaryKeyDefinition(StringBuilder sqlBuilder, TableMetadata table) {
         appendLine(sqlBuilder, "- addPrimaryKey:", TABLE_DEFINITION_PADDING_LEVEL);
         appendLine(sqlBuilder, "tableName: ", table.getName(), TABLE_ELEMENT_PADDING_LEVEL);

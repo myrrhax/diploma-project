@@ -11,16 +11,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component("mysqlProcessor")
-public class MySQLScriptProcessor extends AbstractScriptProcessor {
+public class MysqlScriptProcessor extends AbstractScriptProcessor {
     private AbstractSqlScriptBuilder scriptBuilder;
 
-    public MySQLScriptProcessor(DifferenceProcessor differenceProcessor) {
+    public MysqlScriptProcessor(DifferenceProcessor differenceProcessor) {
         super(differenceProcessor);
-    }
-
-    @Override
-    protected void onEndTableDefinition(StringBuilder sqlBuilder, TableMetadata table) {
-        scriptBuilder.appendPrimaryKeyDefinition(sqlBuilder, table);
     }
 
     @Override

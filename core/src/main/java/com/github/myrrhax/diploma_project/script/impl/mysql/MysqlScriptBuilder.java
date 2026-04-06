@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Component("mysqlBuilder")
-public class MysqlSqlScriptBuilder extends AbstractSqlScriptBuilder {
+public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
 
     private static final Map<ColumnMetadata.ColumnType, String> mysqlMapping = new HashMap<>() {{
         put(ColumnMetadata.ColumnType.BOOLEAN, "boolean");

@@ -23,12 +23,6 @@ public class LiquibaseYamlScriptProcessor extends AbstractScriptProcessor {
     }
 
     @Override
-    protected void onEndTableDefinition(StringBuilder sqlBuilder, TableMetadata table) {
-        AbstractScriptBuilder abstractScriptBuilder = getFabric();
-        abstractScriptBuilder.appendPrimaryKeyDefinition(sqlBuilder, table);
-    }
-
-    @Override
     protected AbstractScriptBuilder getFabric() {
         return scriptBuilder;
     }

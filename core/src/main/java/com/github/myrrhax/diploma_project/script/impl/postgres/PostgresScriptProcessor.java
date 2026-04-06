@@ -25,11 +25,6 @@ public class PostgresScriptProcessor extends AbstractScriptProcessor {
     }
 
     @Override
-    protected void onEndTableDefinition(StringBuilder sqlBuilder, TableMetadata table) {
-        scriptBuilder.appendPrimaryKeyDefinition(sqlBuilder, table);
-    }
-
-    @Override
     protected AbstractScriptBuilder getFabric() {
         return scriptBuilder;
     }
