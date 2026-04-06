@@ -183,7 +183,9 @@ public class LiquibaseYamlScriptFabric extends ScriptFabric {
 
     @Override
     public void appendDropColumn(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        appendLine(scriptBuilder, "- dropColumn:", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "columnName: ", column.getName(), TABLE_ELEMENT_PADDING_LEVEL);
     }
 
     @Override

@@ -156,9 +156,4 @@ public class MySQLDialectSqlScriptFabric extends AbstractSqlScriptFabric {
                 .append(toIdx.getName())
                 .append(";\n");
     }
-
-    @Override
-    public void appendDropColumn(StringBuilder scriptBuilder, ColumnMetadata column) {
-
-    }
 }

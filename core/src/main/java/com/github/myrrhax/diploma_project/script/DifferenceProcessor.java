@@ -29,8 +29,8 @@ public class DifferenceProcessor {
     private static final int DROP_REFERENCE_PRIORITY = 0;
     private static final int DROP_INDEX_PRIORITY = 1;
     private static final int DROP_TABLE_PRIORITY = 2;
-    private static final int RENAME_TABLE_PRIORITY = 3;
-    private static final int DROP_COLUMN_PRIORITY = 4;
+    private static final int DROP_COLUMN_PRIORITY = 3;
+    private static final int RENAME_TABLE_PRIORITY = 4;
     private static final int ADD_TABLE_PRIORITY = 5;
     private static final int RENAME_COLUMN_PRIORITY = 6;
     private static final int ADD_COLUMN_PRIORITY = 7;

@@ -165,4 +165,14 @@ public abstract class AbstractSqlScriptFabric extends ScriptFabric {
                 .append(newColumn.getName())
                 .append(";\n");
     }
+
+    @Override
+    public void appendDropColumn(StringBuilder scriptBuilder, ColumnMetadata column) {
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" DROP COLUMN ")
+                .append(column.getName())
+                .append(";\n");
+    }
+
 }
