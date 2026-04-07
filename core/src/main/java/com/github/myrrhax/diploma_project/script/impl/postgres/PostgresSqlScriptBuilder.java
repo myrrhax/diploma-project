@@ -39,6 +39,13 @@ public class PostgresSqlScriptBuilder extends AbstractSqlScriptBuilder {
         IndexMetadata.IndexType.HASH, "hash"
     );
 
+    private static final Map<ColumnMetadata.ColumnType, String> TIME_CURRENT_VALUES = Map.of(
+        ColumnMetadata.ColumnType.DATE, "CURRENT_DATE",
+        ColumnMetadata.ColumnType.TIME, "CURRENT_TIME",
+        ColumnMetadata.ColumnType.DATETIME, "NOW()",
+        ColumnMetadata.ColumnType.TIMESTAMP, "NOW()"
+    );
+
     @Override
     public Map<ColumnMetadata.ColumnType, String> getDefinitions() {
         return postgresMapping;
@@ -133,12 +140,29 @@ public class PostgresSqlScriptBuilder extends AbstractSqlScriptBuilder {
 
     @Override
     public void appendAddUnique(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" ADD CONSTRAINT ")
+                .append(UQ_CONSTRAINT_PATTERN.formatted(column.getTable().getName().toLowerCase(),
+                        column.getName().toLowerCase()))
+                .append(" UNIQUE ")
+                .append(column.getName())
+                .append(";\n");
     }
 
     @Override
     public void addDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" ALTER COLUMN ")
+                .append(column.getName())
+                .append(" SET DEFAULT ");
+        String defaultValue = column.getDefaultValue();
+        if (MetadataTypeUtils.timeTypes.contains(column.getColumnType())) {
+            defaultValue = getDefaultValueForTimeType(column);
+        }
+        scriptBuilder.append(defaultValue)
+                .append(";\n");
     }
 
     @Override
@@ -195,5 +219,10 @@ public class PostgresSqlScriptBuilder extends AbstractSqlScriptBuilder {
     @Override
     public void appendDropUnique(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
 
+    }
+
+    @Override
+    protected String getDefaultValueForTimeType(ColumnMetadata column) {
+        return TIME_CURRENT_VALUES.getOrDefault(column.getColumnType(), "now()");
     }
 }

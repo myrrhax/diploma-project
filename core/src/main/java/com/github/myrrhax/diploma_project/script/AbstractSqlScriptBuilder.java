@@ -4,6 +4,7 @@ import com.github.myrrhax.diploma_project.model.ColumnMetadata;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.TableMetadata;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
+import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,12 +81,18 @@ public abstract class AbstractSqlScriptBuilder extends AbstractScriptBuilder {
         }
 
         if (column.getDefaultValue() != null) {
-            sqlBuilder.append(" DEFAULT ").append(column.getDefaultValue());
+            String defaultValue = column.getDefaultValue();
+            if (MetadataTypeUtils.timeTypes.contains(column.getColumnType())) {
+                defaultValue = getDefaultValueForTimeType(column);
+            }
+            sqlBuilder.append(" DEFAULT ").append(defaultValue);
         }
         if (!addExisting) {
             sqlBuilder.append(',');
         }
     }
+
+    protected abstract String getDefaultValueForTimeType(ColumnMetadata column);
 
     @Override
     public void appendDropTable(StringBuilder scriptBuilder, TableMetadata fromTable) {

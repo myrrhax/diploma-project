@@ -207,4 +207,9 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
     public void appendDropUnique(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
 
     }
+
+    @Override
+    protected String getDefaultValueForTimeType(ColumnMetadata column) {
+        return "";
+    }
 }
