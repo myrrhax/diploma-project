@@ -41,6 +41,13 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
             IndexMetadata.IndexType.HASH, "HASH"
     );
 
+    private static final Map<ColumnMetadata.ColumnType, String> MYSQL_TIME_CURRENT_VALUES = Map.of(
+            ColumnMetadata.ColumnType.DATE, "(CURRENT_DATE)",
+            ColumnMetadata.ColumnType.TIME, "(CURRENT_TIME)",
+            ColumnMetadata.ColumnType.DATETIME, "CURRENT_TIMESTAMP",
+            ColumnMetadata.ColumnType.TIMESTAMP, "CURRENT_TIMESTAMP"
+    );
+
     @Override
     public void appendRenameTable(StringBuilder scriptBuilder, TableMetadata from, TableMetadata to) {
         scriptBuilder.append("ALTER TABLE ")
@@ -105,32 +112,63 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
 
     @Override
     public void appendAddUnique(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        String constraintName = UQ_CONSTRAINT_PATTERN.formatted(column.getTable().getName().toLowerCase(),
+                column.getName().toLowerCase());
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" ADD CONSTRAINT ")
+                .append(constraintName)
+                .append(" UNIQUE (")
+                .append(column.getName())
+                .append(");\n");
     }
 
     @Override
     public void addDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column) {
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" ALTER COLUMN ")
+                .append(column.getName())
+                .append(" SET DEFAULT ");
 
+        String defaultValue = column.getDefaultValue();
+        if (MetadataTypeUtils.timeTypes.contains(column.getColumnType()) && defaultValue.equals("now")) {
+            defaultValue = getDefaultValueForTimeType(column);
+        }
+
+        scriptBuilder.append(defaultValue).append(";\n");
     }
 
     @Override
     public void dropDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column) {
-
-    }
-
-    @Override
-    public void updateDefaultValue(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
-
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" ALTER COLUMN ")
+                .append(column.getName())
+                .append(" DROP DEFAULT;\n");
     }
 
     @Override
     public void appendDropMinMax(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
-
+        String constraintName = CHECK_CONSTRAINT_PATTERN.formatted(newColumn.getTable().getName().toLowerCase(),
+                newColumn.getName().toLowerCase());
+        scriptBuilder.append("ALTER TABLE ")
+                .append(newColumn.getTable().getName())
+                .append(" DROP CHECK ")
+                .append(constraintName)
+                .append(";\n");
     }
 
     @Override
     public void appendMinMaxConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        String constraintName = CHECK_CONSTRAINT_PATTERN.formatted(column.getTable().getName().toLowerCase(),
+                column.getName().toLowerCase());
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" ADD CONSTRAINT ")
+                .append(constraintName)
+                .append(getMinMaxDefinition(column))
+                .append(";\n");
     }
 
 
@@ -190,26 +228,50 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
 
     @Override
     public void appendChangeColumnType(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" MODIFY COLUMN ")
+                .append(column.getName())
+                .append(' ');
+        appendColumnDefinition(scriptBuilder, column, true);
+        scriptBuilder.append(";\n");
     }
 
     @Override
     public void appendNotNullConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" MODIFY COLUMN ")
+                .append(column.getName())
+                .append(' ')
+                .append(getSuitableType(column))
+                .append(" NOT NULL;\n");
     }
 
     @Override
     public void appendDropNotNull(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata column) {
-
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" MODIFY COLUMN ")
+                .append(column.getName())
+                .append(' ')
+                .append(getSuitableType(column))
+                .append(" NULL;\n");
     }
 
     @Override
     public void appendDropUnique(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
-
+        String constraintName = UQ_CONSTRAINT_PATTERN.formatted(newColumn.getTable().getName().toLowerCase(),
+                newColumn.getName().toLowerCase());
+        scriptBuilder.append("ALTER TABLE ")
+                .append(oldColumn.getTable().getName())
+                .append(" DROP INDEX ")
+                .append(constraintName)
+                .append(";\n");
     }
 
     @Override
     protected String getDefaultValueForTimeType(ColumnMetadata column) {
-        return "";
+        return MYSQL_TIME_CURRENT_VALUES.getOrDefault(column.getColumnType(), "now()");
     }
 }

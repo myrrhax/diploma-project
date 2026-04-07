@@ -158,7 +158,7 @@ public class PostgresSqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(column.getName())
                 .append(" SET DEFAULT ");
         String defaultValue = column.getDefaultValue();
-        if (MetadataTypeUtils.timeTypes.contains(column.getColumnType())) {
+        if (MetadataTypeUtils.timeTypes.contains(column.getColumnType()) && defaultValue.equals("now")) {
             defaultValue = getDefaultValueForTimeType(column);
         }
         scriptBuilder.append(defaultValue)
