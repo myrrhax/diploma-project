@@ -163,7 +163,6 @@ public abstract class AbstractScriptProcessor {
         }
 
         TableMetadata mtmTable = TableMetadata.builder()
-                .id(UUID.randomUUID())
                 .name(computeMtmTableName(fromTable, toTable))
                 .columns(concatColumnsMap)
                 .primaryKeyParts(concatMtmCols.stream()
@@ -237,7 +236,7 @@ public abstract class AbstractScriptProcessor {
 
     protected ColumnMetadata cloneColumn(TableMetadata table, ColumnMetadata origin) {
         return ColumnMetadata.builder()
-                .id(UUID.randomUUID())
+                .id(origin.getId())
                 .name(table.getName() + "_" + origin.getName())
                 .columnType(origin.getColumnType())
                 .scale(origin.getScale())

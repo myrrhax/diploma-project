@@ -245,7 +245,20 @@ public class TableMetadata implements Cloneable, AbstractMetadata<UUID> {
     @Override
     public boolean contentEquals(AbstractMetadata<UUID> that) {
         if (that instanceof TableMetadata otherTable) {
-            return MetadataTypeUtils.isFullEquals(this.primaryKeyParts, otherTable.primaryKeyParts);
+            if (MetadataTypeUtils.isFullEquals(this.primaryKeyParts, otherTable.primaryKeyParts)) {
+                return true;
+            }
+            if (this.primaryKeyParts.size() != otherTable.primaryKeyParts.size()) {
+                return false;
+            }
+            var thisPk = this.primaryKeyParts.stream()
+                    .map(col -> this.getColumn(col).orElseThrow().getName())
+                    .toList();
+            var otherPk = otherTable.primaryKeyParts.stream()
+                    .map(col -> otherTable.getColumn(col).orElseThrow().getName())
+                    .toList();
+
+            return MetadataTypeUtils.isFullEquals(thisPk, otherPk);
         }
         return false;
     }

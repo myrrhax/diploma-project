@@ -1,6 +1,7 @@
 package com.github.myrrhax.diploma_project.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.myrrhax.diploma_project.model.enums.MetadataType;
 import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
 import com.github.myrrhax.diploma_project.util.MetadataTypeUtils;
@@ -29,6 +30,7 @@ public class IndexMetadata implements AbstractMetadata<UUID> {
     private List<UUID> columnIds = new ArrayList<>();
     @Builder.Default
     private IndexType indexType = IndexType.B_TREE;
+    @JsonProperty("indexName")
     private String name;
     private boolean unique;
     @Builder.Default

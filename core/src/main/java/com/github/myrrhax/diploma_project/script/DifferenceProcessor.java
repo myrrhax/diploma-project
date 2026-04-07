@@ -142,6 +142,9 @@ public class DifferenceProcessor {
             }
 
             processed.add(to.getId());
+            if (from != null) {
+                processed.add(from.getId());
+            }
         }
 
         for (T from : initialMetadata) {

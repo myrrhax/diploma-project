@@ -109,10 +109,10 @@ public class ScriptGeneratorService {
                     scriptBytes,
                     getMediaTypeForScript(type),
                     vTo.getSchemeId());
-            MigrationDDLScriptEntity ddl = new MigrationDDLScriptEntity(fromVersion, fileId, type, toVersion);
+            MigrationDDLScriptEntity ddl = new MigrationDDLScriptEntity(toVersion, fileId, type, fromVersion);
             migrationScriptRepository.save(ddl);
 
-            return scriptMapper.toDto(ddl);
+            return scriptMapper.toDto(ddl, fromVersion);
         } catch (Exception e) {
             log.error("Failed to convert schema from JSON", e);
             throw new ApplicationException("Failed to convert schema from JSON", e);
