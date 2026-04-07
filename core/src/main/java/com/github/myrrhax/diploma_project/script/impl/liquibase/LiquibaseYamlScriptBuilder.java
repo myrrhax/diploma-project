@@ -140,6 +140,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "- columnName: ", columnName, TABLE_ELEMENT_PADDING_LEVEL);
         String constraintName = UQ_CONSTRAINT_PATTERN.formatted(tableName.toLowerCase(), columnName.toLowerCase());
         appendLine(scriptBuilder, "- constraintName: ", constraintName, TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -152,6 +153,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
             defaultValue = defaultTimeValuesMap.get(column.getColumnType());
         }
         appendLine(scriptBuilder, "defaultValue: ", defaultValue, TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -159,6 +161,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "- dropDefaultValue:", TABLE_DEFINITION_PADDING_LEVEL);
         appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "columnName: ", column.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -176,6 +179,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "- dropCheckConstraint:", TABLE_DEFINITION_PADDING_LEVEL);
         appendLine(scriptBuilder, "tableName: ", newColumn.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "constraintName: ", constraintName, TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -193,13 +197,14 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         }
 
         appendLine(scriptBuilder, "- addCheckConstraint: ", TABLE_DEFINITION_PADDING_LEVEL);
-        appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), COLUMN_CONSTRAINT_LEVEL);
-        appendLine(scriptBuilder, "checkConstraint: ", valueBuilder.toString(), COLUMN_CONSTRAINT_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "checkConstraint: ", valueBuilder.toString(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder,
                 "constraintName: ",
                 CHECK_CONSTRAINT_PATTERN.formatted(column.getTable().getName().toLowerCase(),
                         column.getName().toLowerCase()),
-                COLUMN_CONSTRAINT_LEVEL);
+                TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -213,11 +218,13 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "dbms: ", "mysql", TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "sql: ", "ALTER TABLE " + column.getTable().getName() +
                 " MODIFY COLUMN " + column.getName() + " " + mySqlDefinition + ";\"", TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
 
         appendLine(scriptBuilder, "- sql:", TABLE_DEFINITION_PADDING_LEVEL);
         appendLine(scriptBuilder, "dbms: ", "postgresql", TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "sql: ", "ALTER TABLE " + column.getTable().getName() +
                 " ALTER COLUMN " + column.getName() + " DROP IDENTITY IF EXISTS;\"", TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -226,6 +233,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "columnName: ", column.getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "columnDataType: ", getSuitableType(column), TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -250,6 +258,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
             appendLine(indexBuilder, "- column:", INDEX_COLUMN_PADDING_LEVEL);
             appendLine(indexBuilder, "name: ", colName, INDEX_COLUMN_PADDING_LEVEL + 1);
         }
+        indexBuilder.append('\n');
     }
 
     @Override
@@ -257,6 +266,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "- dropIndex:", INDEX_DEFINITION_PADDING_LEVEL);
         appendLine(scriptBuilder, "tableName: ", idx.getTable().getName(), INDEX_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "indexName: ", idx.getName(), INDEX_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -265,6 +275,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "tableName: ", idx.getTable().getName(), INDEX_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "oldIndexName: ", idx.getName(), INDEX_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "newIndexName: ", toIdx.getName(), INDEX_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -276,6 +287,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         if (column.getMin() != null || column.getMax() != null) {
             appendMinMaxConstraint(scriptBuilder, column);
         }
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -283,6 +295,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "- dropColumn:", TABLE_DEFINITION_PADDING_LEVEL);
         appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "columnName: ", column.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -292,6 +305,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "oldColumnName: ", oldColumn.getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "newColumnName: ", newColumn.getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "columnDataType: ", getSuitableType(newColumn), TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -300,6 +314,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "columnName: ", column.getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "newDataType: ", getSuitableType(column), TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -308,6 +323,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "columnName: ", column.getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "columnDataType: ", getSuitableType(column), TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -316,6 +332,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "columnName: ", column.getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "columnDataType: ", getSuitableType(column), TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -326,11 +343,12 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "tableName: ", tableName, TABLE_ELEMENT_PADDING_LEVEL);
         String constraintName = UQ_CONSTRAINT_PATTERN.formatted(tableName.toLowerCase(), columnName.toLowerCase());
         appendLine(scriptBuilder, "constraintName: ", constraintName, TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
     protected void appendEndTablePart(StringBuilder scriptBuilder) {
-        scriptBuilder.append('\n');
+
     }
 
     @Override
@@ -344,11 +362,12 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
     }
 
     @Override
-    public void appendPrimaryKeyDefinition(StringBuilder sqlBuilder, TableMetadata table) {
-        appendLine(sqlBuilder, "- addPrimaryKey:", TABLE_DEFINITION_PADDING_LEVEL);
-        appendLine(sqlBuilder, "tableName: ", table.getName(), TABLE_ELEMENT_PADDING_LEVEL);
-        appendLine(sqlBuilder, "columnNames: ", table.getPkContated(), TABLE_ELEMENT_PADDING_LEVEL);
-        appendLine(sqlBuilder, "constraintName: ", "pk_" + table.getName().toLowerCase(), TABLE_ELEMENT_PADDING_LEVEL);
+    public void appendPrimaryKeyDefinition(StringBuilder scriptBuilder, TableMetadata table) {
+        appendLine(scriptBuilder, "- addPrimaryKey:", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", table.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "columnNames: ", table.getPkContated(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "constraintName: ", "pk_" + table.getName().toLowerCase(), TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -356,6 +375,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "- dropPrimaryKey:", TABLE_DEFINITION_PADDING_LEVEL);
         appendLine(scriptBuilder, "tableName: ", toTable.getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "constraintName: ", "pk_" + toTable.getName().toLowerCase(), TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -369,6 +389,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "- dropForeignKey: ", REFERENCE_DEFINITION_PADDING_LEVEL);
         appendLine(scriptBuilder, "baseTableName: ", baseTable.getName(), REFERENCE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "constraintName: ", ref.getName(), REFERENCE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -392,6 +413,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         if (onUpdateAction != null) {
             appendLine(scriptBuilder, "onUpdate: ", parseAction(onUpdateAction), REFERENCE_ELEMENT_PADDING_LEVEL);
         }
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -408,6 +430,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
     public void appendDropTable(StringBuilder scriptBuilder, TableMetadata fromTable) {
         appendLine(scriptBuilder, "- sql:", TABLE_DEFINITION_PADDING_LEVEL);
         appendLine(scriptBuilder, "sql: ", "DROP TABLE IF EXISTS " + fromTable.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -415,6 +438,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
         appendLine(scriptBuilder, "- renameTable:", TABLE_DEFINITION_PADDING_LEVEL);
         appendLine(scriptBuilder, "oldTableName: ", from.getName(), TABLE_ELEMENT_PADDING_LEVEL);
         appendLine(scriptBuilder, "newTableName: ", to.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        scriptBuilder.append('\n');
     }
 
     private String getPadding(int level) {

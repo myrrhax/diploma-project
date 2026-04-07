@@ -98,7 +98,7 @@ public abstract class AbstractSqlScriptBuilder extends AbstractScriptBuilder {
     public void appendDropTable(StringBuilder scriptBuilder, TableMetadata fromTable) {
         scriptBuilder.append("DROP TABLE IF EXISTS ")
                 .append(fromTable.getName())
-                .append(";\n");
+                .append(";\n\n");
     }
 
     public void appendPrimaryKeyDefinition(StringBuilder sqlBuilder, TableMetadata table) {
@@ -182,7 +182,7 @@ public abstract class AbstractSqlScriptBuilder extends AbstractScriptBuilder {
                 .append(oldColumn.getName())
                 .append(" TO ")
                 .append(newColumn.getName())
-                .append(";\n");
+                .append(";\n\n");
     }
 
     @Override
@@ -191,7 +191,7 @@ public abstract class AbstractSqlScriptBuilder extends AbstractScriptBuilder {
                 .append(column.getTable().getName())
                 .append(" DROP COLUMN ")
                 .append(column.getName())
-                .append(";\n");
+                .append(";\n\n");
     }
 
     @Override

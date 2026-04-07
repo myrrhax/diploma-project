@@ -54,14 +54,14 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(from.getName())
                 .append(" RENAME TO ")
                 .append(to.getName())
-                .append(";\n");
+                .append(";\n\n");
     }
 
     @Override
     public void appendDropPkConstraint(StringBuilder scriptBuilder, TableMetadata toTable) {
         scriptBuilder.append("ALTER TABLE ")
                 .append(toTable.getName())
-                .append(" DROP PRIMARY KEY;\n");
+                .append(" DROP PRIMARY KEY;\n\n");
     }
 
     @Override
@@ -70,7 +70,7 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(toTable.getName())
                 .append(" ADD PRIMARY KEY (")
                 .append(toTable.getPkContated())
-                .append(");\n");
+                .append(");\n\n");
     }
 
     @Override
@@ -79,7 +79,7 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(ref.getBaseTable().getName())
                 .append(" DROP FOREIGN KEY ")
                 .append(ref.getName())
-                .append(";\n");
+                .append(";\n\n");
     }
 
     @Override
@@ -120,7 +120,7 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(constraintName)
                 .append(" UNIQUE (")
                 .append(column.getName())
-                .append(");\n");
+                .append(");\n\n");
     }
 
     @Override
@@ -136,7 +136,7 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
             defaultValue = getDefaultValueForTimeType(column);
         }
 
-        scriptBuilder.append(defaultValue).append(";\n");
+        scriptBuilder.append(defaultValue).append(";\n\n");
     }
 
     @Override
@@ -145,7 +145,7 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(column.getTable().getName())
                 .append(" ALTER COLUMN ")
                 .append(column.getName())
-                .append(" DROP DEFAULT;\n");
+                .append(" DROP DEFAULT;\n\n");
     }
 
     @Override
@@ -156,7 +156,7 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(newColumn.getTable().getName())
                 .append(" DROP CHECK ")
                 .append(constraintName)
-                .append(";\n");
+                .append(";\n\n");
     }
 
     @Override
@@ -168,7 +168,7 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(" ADD CONSTRAINT ")
                 .append(constraintName)
                 .append(getMinMaxDefinition(column))
-                .append(";\n");
+                .append(";\n\n");
     }
 
     @Override
@@ -179,18 +179,16 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(column.getName())
                 .append(' ');
         appendColumnDefinition(scriptBuilder, column, true);
-        scriptBuilder.append(";\n");
+        scriptBuilder.append(";\n\n");
     }
 
     @Override
     public void appendAddAutoIncrement(StringBuilder scriptBuilder, ColumnMetadata column) {
         scriptBuilder.append("ALTER TABLE ")
                 .append(column.getTable().getName())
-                .append(" MODIFY COLUMN ")
-                .append(column.getName())
-                .append(' ');
+                .append(" MODIFY COLUMN ");
         appendColumnDefinition(scriptBuilder, column, true);
-        scriptBuilder.append(";\n");
+        scriptBuilder.append(";\n\n");
     }
 
 
@@ -225,7 +223,7 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
 
         indexBuilder.append(" USING ");
         indexBuilder.append(indexMapping.get(index.getIndexType()));
-        indexBuilder.append(";\n");
+        indexBuilder.append(";\n\n");
     }
 
     @Override
@@ -234,7 +232,7 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(idx.getTable().getName())
                 .append(" DROP INDEX ")
                 .append(idx.getName())
-                .append(";\n");
+                .append(";\n\n");
     }
 
     @Override
@@ -245,18 +243,16 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(idx.getName())
                 .append(" TO ")
                 .append(toIdx.getName())
-                .append(";\n");
+                .append(";\n\n");
     }
 
     @Override
     public void appendChangeColumnType(StringBuilder scriptBuilder, ColumnMetadata column) {
         scriptBuilder.append("ALTER TABLE ")
                 .append(column.getTable().getName())
-                .append(" MODIFY COLUMN ")
-                .append(column.getName())
-                .append(' ');
+                .append(" MODIFY COLUMN ");
         appendColumnDefinition(scriptBuilder, column, true);
-        scriptBuilder.append(";\n");
+        scriptBuilder.append(";\n\n");
     }
 
     @Override
@@ -267,7 +263,7 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(column.getName())
                 .append(' ')
                 .append(getSuitableType(column))
-                .append(" NOT NULL;\n");
+                .append(" NOT NULL;\n\n");
     }
 
     @Override
@@ -278,7 +274,7 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(column.getName())
                 .append(' ')
                 .append(getSuitableType(column))
-                .append(" NULL;\n");
+                .append(" NULL;\n\n");
     }
 
     @Override
@@ -289,7 +285,7 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(oldColumn.getTable().getName())
                 .append(" DROP INDEX ")
                 .append(constraintName)
-                .append(";\n");
+                .append(";\n\n");
     }
 
     @Override
