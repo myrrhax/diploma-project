@@ -29,7 +29,7 @@ public class ScriptController {
     @PreAuthorize("@authorityCheckService.hasAuthorityForVersion(principal.token.userId, #dto.versionId, 'GENERATE_SCRIPT')")
     public ResponseEntity<ScriptDto> generate(@Valid @RequestBody GenerateScriptDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(scriptGeneratorService.generateScript(dto.versionId(), dto.type()));
+                .body(scriptGeneratorService.generateFullScript(dto.versionId(), dto.type()));
     }
 
     @GetMapping
