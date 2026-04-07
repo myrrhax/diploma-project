@@ -289,6 +289,14 @@ public abstract class AbstractScriptProcessor {
                     }
                 }
 
+                if (!typeChanged && !Objects.equals(fromColumn.getAutoIncrement(), toColumn.getAutoIncrement())) {
+                    if (Objects.equals(fromColumn.getAutoIncrement(), Boolean.TRUE)) {
+                        fabric.appendDropAutoIncrement(scriptBuilder, toColumn);
+                    } else if (Objects.equals(toColumn.getAutoIncrement(), Boolean.TRUE)) {
+                        fabric.appendAddAutoIncrement(scriptBuilder, toColumn);
+                    }
+                }
+
                 if (!Objects.equals(fromColumn.getDefaultValue(), toColumn.getDefaultValue())) { // ИСПРАВЛЕНО
                     if (fromColumn.getDefaultValue() == null) {
                         fabric.addDefaultValue(scriptBuilder, toColumn);

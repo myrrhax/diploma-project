@@ -203,6 +203,32 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
     }
 
     @Override
+    public void appendDropAutoIncrement(StringBuilder scriptBuilder, ColumnMetadata column) {
+        String dataType = getSuitableType(column);
+        String mySqlDefinition = dataType + (column.getConstraints().contains(ColumnMetadata.ConstraintType.NOT_NULL)
+                ? " NOT NULL"
+                : " NULL");
+
+        appendLine(scriptBuilder, "- sql:", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "dbms: ", "mysql", TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "sql: ", "ALTER TABLE " + column.getTable().getName() +
+                " MODIFY COLUMN " + column.getName() + " " + mySqlDefinition + ";\"", TABLE_ELEMENT_PADDING_LEVEL);
+
+        appendLine(scriptBuilder, "- sql:", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "dbms: ", "postgresql", TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "sql: ", "ALTER TABLE " + column.getTable().getName() +
+                " ALTER COLUMN " + column.getName() + " DROP IDENTITY IF EXISTS;\"", TABLE_ELEMENT_PADDING_LEVEL);
+    }
+
+    @Override
+    public void appendAddAutoIncrement(StringBuilder scriptBuilder, ColumnMetadata column) {
+        appendLine(scriptBuilder, "- addAutoIncrement:", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "columnName: ", column.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "columnDataType: ", getSuitableType(column), TABLE_ELEMENT_PADDING_LEVEL);
+    }
+
+    @Override
     public void appendIndexDefinition(StringBuilder indexBuilder, IndexMetadata index) {
         appendLine(indexBuilder, "- createIndex:", INDEX_DEFINITION_PADDING_LEVEL);
         if (index.getName() == null) {

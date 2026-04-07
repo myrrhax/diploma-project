@@ -125,4 +125,8 @@ public abstract class AbstractScriptBuilder {
     public abstract void appendDropMinMax(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn);
 
     public abstract void appendMinMaxConstraint(StringBuilder scriptBuilder, ColumnMetadata column);
+
+    public abstract void appendDropAutoIncrement(StringBuilder scriptBuilder, ColumnMetadata column);
+
+    public abstract void appendAddAutoIncrement(StringBuilder scriptBuilder, ColumnMetadata column);
 }

@@ -171,6 +171,28 @@ public class MysqlScriptBuilder extends AbstractSqlScriptBuilder {
                 .append(";\n");
     }
 
+    @Override
+    public void appendDropAutoIncrement(StringBuilder scriptBuilder, ColumnMetadata column) {
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" MODIFY COLUMN ")
+                .append(column.getName())
+                .append(' ');
+        appendColumnDefinition(scriptBuilder, column, true);
+        scriptBuilder.append(";\n");
+    }
+
+    @Override
+    public void appendAddAutoIncrement(StringBuilder scriptBuilder, ColumnMetadata column) {
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" MODIFY COLUMN ")
+                .append(column.getName())
+                .append(' ');
+        appendColumnDefinition(scriptBuilder, column, true);
+        scriptBuilder.append(";\n");
+    }
+
 
     @Override
     public Map<ColumnMetadata.ColumnType, String> getDefinitions() {
