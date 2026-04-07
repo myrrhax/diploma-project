@@ -133,27 +133,49 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
 
     @Override
     public void appendAddUnique(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        appendLine(scriptBuilder, "- addUniqueConstraint:", TABLE_DEFINITION_PADDING_LEVEL);
+        String tableName = column.getTable().getName();
+        String columnName = column.getName();
+        appendLine(scriptBuilder, "- tableName: ", tableName, TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "- columnName: ", columnName, TABLE_ELEMENT_PADDING_LEVEL);
+        String constraintName = UQ_CONSTRAINT_PATTERN.formatted(tableName.toLowerCase(), columnName.toLowerCase());
+        appendLine(scriptBuilder, "- constraintName: ", constraintName, TABLE_ELEMENT_PADDING_LEVEL);
     }
 
     @Override
     public void addDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        appendLine(scriptBuilder, "- addDefaultValue: ", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "columnName: ", column.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        String defaultValue = column.getDefaultValue();
+        if (MetadataTypeUtils.timeTypes.contains(column.getColumnType())) {
+            defaultValue = defaultTimeValuesMap.get(column.getColumnType());
+        }
+        appendLine(scriptBuilder, "defaultValue: ", defaultValue, TABLE_ELEMENT_PADDING_LEVEL);
     }
 
     @Override
     public void dropDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        appendLine(scriptBuilder, "- dropDefaultValue:", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "columnName: ", column.getName(), TABLE_ELEMENT_PADDING_LEVEL);
     }
 
     @Override
     public void updateDefaultValue(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
-
+        dropDefaultValue(scriptBuilder, newColumn);
+        addDefaultValue(scriptBuilder, newColumn);
     }
 
     @Override
     public void appendDropMinMax(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+        String tableName = newColumn.getTable().getName().toLowerCase();
+        String columnName = newColumn.getName().toLowerCase();
+        String constraintName = CHECK_CONSTRAINT_PATTERN.formatted(tableName, columnName);
 
+        appendLine(scriptBuilder, "- dropCheckConstraint:", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", newColumn.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "constraintName: ", constraintName, TABLE_ELEMENT_PADDING_LEVEL);
     }
 
     @Override
@@ -223,7 +245,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
     public void addColumnToTable(StringBuilder scriptBuilder, ColumnMetadata column) {
         appendLine(scriptBuilder, "- addColumn: ", TABLE_DEFINITION_PADDING_LEVEL);
         appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
-        appendLine(scriptBuilder, "columns: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "columns: ", TABLE_ELEMENT_PADDING_LEVEL);
         appendColumnDefinition(scriptBuilder, column, true);
         if (column.getMin() != null || column.getMax() != null) {
             appendMinMaxConstraint(scriptBuilder, column);
@@ -248,26 +270,41 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
 
     @Override
     public void appendChangeColumnType(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        appendLine(scriptBuilder, "- modifyDataType:", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "columnName: ", column.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "newDataType: ", getSuitableType(column), TABLE_ELEMENT_PADDING_LEVEL);
     }
 
     @Override
     public void appendNotNullConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        appendLine(scriptBuilder, "- addNotNullConstraint: ", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "columnName: ", column.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "columnDataType: ", getSuitableType(column), TABLE_ELEMENT_PADDING_LEVEL);
     }
 
     @Override
     public void appendDropNotNull(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata column) {
-
+        appendLine(scriptBuilder, "- dropNotNullConstraint:", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", column.getTable().getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "columnName: ", column.getName(), TABLE_ELEMENT_PADDING_LEVEL);
+        appendLine(scriptBuilder, "columnDataType: ", getSuitableType(column), TABLE_ELEMENT_PADDING_LEVEL);
     }
 
     @Override
     public void appendDropUnique(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
-
+        String tableName = newColumn.getTable().getName();
+        String columnName = newColumn.getName();
+        appendLine(scriptBuilder, "- dropUniqueConstraint: ", TABLE_DEFINITION_PADDING_LEVEL);
+        appendLine(scriptBuilder, "tableName: ", tableName, TABLE_ELEMENT_PADDING_LEVEL);
+        String constraintName = UQ_CONSTRAINT_PATTERN.formatted(tableName.toLowerCase(), columnName.toLowerCase());
+        appendLine(scriptBuilder, "constraintName: ", constraintName, TABLE_ELEMENT_PADDING_LEVEL);
     }
 
     @Override
     protected void appendEndTablePart(StringBuilder scriptBuilder) {
+        scriptBuilder.append('\n');
     }
 
     @Override
@@ -363,7 +400,7 @@ public class LiquibaseYamlScriptBuilder extends AbstractScriptBuilder {
     }
 
     private void writeValue(StringBuilder builder, String data) {
-        builder.append("\"").append(data).append("\"");
+        builder.append(data);
     }
 
     private void appendLine(StringBuilder scriptBuilder, String key, String value, int level) {

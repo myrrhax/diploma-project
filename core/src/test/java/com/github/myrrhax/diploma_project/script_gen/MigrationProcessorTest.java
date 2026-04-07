@@ -162,6 +162,8 @@ public class MigrationProcessorTest {
                 .table(newProductsTable)
                 .name("price")
                 .columnType(ColumnMetadata.ColumnType.DECIMAL) // UPDATE типа
+                        .precision(9)
+                        .scale(3)
                 .build());
 
         newProductsTable.addColumn(ColumnMetadata.builder()
@@ -671,4 +673,6 @@ public class MigrationProcessorTest {
         String script = migrationProcessor.processMigration(v1, v2);
         System.out.println(script);
     }
+
+
 }

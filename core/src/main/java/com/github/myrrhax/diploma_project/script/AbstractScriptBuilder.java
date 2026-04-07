@@ -54,6 +54,11 @@ public abstract class AbstractScriptBuilder {
         scriptBuilder.append(indexesBuilder);
     }
 
+    public void updateDefaultValue(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
+        dropDefaultValue(scriptBuilder, newColumn);
+        addDefaultValue(scriptBuilder, newColumn);
+    }
+
     protected abstract void onEndTableDefinition(StringBuilder scriptBuilder, TableMetadata table);
 
     public abstract void appendPrimaryKeyDefinition(StringBuilder sqlBuilder, TableMetadata table);
@@ -116,8 +121,6 @@ public abstract class AbstractScriptBuilder {
     public abstract void addDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column);
 
     public abstract void dropDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column);
-
-    public abstract void updateDefaultValue(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn);
 
     public abstract void appendDropMinMax(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn);
 
