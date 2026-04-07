@@ -167,22 +167,35 @@ public class PostgresSqlScriptBuilder extends AbstractSqlScriptBuilder {
 
     @Override
     public void dropDefaultValue(StringBuilder scriptBuilder, ColumnMetadata column) {
-
-    }
-
-    @Override
-    public void updateDefaultValue(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
-
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" ALTER COLUMN ")
+                .append(column.getName())
+                .append(" DROP DEFAULT;\n");
     }
 
     @Override
     public void appendDropMinMax(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
-
+        scriptBuilder.append("ALTER TABLE ")
+                .append(newColumn.getTable().getName())
+                .append(" DROP CONSTRAINT ");
+        String constraint = CHECK_CONSTRAINT_PATTERN.formatted(newColumn.getTable().getName().toLowerCase(),
+                newColumn.getName().toLowerCase());
+        scriptBuilder.append(constraint)
+                .append(";\n");
     }
 
     @Override
     public void appendMinMaxConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" ADD CONSTRAINT ");
+        String constraint = CHECK_CONSTRAINT_PATTERN.formatted(column.getTable().getName().toLowerCase(),
+                column.getName().toLowerCase());
+        scriptBuilder.append(constraint)
+                .append(' ');
+        scriptBuilder.append(getMinMaxDefinition(column))
+                .append(";\n");
     }
 
     @Override
@@ -203,22 +216,42 @@ public class PostgresSqlScriptBuilder extends AbstractSqlScriptBuilder {
 
     @Override
     public void appendChangeColumnType(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" ALTER COLUMN ")
+                .append(column.getName())
+                .append(" TYPE ")
+                .append(getSuitableType(column))
+                .append(";\n");
     }
 
     @Override
     public void appendNotNullConstraint(StringBuilder scriptBuilder, ColumnMetadata column) {
-
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" ALTER COLUMN ")
+                .append(column.getName())
+                .append(" SET NOT NULL;\n");
     }
 
     @Override
     public void appendDropNotNull(StringBuilder scriptBuilder, ColumnMetadata fromColumn, ColumnMetadata column) {
-
+        scriptBuilder.append("ALTER TABLE ")
+                .append(column.getTable().getName())
+                .append(" ALTER COLUMN ")
+                .append(column.getName())
+                .append(" DROP NOT NULL;\n");
     }
 
     @Override
     public void appendDropUnique(StringBuilder scriptBuilder, ColumnMetadata oldColumn, ColumnMetadata newColumn) {
-
+        scriptBuilder.append("ALTER TABLE ")
+                .append(newColumn.getTable().getName())
+                .append(" DROP CONSTRAINT ");
+        String constraintName = UQ_CONSTRAINT_PATTERN.formatted(newColumn.getTable().getName().toLowerCase(),
+                newColumn.getName().toLowerCase());
+        scriptBuilder.append(constraintName)
+                .append(";\n");
     }
 
     @Override
