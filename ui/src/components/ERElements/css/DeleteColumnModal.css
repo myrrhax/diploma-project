@@ -4,26 +4,28 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(15, 23, 42, 0.4);
     z-index: 10000;
     display: flex;
     align-items: center;
     justify-content: center;
+    backdrop-filter: blur(2px);
 }
 
 .er_modal_content {
-    background-color: #1e293b;
+    background-color: #ffffff;
     padding: 24px;
-    border-radius: 8px;
+    border-radius: 12px;
     width: 400px;
-    border: 1px solid #334155;
-    color: white;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .er_modal_title {
     margin: 0 0 12px 0;
     font-size: 18px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -35,13 +37,14 @@
 
 .er_modal_text {
     margin: 0 0 24px 0;
-    color: #94a3b8;
+    color: #475569;
     font-size: 14px;
     line-height: 1.5;
 }
 
 .er_modal_highlight {
-    color: white;
+    color: #0f172a;
+    font-weight: 600;
 }
 
 .er_modal_actions {
@@ -54,22 +57,26 @@
     padding: 8px 16px;
     border-radius: 6px;
     border: none;
-    color: white;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .er_modal_btn_cancel {
-    background-color: #475569;
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
 }
 
 .er_modal_btn_cancel:hover {
-    background-color: #334155;
+    background-color: #e2e8f0;
 }
 
 .er_modal_btn_delete {
     background-color: #ef4444;
-    font-weight: bold;
+    color: #ffffff;
 }
 
 .er_modal_btn_delete:hover {
