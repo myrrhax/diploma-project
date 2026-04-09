@@ -33,7 +33,7 @@ export const Header = observer(() => {
         <header className="header_container">
             <div className="logo__container" onClick={() => navigate('/')}>
                 <img id="logo__image" src={logo} alt="erm" />
-                <h3 id="logo__text">ERM DEV</h3>
+                <h3 id="logo__text">ERBulder</h3>
             </div>
 
             <div className="profile_wrapper" ref={menuRef}>
