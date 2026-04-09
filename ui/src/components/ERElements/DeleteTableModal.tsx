@@ -27,7 +27,7 @@ export const DeleteTableModal = observer(() => {
                 </h3>
                 
                 <p className='delete_table_message'>
-                    Вы уверены, что хотите удалить таблицу <b style={{ color: 'white' }}>{tableName}</b>? 
+                    Вы уверены, что хотите удалить таблицу <b style={{ color: 'black' }}>{tableName}</b>? 
                     Это действие нельзя отменить. Все связанные с ней внешние ключи также будут удалены.
                 </p>
                 
