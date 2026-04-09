@@ -140,7 +140,7 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
                             />
                         )}
                         
-                        <main className="schema_canvas_area">
+                        <div className="schema_canvas_area">
                             <ERDiagram />
 
                             {isEditable && (
@@ -150,7 +150,7 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
                                     closeCallback={setUsersOpen} 
                                 />
                             )}
-                        </main>
+                        </div>
                     </div>
 
                     {scriptsStore.isOpen && <ScriptsModal />}

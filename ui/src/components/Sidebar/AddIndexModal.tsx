@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { type Table, type Index, type IndexType } from '@/model/SchemaElements';
 import { v4 as uuidv4 } from 'uuid';
 import './css/AddIndexModal.css';
+import { createPortal } from 'react-dom';
 
 interface AddIndexModalProps {
     table: Table;
@@ -35,7 +36,7 @@ export const AddIndexModal = observer(({ table, onClose, onSave }: AddIndexModal
         onSave(newIndex);
     };
 
-    return (
+    return createPortal(
         <div className="index_modal_overlay" onMouseDown={onClose}>
             <div className="index_modal_content" onMouseDown={e => e.stopPropagation()}>
                 <h3 className="index_modal_title">Добавление индекса</h3>
@@ -100,6 +101,7 @@ export const AddIndexModal = observer(({ table, onClose, onSave }: AddIndexModal
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 });
