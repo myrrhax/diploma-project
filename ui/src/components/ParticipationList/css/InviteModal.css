@@ -4,20 +4,25 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(15, 23, 42, 0.4);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    backdrop-filter: blur(2px);
 }
 
 .invite_modal__container {
-    background-color: #1e293b;
-    border-radius: 8px;
+    background-color: #ffffff;
+    border-radius: 12px;
     width: 400px;
     max-width: 90%;
-    color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    color: #0f172a;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .invite_modal__header {
@@ -25,18 +30,28 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px 20px;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid #e2e8f0;
+    background-color: #f8fafc;
 }
 
 .invite_modal__header h3 {
     margin: 0;
     font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
 }
 
 .invite_modal__header img {
     cursor: pointer;
     width: 24px;
     height: 24px;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.invite_modal__header img:hover {
+    background-color: #e2e8f0;
 }
 
 .invite_modal__body {
@@ -53,22 +68,26 @@
 }
 
 .invite_modal__label {
-    font-size: 14px;
-    font-weight: bold;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
 }
 
 .invite_modal__input {
-    padding: 10px;
+    padding: 10px 12px;
     border-radius: 6px;
-    border: 1px solid #475569;
-    background-color: #0f172a;
-    color: white;
+    border: 1px solid #cbd5e1;
+    background-color: #f8fafc;
+    color: #0f172a;
     outline: none;
+    font-size: 14px;
     font-family: inherit;
+    transition: all 0.2s ease;
 }
 
 .invite_modal__input:focus {
     border-color: #3b82f6;
+    background-color: #ffffff;
 }
 
 .invite_modal__input--error {
@@ -78,11 +97,12 @@
 .invite_modal__error_text {
     color: #ef4444;
     font-size: 12px;
+    margin-top: -4px;
 }
 
 .invite_modal__empty_text {
     font-size: 13px;
-    color: #94a3b8;
+    color: #64748b;
 }
 
 .invite_modal__checkbox_list {
@@ -98,8 +118,14 @@
     cursor: pointer;
 }
 
+.invite_modal__checkbox_item input[type="checkbox"] {
+    cursor: pointer;
+    accent-color: #3b82f6;
+}
+
 .invite_modal__checkbox_label {
     font-size: 14px;
+    color: #334155;
 }
 
 .invite_modal__footer {
@@ -112,11 +138,18 @@
 .invite_modal__btn_cancel {
     padding: 8px 16px;
     border-radius: 6px;
-    border: 1px solid #475569;
-    background: transparent;
-    color: white;
+    border: 1px solid #cbd5e1;
+    background-color: #f1f5f9;
+    color: #475569;
     cursor: pointer;
     font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.invite_modal__btn_cancel:hover {
+    background-color: #e2e8f0;
 }
 
 .invite_modal__btn_submit {
@@ -124,12 +157,19 @@
     border-radius: 6px;
     border: none;
     background-color: #3b82f6;
-    color: white;
+    color: #ffffff;
     cursor: pointer;
     font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.invite_modal__btn_submit:hover:not(:disabled) {
+    background-color: #2563eb;
 }
 
 .invite_modal__btn_submit:disabled {
-    background-color: #64748b;
+    background-color: #94a3b8;
     cursor: not-allowed;
 }
