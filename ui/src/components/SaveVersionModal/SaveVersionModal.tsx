@@ -40,7 +40,7 @@ export const SaveVersionModal = ({ isOpen, onClose, onSave }: SaveVersionModalPr
         >
             <div className="version_modal_content" onClick={e => e.stopPropagation()}>
                 <h3 className="version_modal_title">
-                    <span>💾</span> Сохранить версию
+                    Сохранить версию
                 </h3>
                 
                 <p className="version_modal_description">

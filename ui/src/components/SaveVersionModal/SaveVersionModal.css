@@ -1,32 +1,30 @@
-/* Затемненный фон */
 .version_modal_overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(15, 23, 42, 0.4);
     z-index: 10000;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Карточка */
 .version_modal_content {
-    background-color: #1e293b;
+    background-color: #ffffff;
     padding: 24px;
-    border-radius: 8px;
+    border-radius: 12px;
     width: 400px;
-    border: 1px solid #334155;
-    color: white;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Заголовок и описание */
 .version_modal_title {
     margin: 0 0 8px 0;
     font-size: 18px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -34,12 +32,11 @@
 
 .version_modal_description {
     margin: 0 0 20px 0;
-    color: #94a3b8;
+    color: #64748b;
     font-size: 14px;
     line-height: 1.5;
 }
 
-/* Поле ввода */
 .version_modal_form_group {
     display: flex;
     flex-direction: column;
@@ -48,25 +45,27 @@
 }
 
 .version_modal_label {
-    font-size: 12px;
-    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
 }
 
 .version_modal_input {
     width: 100%;
     padding: 8px 12px;
     border-radius: 6px;
-    border: 1px solid #475569;
-    background-color: #0f172a;
-    color: white;
+    border: 1px solid #cbd5e1;
+    background-color: #f8fafc;
+    color: #0f172a;
     font-size: 14px;
     box-sizing: border-box;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    outline: none;
 }
 
 .version_modal_input:focus {
-    outline: none;
     border-color: #3b82f6;
+    background-color: #ffffff;
 }
 
 .version_modal_error {
@@ -75,7 +74,6 @@
     margin-top: 4px;
 }
 
-/* Кнопки */
 .version_modal_actions {
     display: flex;
     gap: 12px;
@@ -86,25 +84,27 @@
     padding: 8px 16px;
     border-radius: 6px;
     border: none;
-    color: white;
     cursor: pointer;
     font-size: 14px;
-    transition: background-color 0.2s ease;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .version_modal_btn_cancel {
-    background-color: #475569;
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
 }
 
 .version_modal_btn_cancel:hover {
-    background-color: #334155;
+    background-color: #e2e8f0;
 }
 
 .version_modal_btn_save {
-    background-color: #10b981; /* Зеленый цвет для сохранения/успеха */
-    font-weight: bold;
+    background-color: #3b82f6;
+    color: #ffffff;
 }
 
 .version_modal_btn_save:hover {
-    background-color: #059669;
+    background-color: #2563eb;
 }
