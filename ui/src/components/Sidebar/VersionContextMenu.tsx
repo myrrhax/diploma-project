@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import { contextMenuStore } from '@/store/VersionContextMenuStore';
 import { versionsStore } from '@/store/VersionsStore'; 
@@ -9,7 +9,6 @@ import { participationsStore } from '@/store/ParticipationStore';
 export const VersionContextMenu = observer(() => {
     const { isOpen, position, version } = contextMenuStore;
     const menuRef = useRef<HTMLDivElement>(null);
-    const [activeSubMenu, setActiveSubMenu] = useState<'generate' | 'diff' | null>(null);
     const { authorities } = participationsStore;
 
     const canVersion = useMemo(() => {
@@ -41,7 +40,6 @@ export const VersionContextMenu = observer(() => {
     const handleAction = (action: () => void) => {
         action();
         contextMenuStore.close();
-        setActiveSubMenu(null);
     };
 
     const onView = () => {
@@ -56,8 +54,6 @@ export const VersionContextMenu = observer(() => {
             versionsStore.changeHead(version);
         }
     }
-    const onGenerate = (format: string) => console.log(`Generate ${format}:`, version.versionId);
-    const onDiff = (format: string) => console.log(`Diff ${format}:`, version.versionId);
     const onDelete = () => {
         if (canVersion) {
             versionsStore.deleteVersion(version);
@@ -82,42 +78,8 @@ export const VersionContextMenu = observer(() => {
                     <div className="menu-item item-danger" onClick={() => handleAction(onDelete)}>
                         Удалить версию
                     </div>
-
-                    <div className="menu-divider" />
                 </>
             ) : null}
-            <div 
-                className="menu-item has-submenu"
-                onMouseEnter={() => setActiveSubMenu('generate')}
-                onMouseLeave={() => setActiveSubMenu(null)}
-            >
-                Создать на основании
-                <span className="submenu-arrow">▶</span>
-                {activeSubMenu === 'generate' && (
-                    <div className="submenu">
-                        <div className="menu-item" onClick={() => handleAction(() => onGenerate('SQL'))}>SQL</div>
-                        <div className="menu-item" onClick={() => handleAction(() => onGenerate('PNG'))}>PNG</div>
-                        <div className="menu-item" onClick={() => handleAction(() => onGenerate('Markdown'))}>Markdown</div>
-                        <div className="menu-item" onClick={() => handleAction(() => onGenerate('Liquibase'))}>Liquibase</div>
-                    </div>
-                )}
-            </div>
-
-            <div 
-                className="menu-item has-submenu"
-                onMouseEnter={() => setActiveSubMenu('diff')}
-                onMouseLeave={() => setActiveSubMenu(null)}
-            >
-                Создать по изменениям
-                <span className="submenu-arrow">▶</span>
-                {activeSubMenu === 'diff' && (
-                    <div className="submenu">
-                        <div className="menu-item" onClick={() => handleAction(() => onDiff('SQL'))}>SQL</div>
-                        <div className="menu-item" onClick={() => handleAction(() => onDiff('Markdown'))}>Markdown</div>
-                        <div className="menu-item" onClick={() => handleAction(() => onDiff('Liquibase'))}>Liquibase</div>
-                    </div>
-                )}
-            </div>
         </div>,
         document.body
     );

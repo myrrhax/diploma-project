@@ -25,3 +25,15 @@ export interface VersionState {
     references: Record<string, Reference>;
     cacheVersion: number;
 }
+
+export type ScriptType = 'MYSQL' | 'POSTGRES' | 'LIQUIBASE';
+export type GenType = 'FULL' | 'MIGRATION'; 
+
+export interface Script {
+    id: string;
+    version: Version;
+    scriptFileId: string;
+    type: ScriptType;
+    generatedType: GenType;
+    fromVersion: Version | null;
+}

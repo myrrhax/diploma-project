@@ -126,6 +126,12 @@ public class ScriptGeneratorService {
         };
     }
 
+    public List<ScriptDto> getSchemaScripts(UUID schemeId) {
+        return scriptRepository.findAllByVersionSchemeId(schemeId).stream()
+                .map(scriptMapper::toDto)
+                .toList();
+    }
+
     private AbstractScriptProcessor getScriptProcessor(ScriptType type) {
         return scriptProcessors.stream()
                 .filter(processor -> processor.supports(type))

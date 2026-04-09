@@ -1,0 +1,179 @@
+/* Оверлей на весь экран */
+.scripts_modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(15, 23, 42, 0.6); /* Темно-синий полупрозрачный фон */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(2px);
+}
+
+/* Контейнер модалки (80% ширины) */
+.scripts_modal_container {
+    width: 80%;
+    max-width: 1200px;
+    min-width: 600px;
+    max-height: 85vh;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Шапка */
+.scripts_modal_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.scripts_modal_title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.scripts_modal_close {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.scripts_modal_close:hover {
+    background-color: #e2e8f0;
+    color: #ef4444; /* Красный крестик при наведении */
+}
+
+/* Контентная часть */
+.scripts_modal_content {
+    padding: 0;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.scripts_empty_state {
+    padding: 40px;
+    text-align: center;
+    color: #64748b;
+    font-size: 15px;
+}
+
+/* Таблица */
+.scripts_table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.scripts_table th {
+    background-color: #ffffff;
+    color: #475569;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 12px 24px;
+    border-bottom: 2px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.scripts_table td {
+    padding: 12px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.scripts_table_row:hover td {
+    background-color: #f8fafc;
+}
+
+/* Группирующий заголовок версии */
+.scripts_group_header td {
+    background-color: #eff6ff; /* Светло-синий фон для группы */
+    color: #1e3a8a;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 8px 24px;
+    border-bottom: 1px solid #bfdbfe;
+    border-top: 1px solid #bfdbfe;
+}
+
+/* Иконка и ссылка скачивания */
+.scripts_icon_cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scripts_download_link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+    cursor: pointer;
+}
+
+.scripts_download_link:hover {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+.download_icon {
+    opacity: 0;
+    transform: translateY(-2px);
+    transition: all 0.2s ease;
+}
+
+.scripts_download_link:hover .download_icon {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Бейджики типов (Стиль: бело-синий + акценты) */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.badge_mysql { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bfdbfe; }
+.badge_postgres { background-color: #ede9fe; color: #075985; border: 1px solid #bae6fd; }
+.badge_liquibase { background-color: #dcfce7; color: #065f46; border: 1px solid #a7f3d0; }
+
+.badge_full { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+.badge_migration { background-color: #fef9c3; color: #b45309; border: 1px solid #fde047; }
+
+/* Детали миграции */
+.scripts_details_cell {
+    font-size: 13px;
+}
+
+.migration_text { color: #64748b; }
+.migration_text strong { color: #0f172a; }
+.full_text { color: #cbd5e1; }

@@ -13,7 +13,9 @@ import { wsConnectionStore } from '@/store/WsConnectionStore';
 import { ParticipationList } from '@/components/ParticipationList/ParticipationList';
 import { participationsStore } from '@/store/ParticipationStore';
 import { InviteModal } from '@/components/ParticipationList/InviteModal';
+import { scriptsStore } from '@/store/ScriptsStore';
 import './css/SchemaEditorPage.css';
+import { ScriptsModal } from '@/components/ScriptsModal/ScriptsModal';
 
 interface SchemaEditorPageProps {
     isReadonly?: boolean
@@ -109,6 +111,9 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
                             <h2 className="schema_page__name">{schema?.name}</h2>
                         </div>
                             <div className="schema_controls">
+                                <button className='btn_primary' onClick={() => scriptsStore.openScriptsModal()}>
+                                    Скрипты
+                                </button>
                                 <button className='btn_primary' onClick={() => participationsStore.openListModal(id)}>
                                     Участники
                                 </button>
@@ -146,6 +151,10 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
                             )}
                         </main>
                     </div>
+
+                    {scriptsStore.isOpen ? (
+                        <ScriptsModal />
+                    ) : null}
                 </>
             ) : (
                 <div>Схема не найдена или пуста</div>

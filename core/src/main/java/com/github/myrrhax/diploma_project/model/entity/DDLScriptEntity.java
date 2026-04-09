@@ -17,6 +17,9 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -27,6 +30,19 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.UUID;
 
+@NamedEntityGraph(
+        name = "DDLScript.full",
+        attributeNodes = {
+            @NamedAttributeNode("version")
+        },
+        subclassSubgraphs = {
+            @NamedSubgraph(
+                name = "DDLMigration.from",
+                type = MigrationDDLScriptEntity.class,
+                attributeNodes = @NamedAttributeNode("fromVersion")
+            )
+        }
+)
 @Entity
 @Table(name = "t_ddl_scripts")
 @Getter

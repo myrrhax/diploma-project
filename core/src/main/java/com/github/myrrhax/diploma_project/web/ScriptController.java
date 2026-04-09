@@ -44,11 +44,18 @@ public class ScriptController {
                 .body(scriptGeneratorService.generateMigrationScript(dto.fromVersionId(), dto.versionId(), dto.type()));
     }
 
-    @GetMapping
+    @GetMapping(params = "version_id")
     @PreAuthorize("@authorityCheckService.hasAccessToVersion(principal.token.userId, #versionId)")
     @JsonView(ViewMarkers.Basic.class)
-    public List<ScriptDto> getAllScripts(@RequestParam(name = "version_id", required = true) Long versionId) {
+    public List<ScriptDto> getAllScripts(@RequestParam(name = "version_id") Long versionId) {
         return scriptGeneratorService.getScriptsForVersion(versionId);
+    }
+
+    @GetMapping(params = "scheme_id")
+    @PreAuthorize("@authorityCheckService.hasAccess(principal.token.userId, #schemeId)")
+    @JsonView(ViewMarkers.Basic.class)
+    public List<ScriptDto> getAllSchemeScripts(@RequestParam(name = "scheme_id") UUID schemeId) {
+        return scriptGeneratorService.getSchemaScripts(schemeId);
     }
 
     @GetMapping("{id}")
