@@ -1,11 +1,12 @@
 import type { Script, ScriptType } from "@/model/SchemaTypes";
 import { scriptsStore } from "@/store/ScriptsStore";
 import { observer } from "mobx-react-lite";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import React from "react";
 import './ScriptsModal.css';
 import { erStore } from "@/store/ERStore";
 import { filesApi } from "@/api/FileApiService";
+import { CreateScriptModal } from "../CreateScriptModal/CreateScriptModal";
 
 const SqlIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -56,16 +57,17 @@ export const ScriptsModal = observer(() => {
         return type === 'LIQUIBASE' ? '.yaml' : '.sql';
     };
 
-    const getDownloadUrl = (fileId: string) => {
-        return filesApi.downloadFile(fileId);
-    };
-
     return (
         <div className="scripts_modal_overlay" onMouseDown={() => scriptsStore.closeModal()}>
             <div className="scripts_modal_container" onMouseDown={e => e.stopPropagation()}>
                 
                 <div className="scripts_modal_header">
-                    <h2 className="scripts_modal_title">Скрипты проекта</h2>
+                    <div className="scripts_header_left">
+                        <h2 className="scripts_modal_title">Скрипты проекта</h2>
+                        <button className="scripts_create_btn" onClick={() => scriptsStore.openCreateScriptModal()}>
+                            + Создать скрипт
+                        </button>
+                    </div>
                     <button className="scripts_modal_close" onClick={() => scriptsStore.closeModal()}>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>

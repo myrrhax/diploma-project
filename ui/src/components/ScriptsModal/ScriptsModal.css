@@ -5,7 +5,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(15, 23, 42, 0.6); /* Темно-синий полупрозрачный фон */
+    background-color: rgba(15, 23, 42, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -27,7 +27,6 @@
     overflow: hidden;
 }
 
-/* Шапка */
 .scripts_modal_header {
     display: flex;
     align-items: center;
@@ -37,11 +36,34 @@
     border-bottom: 1px solid #e2e8f0;
 }
 
+.scripts_header_left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
 .scripts_modal_title {
     margin: 0;
     font-size: 20px;
     font-weight: 600;
     color: #0f172a;
+}
+
+.scripts_create_btn {
+    background-color: #e0f2fe;
+    color: #0284c7;
+    border: 1px solid #bae6fd;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.scripts_create_btn:hover {
+    background-color: #bae6fd;
+    color: #0369a1;
 }
 
 .scripts_modal_close {
@@ -59,10 +81,9 @@
 
 .scripts_modal_close:hover {
     background-color: #e2e8f0;
-    color: #ef4444; /* Красный крестик при наведении */
+    color: #ef4444;
 }
 
-/* Контентная часть */
 .scripts_modal_content {
     padding: 0;
     overflow-y: auto;

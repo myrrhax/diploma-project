@@ -16,6 +16,7 @@ import { InviteModal } from '@/components/ParticipationList/InviteModal';
 import { scriptsStore } from '@/store/ScriptsStore';
 import './css/SchemaEditorPage.css';
 import { ScriptsModal } from '@/components/ScriptsModal/ScriptsModal';
+import { CreateScriptModal } from '@/components/CreateScriptModal/CreateScriptModal';
 
 interface SchemaEditorPageProps {
     isReadonly?: boolean
@@ -152,9 +153,8 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
                         </main>
                     </div>
 
-                    {scriptsStore.isOpen ? (
-                        <ScriptsModal />
-                    ) : null}
+                    {scriptsStore.isOpen && <ScriptsModal />}
+                    {scriptsStore.isCreateModalOpen && <CreateScriptModal />}
                 </>
             ) : (
                 <div>Схема не найдена или пуста</div>
