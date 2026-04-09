@@ -7,6 +7,7 @@ import './ScriptsModal.css';
 import { erStore } from "@/store/ERStore";
 import { filesApi } from "@/api/FileApiService";
 import { participationsStore } from "@/store/ParticipationStore";
+import { versionsStore } from "@/store/VersionsStore";
 
 const SqlIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -54,9 +55,11 @@ export const ScriptsModal = observer(() => {
     }, [scriptsStore.scripts]);
 
     const canGenerate = useMemo(() => {
+        console.log('Authorities', participationsStore.authorities);
+        console.log('Versions count', versionsStore.versions.length)
         return participationsStore.authorities?.some(au => au === 'ALL' || au === 'GENERATE_SCRIPT')
-            && scriptsStore.scripts.length > 0;
-    }, [participationsStore.authorities, scriptsStore.scripts]);
+            && versionsStore.versions.length > 1;
+    }, [participationsStore.authorities, versionsStore.versions]);
 
     const getFileExtension = (type: ScriptType) => {
         return type === 'LIQUIBASE' ? '.yaml' : '.sql';
