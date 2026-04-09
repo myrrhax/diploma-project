@@ -6,6 +6,7 @@ import React from "react";
 import './ScriptsModal.css';
 import { erStore } from "@/store/ERStore";
 import { filesApi } from "@/api/FileApiService";
+import { participationsStore } from "@/store/ParticipationStore";
 
 const SqlIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -52,6 +53,11 @@ export const ScriptsModal = observer(() => {
         return groups;
     }, [scriptsStore.scripts]);
 
+    const canGenerate = useMemo(() => {
+        return participationsStore.authorities?.some(au => au === 'ALL' || au === 'GENERATE_SCRIPT')
+            && scriptsStore.scripts.length > 0;
+    }, [participationsStore.authorities, scriptsStore.scripts]);
+
     const getFileExtension = (type: ScriptType) => {
         return type === 'LIQUIBASE' ? '.yaml' : '.sql';
     };
@@ -63,9 +69,11 @@ export const ScriptsModal = observer(() => {
                 <div className="scripts_modal_header">
                     <div className="scripts_header_left">
                         <h2 className="scripts_modal_title">Скрипты проекта</h2>
-                        <button className="scripts_create_btn" onClick={() => scriptsStore.openCreateScriptModal()}>
-                            + Создать скрипт
-                        </button>
+                        {canGenerate && (
+                            <button className="scripts_create_btn" onClick={() => scriptsStore.openCreateScriptModal()}>
+                                + Создать скрипт
+                            </button>
+                        )}
                     </div>
                     <button className="scripts_modal_close" onClick={() => scriptsStore.closeModal()}>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
