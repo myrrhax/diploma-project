@@ -27,7 +27,7 @@ export const ParticipationList = observer(() => {
     }, [authorities]);
 
     if (!isListModalOpen) {
-        return;
+        return null;
     }
     
     const changeHoveredUser = (p: Participation, e: MouseEvent<HTMLDivElement>) => {
@@ -43,7 +43,6 @@ export const ParticipationList = observer(() => {
             const elRect = e.currentTarget.getBoundingClientRect();
             setTop(elRect.top);
         }
-        
     };
 
     const closeTooltip = () => {
@@ -56,7 +55,7 @@ export const ParticipationList = observer(() => {
         timeoutRef.current = setTimeout(() => {
             closeTooltip();
             timeoutRef.current = null;
-        }, BLUR_TIMEOUT_MS);
+        }, BLUR_TIMEOUT_MS) as unknown as number;
     }
 
     const onBlurCancel = () => {
@@ -76,7 +75,7 @@ export const ParticipationList = observer(() => {
             >
                 <div className="participation_list__header">
                     <h3>Участники</h3>
-                    <img src={ closeIcon } onClick={() => participationsStore.closeListModal()} />
+                    <img src={closeIcon} alt="close" onClick={() => participationsStore.closeListModal()} />
                 </div>
 
                 <div className="participation_list__content">
@@ -85,8 +84,7 @@ export const ParticipationList = observer(() => {
                             onMouseEnter={(e: MouseEvent<HTMLDivElement>) => changeHoveredUser(p, e)}
                             onMouseLeave={() => startBlurTimer()}
                         >
-                            <img src={profilePic} />
-
+                            <img src={profilePic} alt="profile" />
                             <span className="participation_info__email">{p.user.email}</span>
                         </div>
                     ))}
@@ -103,16 +101,16 @@ export const ParticipationList = observer(() => {
                 ) : null}
                 
             </div>
-                {hoveredUser ? (
-                    <ParticipationInfoTooltip 
-                        key={hoveredUser.user.id}
-                        left={left!!}
-                        top={top!!}
-                        participation={hoveredUser} 
-                        cancelTimeout={onBlurCancel}
-                        onLeave={closeTooltip} 
-                    />
-                ) : null}
+            {hoveredUser && left !== null && top !== null ? (
+                <ParticipationInfoTooltip 
+                    key={hoveredUser.user.id}
+                    left={left}
+                    top={top}
+                    participation={hoveredUser} 
+                    cancelTimeout={onBlurCancel}
+                    onLeave={closeTooltip} 
+                />
+            ) : null}
         </div>
     );
 });
