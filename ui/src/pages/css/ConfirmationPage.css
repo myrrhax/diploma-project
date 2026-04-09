@@ -1,91 +1,103 @@
 .confirmation_page__container {
-    font-family: 'Courier New', monospace;
     width: 100%;
-    min-width: 100vh;
+    min-height: 100vh; 
     display: flex;
     flex: 1;
     justify-content: center;
     align-items: center;
+    background-color: #f1f5f9; 
+    font-family: inherit;
 }
 
 .otp-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  padding: 32px;
-  font-family: sans-serif;
-  border: 2px solid black;
-  min-width: 700px;
-  min-height: 300px;
-  border-radius: 12px;
-  position: relative;
-  box-shadow: 4px 4px 0 black;
-}
-
-.otp-container::before {
-    position: absolute;
-    content: '';
-    position: absolute;
-    top: 6px;
-    left: 6px;
-    right: -6px;
-    bottom: -6px;
-    z-index: -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 40px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    min-width: 320px;
+    max-width: 450px;
     border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .otp-title {
-  margin: 0;
-  font-size: 32px;
-  font-weight: bold;
-  color: #333;
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #0f172a;
 }
 
 .otp-subtitle {
-  margin: 0;
-  color: #666;
-  font-size: 16px;
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.5;
 }
 
 .otp-inputs {
-  display: flex;
-  gap: 10px;
+    display: flex;
+    gap: 12px;
 }
 
 .otp-input {
-  width: 48px;
-  height: 56px;
-  text-align: center;
-  font-size: 24px;
-  font-weight: 600;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  outline: none;
-  transition: all 0.2s ease-in-out;
-  background-color: #fff;
+    width: 48px;
+    height: 56px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.2s ease;
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-family: inherit;
 }
 
 .otp-input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
-  transform: scale(1.05);
+    border-color: #3b82f6;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); 
+    transform: translateY(-2px); 
 }
 
-/* Убираем стрелочки у input type="number" если захотите сменить type */
+/* Убираем стрелочки у input type="number" */
 .otp-input::-webkit-outer-spin-button,
 .otp-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .otp-link {
-    color: blue;
+    color: #3b82f6;
     cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.otp-link:hover {
+    color: #2563eb;
+    text-decoration: underline;
 }
 
 .otp-error {
-    font-size: 16px;
-    color: red;
+    font-size: 14px;
+    color: #ef4444;
+    text-align: center;
+    margin-top: -8px;
+    min-height: 20px;
+}
+
+.otp-input--error {
+    border-color: #ef4444;
+}
+.otp-input--error:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15); /* Красное свечение */
 }

@@ -29,7 +29,7 @@ export const AccountConfirmationPage = () => {
             } else {
                 setTimeLeft(remaining);
             }
-        }, 1000);
+        }, 1000) as unknown as number;
     }, []);
 
     const startTimer = useCallback((seconds: number) => {
@@ -62,6 +62,11 @@ export const AccountConfirmationPage = () => {
         }
     }, [startTimer, tick]);
 
+    const clearInputs = () => {
+        setOtp(new Array(CODE_LENGTH).fill(""));
+        inputRefs.current[0]?.focus();
+    }
+
     const submitCode = async (code: string) => {
         const result = otpSchema.safeParse(code);
         if (result.success) {
@@ -70,11 +75,12 @@ export const AccountConfirmationPage = () => {
                 if (error) {
                     console.error('Failed to confirm email');
                     setApiError(error.message);
+                    clearInputs();
                 }
             } catch (e: any) {
                 setApiError('Ошибка на стороне сервера, попробуйте позднее');
+                clearInputs();
             }
-            
         }
     };
 
@@ -89,6 +95,7 @@ export const AccountConfirmationPage = () => {
         const char = value.substring(value.length - 1);
         newOtp[index] = char;
         setOtp(newOtp);
+        setApiError(null); // Очищаем ошибку при вводе новых данных
 
         if (char && index < CODE_LENGTH - 1) {
             inputRefs.current[index + 1]?.focus();
@@ -103,6 +110,10 @@ export const AccountConfirmationPage = () => {
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
         if (e.key === 'Backspace' && !otp[index] && index > 0) {
             inputRefs.current[index - 1]?.focus();
+        } else if (e.key === 'ArrowLeft' && index > 0) {
+            inputRefs.current[index - 1]?.focus();
+        } else if (e.key === 'ArrowRight' && index < CODE_LENGTH - 1) {
+            inputRefs.current[index + 1]?.focus();
         }
     };
 
@@ -112,15 +123,11 @@ export const AccountConfirmationPage = () => {
 
         const digits = data.split("");
         setOtp(digits);
+        setApiError(null);
 
         inputRefs.current[CODE_LENGTH - 1]?.focus();
         submitCode(data);
     };
-
-    const clearInputs = () => {
-        setOtp(new Array(CODE_LENGTH).fill(""));
-        inputRefs.current[0]?.focus();
-    }
 
     const resendCode = async () => {
         if (timeLeft > 0) return; // Защита от случайного клика
@@ -153,7 +160,7 @@ export const AccountConfirmationPage = () => {
                         onChange={(e) => handleChange(e.target.value, index)}
                         onKeyDown={(e) => handleKeyDown(e, index)}
                         onPaste={handlePaste}
-                        className="otp-input"
+                        className={apiError ? "otp-input otp-input--error" : "otp-input"}
                     />
                     ))}
                 </div>
@@ -166,7 +173,7 @@ export const AccountConfirmationPage = () => {
                     ) : (
                         <p className='otp-subtitle'>
                             Не пришел код?{' '}
-                            <span className='otp-link' onClick={resendCode} style={{ cursor: 'pointer', color: 'blue', textDecoration: 'underline' }}>
+                            <span className='otp-link' onClick={resendCode}>
                                 Отправить еще раз
                             </span>
                         </p>
