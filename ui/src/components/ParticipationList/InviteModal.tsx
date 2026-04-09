@@ -11,13 +11,15 @@ const emailSchema = z.string().email("Введите корректный email 
 const assignableAuthorities: AuthorityType[] = [
     'VERSION', 
     'MODIFY_SCHEME',
-    'INVITE_USERS'
+    'INVITE_USERS',
+    'GENERATE_SCRIPT'
 ];
 
 const authorityLabels: Partial<Record<AuthorityType, string>> = {
     'VERSION': 'Версионирование',
     'MODIFY_SCHEME': 'Изменение схемы',
-    'INVITE_USERS': 'Приглашать пользователей'
+    'INVITE_USERS': 'Приглашать пользователей',
+    'GENERATE_SCRIPT': 'Создавать скрипты'
 };
 
 export const InviteModal = observer(() => {
