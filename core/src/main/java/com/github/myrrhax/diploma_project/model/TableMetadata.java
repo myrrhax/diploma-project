@@ -231,6 +231,7 @@ public class TableMetadata implements Cloneable, AbstractMetadata<UUID> {
         return this.columns.containsKey(id);
     }
 
+    @JsonIgnore
     public String getPkContated() {
         return this.getPrimaryKeyParts().stream()
             .map(id -> this.getColumn(id).orElseThrow().getName())
@@ -238,6 +239,7 @@ public class TableMetadata implements Cloneable, AbstractMetadata<UUID> {
     }
 
     @Override
+    @JsonIgnore
     public MetadataType getMetadataType() {
         return MetadataType.TABLE;
     }

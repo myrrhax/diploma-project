@@ -2,11 +2,14 @@ import type { ScriptType, GenType } from "@/model/SchemaTypes";
 import { scriptsStore } from "@/store/ScriptsStore";
 import { versionsStore } from "@/store/VersionsStore";
 import { observer } from "mobx-react-lite";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import './CreateScriptModal.css'
 
 export const CreateScriptModal = observer(() => {
-    const versions = versionsStore.versions;
+    const versions = useMemo(() => {
+        return versionsStore.versions.filter(v => !v.isWorkingCopy);
+    }, [versionsStore.versions]);
+
     const canMigrate = versions.length > 1;
 
     const [targetVersionId, setTargetVersionId] = useState(versions[0]?.versionId);
@@ -42,7 +45,8 @@ export const CreateScriptModal = observer(() => {
             scriptType,
             genType,
             sourceVersionId
-        );        
+        );
+        scriptsStore.closeCreateScriptsModal();
     };
 
     return (

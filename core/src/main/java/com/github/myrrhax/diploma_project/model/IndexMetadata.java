@@ -67,6 +67,7 @@ public class IndexMetadata implements AbstractMetadata<UUID> {
     }
 
     @Override
+    @JsonIgnore
     public MetadataType getMetadataType() {
         return MetadataType.INDEX;
     }

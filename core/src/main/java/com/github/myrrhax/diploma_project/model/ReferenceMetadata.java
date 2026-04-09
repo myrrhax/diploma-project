@@ -217,16 +217,19 @@ public class ReferenceMetadata implements AbstractMetadata<ReferenceMetadata.Ref
         return newReference.build();
     }
 
+    @JsonIgnore
     public TableMetadata getBaseTable() {
         return schemaState.getTable(key.getFromTableId())
                 .orElseThrow(() -> new ApplicationException("error.table.notfound"));
     }
 
+    @JsonIgnore
     public TableMetadata getReferencedTable() {
         return schemaState.getTable(key.getToTableId())
                 .orElseThrow(() -> new ApplicationException("error.table.notfound"));
     }
 
+    @JsonIgnore
     public ColumnMetadata[] getBaseColumns() {
         TableMetadata baseTable = getBaseTable();
 
@@ -236,6 +239,7 @@ public class ReferenceMetadata implements AbstractMetadata<ReferenceMetadata.Ref
                 .toArray(ColumnMetadata[]::new);
     }
 
+    @JsonIgnore
     public ColumnMetadata[] getReferencedColumns() {
         TableMetadata referencedTable = getReferencedTable();
 
@@ -246,11 +250,13 @@ public class ReferenceMetadata implements AbstractMetadata<ReferenceMetadata.Ref
     }
 
     @Override
+    @JsonIgnore
     public ReferenceKey getId() {
         return key;
     }
 
     @Override
+    @JsonIgnore
     public MetadataType getMetadataType() {
         return MetadataType.REFERENCE;
     }

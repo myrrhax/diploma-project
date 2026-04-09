@@ -224,6 +224,7 @@ public class ColumnMetadata implements Cloneable, AbstractMetadata<UUID> {
     }
 
     @Override
+    @JsonIgnore
     public MetadataType getMetadataType() {
         return MetadataType.COLUMN;
     }

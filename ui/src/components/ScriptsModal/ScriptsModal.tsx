@@ -1,12 +1,11 @@
 import type { Script, ScriptType } from "@/model/SchemaTypes";
 import { scriptsStore } from "@/store/ScriptsStore";
 import { observer } from "mobx-react-lite";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import React from "react";
 import './ScriptsModal.css';
 import { erStore } from "@/store/ERStore";
 import { filesApi } from "@/api/FileApiService";
-import { CreateScriptModal } from "../CreateScriptModal/CreateScriptModal";
 
 const SqlIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
