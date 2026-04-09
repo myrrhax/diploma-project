@@ -171,6 +171,28 @@ export const ERDiagram = observer(() => {
         return () => window.removeEventListener('mouseup', handleUp);
     }, []);
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                return;
+            }
+
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                const hasSelections = selectionStore.selectedTableIds.size > 0 || selectionStore.selectedRefIds.size > 0;                
+                if (hasSelections) {
+                    handleModification(() => {
+                        erStore.multiDelete();
+                        selectionStore.clear();
+                        handleCloseMenu();
+                    });
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);        
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
     const canModify = useMemo(() => {
         return authorities?.some(au => au === 'MODIFY_SCHEME' || au === 'ALL');
     }, [authorities]);
