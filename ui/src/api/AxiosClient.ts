@@ -36,7 +36,8 @@ $api.interceptors.response.use(
     },
     async (error) => {
         const originalRequest = error.config;
-        if (error.response?.status === 401) {
+        
+        if (error.response?.status === 401 && !originalRequest.url.endsWith('/login') && !originalRequest.url.endsWith('/register')) {
             console.log('Original request is not authorized, refreshing tokens');
             if (!originalRequest._isRetry) {
                 originalRequest._isRetry = true;

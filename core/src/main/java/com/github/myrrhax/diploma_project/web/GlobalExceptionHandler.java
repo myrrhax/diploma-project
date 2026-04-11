@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.simp.annotation.SendToUser;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -34,6 +35,15 @@ public class GlobalExceptionHandler {
         log.error("An application error occurred while processing the request: {}", error);
 
         return ResponseEntity.status(ex.getStatus())
+                .body(new ErrorResponseDTO(error, null));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponseDTO> handle(BadCredentialsException ex, Locale locale) {
+        String error = messageSource.getMessage("error.login.invalid-credentials", null, locale);
+        log.error("An authentication error occurred while processing the request: {}", error);
+
+        return ResponseEntity.status(401)
                 .body(new ErrorResponseDTO(error, null));
     }
 

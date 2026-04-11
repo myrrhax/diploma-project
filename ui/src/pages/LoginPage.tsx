@@ -17,17 +17,17 @@ type LoginSchemaType = z.infer<typeof LoginSchema>;
 
 export const LoginPage = () => {
   const [apiError, setApiError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false); // Состояние для глаза
+  const [showPassword, setShowPassword] = useState(false); 
   const navigate = useNavigate();
 
   const {
     register,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting }, // Достаем isSubmitting
+    formState: { errors, isSubmitting }, 
   } = useForm<LoginSchemaType>({
     resolver: zodResolver(LoginSchema),
-    mode: 'onBlur' // Валидация при потере фокуса (лучше для UX)
+    mode: 'onBlur' 
   });
 
   const onSubmitHandler = async (data: LoginSchemaType) => {
@@ -38,7 +38,6 @@ export const LoginPage = () => {
       if (error) {
         setApiError(error.message);
         if (error.errors) {
-            // Упрощенная логика обработки полей
             if (error.errors.has('email')) {
                 setError('email', { type: 'server', message: error.errors.get('email')?.join(', ') });
             }
@@ -51,10 +50,11 @@ export const LoginPage = () => {
         if (user && !user.isConfirmed) {
           navigate('/account-confirmation');
         } else {
-          navigate('/'); // Или куда нужно после логина
+          navigate('/');
         }
       }
     } catch (e) {
+      console.error(e);
       setApiError('Произошла непредвиденная ошибка. Попробуйте позже.');
     }
   };
@@ -68,7 +68,6 @@ export const LoginPage = () => {
         </div>
 
         <form className='login-form' onSubmit={handleSubmit(onSubmitHandler)}>
-          {/* Email Field */}
           <div className={`form-group ${errors.email ? 'has-error' : ''}`}>
             <label htmlFor='email'>Email</label>
             <input
