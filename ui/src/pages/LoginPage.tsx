@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -19,6 +19,10 @@ export const LoginPage = () => {
   const [apiError, setApiError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false); 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = 'Вход';
+  }, []);
 
   const {
     register,

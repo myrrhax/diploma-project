@@ -15,6 +15,10 @@ export const AccountConfirmationPage = () => {
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const timerRef = useRef<number | null>(null);
 
+    useEffect(() => {
+        document.title = 'Подтвердите аккаунт';
+    }, []);
+
     const tick = useCallback((deadline: number) => {
         if (timerRef.current) clearInterval(timerRef.current);
 

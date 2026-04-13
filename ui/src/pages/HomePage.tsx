@@ -17,6 +17,7 @@ export const HomePage = observer(() => {
   const [authorOnly, setAuthorOnly] = useState(true);
 
   useEffect(() => {
+    document.title = 'ERBuilder';
     schemaApi.loadUserSchemas();
   }, []);
 

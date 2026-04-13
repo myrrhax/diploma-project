@@ -1,12 +1,10 @@
 services:
   db:
     image: postgres:latest
-    container_name: postgres_db
+    container_name: db
     env_file:
-      - .env
+      - docker/.env
     restart: always
-    ports:
-      - "5432:5432"
     networks:
       - backend
     volumes:
@@ -18,23 +16,22 @@ services:
     hostname: rabbitmq
     restart: always
     env_file:
-      - .env
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+      - docker/.env
     volumes:
       - rabbitmq:/var/lib/rabbitmq
 
   core:
     container_name: core
     build:
-      context: ..
+      context: .
       dockerfile: core/Dockerfile
+      args:
+        - PORT=8000
     restart: unless-stopped
     env_file:
-      - .env
-    ports:
-      - "8000:8000"
+      - docker/.env
+    environment:
+      - SERVER_PORT=8000
     depends_on:
       - db
       - rabbitmq
@@ -45,13 +42,11 @@ services:
   notifications:
     container_name: notifications
     build:
-      context: ..
+      context: .
       dockerfile: notification-service/Dockerfile
     restart: unless-stopped
     env_file:
-      - .env
-    ports:
-      - "8001:8001"
+      - docker/.env
     depends_on:
       - rabbitmq
     networks:
@@ -60,8 +55,6 @@ services:
   redis:
     image: redis:7.2-alpine
     container_name: redis_cache
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
 

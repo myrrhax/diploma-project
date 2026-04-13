@@ -43,6 +43,12 @@ export const SchemaEditorPage = observer(({ isReadonly = false }: SchemaEditorPa
     if (!id) return null;
 
     useEffect(() => {
+        if (schema) {
+            document.title = schema.name;
+        }
+    }, [schema]);
+
+    useEffect(() => {
         let isMounted = true;
         const initEditor = async () => {
             if (isReadonly && versionId) {
