@@ -102,7 +102,7 @@ services:
     volumes:
       - etc-letsencrypt:/etc/letsencrypt
       - www-certbot:/var/www/html
-    command: certonly --webroot --webroot-path=/var/www/html --register-unsafely-without-email --agree-tos -d www.myrrermdev.space
+    command: certonly --webroot --webroot-path=/var/www/html --register-unsafely-without-email --agree-tos -d myrrermdev.space
 
 networks:
   backend:
