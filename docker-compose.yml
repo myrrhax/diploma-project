@@ -87,6 +87,7 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - etc-letsencrypt:/etc/letsencrypt
+      - www-certbot:/var/certbot
     networks:
       - proxy-net
     ports:
@@ -100,7 +101,7 @@ services:
     container_name: certbot
     volumes:
       - etc-letsencrypt:/etc/letsencrypt
-      - www-html:/var/www/html
+      - www-certbot:/var/www/html
     command: certonly --webroot --webroot-path=/var/www/html --register-unsafely-without-email --agree-tos -d www.myrrermdev.space
 
 networks:
@@ -118,5 +119,5 @@ volumes:
   rabbitmq:
   redis_data:
   files_data:
-  www-html:
+  www-certbot:
   etc-letsencrypt:
