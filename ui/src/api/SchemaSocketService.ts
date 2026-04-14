@@ -18,7 +18,8 @@ import type { Version } from "@/model/SchemaTypes";
 import type { User } from "@/model/User";
 import type { Participation } from "@/model/Participation";
 
-const WS_ENDPOINT = 'http://localhost:8000/ws';
+export const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const WS_ENDPOINT = baseURL + '/ws';
 
 class SchemaSocketService {
     private readonly ACCESS_DENIED_EXCEPTION = 'Access denied';

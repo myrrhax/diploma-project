@@ -24,6 +24,12 @@ spring:
     password: ${SPRING_RABBITMQ_PASSWORD:guest}
     port: 5672
 
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      timeout: 60000
+
 app:
   jwt:
     secret: ${APP_JWT_SECRET}
@@ -65,3 +71,4 @@ app:
 
 server:
   port: 8000
+  forward-headers-strategy: native

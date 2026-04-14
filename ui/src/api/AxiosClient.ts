@@ -2,10 +2,10 @@ import axios from "axios";
 import { authStore } from "../store/AuthStore";
 import type AuthResponse from "../model/AuthResponse";
 
-export const baseURL = 'http://localhost:8000/api'
+export const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 const $api = axios.create({
-    baseURL: baseURL,
+    baseURL: baseURL + '/api',
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json'

@@ -39,7 +39,7 @@ class ERStore {
 
     contextMenu = { visible: false, x: 0, y: 0, screenX: 0, screenY: 0 };
     activeMenuId: string | null = null;
-    indexModalOpen: import("react/jsx-runtime").JSX.Element;
+    indexModalOpen: boolean = false;
 
     constructor() {
         makeAutoObservable(this);

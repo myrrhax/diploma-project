@@ -18,7 +18,7 @@ export const IndexDetailsNode = observer(({ index, tableId, onContextMenu }: Pro
             <div className="leaf-main-info">
                 <span className="tree-node-icon index-icon">⚡</span>
                 <span className="tree-node-title">{index.indexName || index.indexType}</span>
-                {index.isUnique && <span className="badge unique">UQ</span>}
+                {index.unique && <span className="badge unique">UQ</span>}
             </div>
         </div>
     );

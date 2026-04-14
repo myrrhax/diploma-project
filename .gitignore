@@ -40,5 +40,6 @@ out/
 ### ENV ###
 *.env
 !example.env
+!frontend.example.env
 
 /files

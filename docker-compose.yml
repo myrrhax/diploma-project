@@ -4,7 +4,7 @@ services:
     container_name: db
     env_file:
       - docker/.env
-    restart: always
+    restart: unless-stopped
     networks:
       - backend
     volumes:
@@ -14,11 +14,15 @@ services:
     container_name: rabbitmq
     image: rabbitmq:management
     hostname: rabbitmq
-    restart: always
+    restart: unless-stopped
     env_file:
       - docker/.env
     volumes:
       - rabbitmq:/var/lib/rabbitmq
+    networks:
+      - rabbit-network
+    ports:
+      - "15672:15672"
 
   core:
     container_name: core
@@ -32,12 +36,19 @@ services:
       - docker/.env
     environment:
       - SERVER_PORT=8000
+      - APP_FILES_SAVEDIR=/var/lib/files
+      - APP_SECURITY_ALLOWED_ORIGINS=http://localhost:8080,http://0.0.0.0:8080,http://ui:8080
+    volumes:
+      - files_data:/var/lib/files
     depends_on:
       - db
       - rabbitmq
       - redis
     networks:
       - backend
+      - proxy-net
+      - rabbit-network
+      - redis-net
 
   notifications:
     container_name: notifications
@@ -49,20 +60,49 @@ services:
       - docker/.env
     depends_on:
       - rabbitmq
+      - core
     networks:
-      - backend
+      - rabbit-network
 
   redis:
     image: redis:7.2-alpine
     container_name: redis_cache
     volumes:
       - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - redis-net
+
+  ui:
+    container_name: ui
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+      args:
+        - PORT=80
+        - VITE_API_BASE_URL=http://0.0.0.0:8080
+    restart: unless-stopped
+    depends_on:
+      - core
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - proxy-net
+    ports:
+      - "8080:80"
 
 networks:
   backend:
+    driver: bridge
+  proxy-net:
+    driver: bridge
+  rabbit-network:
+    driver: bridge
+  redis-net:
     driver: bridge
 
 volumes:
   pg_db:
   rabbitmq:
   redis_data:
+  files_data:
