@@ -30,6 +30,12 @@ spring:
       port: ${SPRING_DATA_REDIS_PORT:6379}
       timeout: 60000
 
+springdoc:
+  swagger-ui:
+    path: /api/swagger
+  api-docs:
+    path: /api/openapi-docs
+
 app:
   jwt:
     secret: ${APP_JWT_SECRET}
