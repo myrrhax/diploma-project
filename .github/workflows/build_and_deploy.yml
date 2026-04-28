@@ -46,7 +46,7 @@ jobs:
       - name: Prepare Env
         run: |
           touch ${{ env.TARGET_DIR }}/docker/.env
-          cp ${{ secrets.ENV_FILE }} ${{ env.TARGET_DIR }}/docker/
+          cp ${{ secrets.ENV_FILE }} ${{ env.TARGET_DIR }}/docker/.env
 
       - name: Start project
         run: |
