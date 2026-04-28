@@ -2,7 +2,7 @@ name: build and deploy
 on: push
 
 env:
-  TARGET_DIR: /home/myrrhax/ermdev
+  TARGET_DIR: /home/myrrhax/diploma/diploma-project
 
 jobs:
   build:
@@ -16,6 +16,7 @@ jobs:
           distribution: 'temurin'
           java-version: 21
           cache: gradle
+
       - name: Grant permissions to gradle
         run: chmod +x ./gradlew
 
@@ -30,63 +31,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: 21
-          cache: gradle
-
-      - name: Build project
-        run: |
-          chmod +x ./gradlew
-          ./gradlew clean build
-
       - name: Prepare directory
         run: |
-          # Сначала останавливаем старые контейнеры, пока старый docker-compose еще на месте
-          if [ -d "${{ env.TARGET_DIR }}/docker" ]; then
+          if [ -d "${{ env.TARGET_DIR }}" ]; then
             cd ${{ env.TARGET_DIR }}
-            sudo docker compose -f ./docker/docker-compose.yml down || true
+            sudo docker compose down || true
           fi
           sudo rm -rf ${{ env.TARGET_DIR }}
-          sudo mkdir -p ${{ env.TARGET_DIR }}/core/build/libs
-          sudo mkdir -p ${{ env.TARGET_DIR }}/notification-service/build/libs
           sudo chown -R $USER:$USER ${{ env.TARGET_DIR }}
 
       - name: Copy files
         run: cp -r ./* ${{ env.TARGET_DIR }}/
 
-      - name: Prepare env
+      - name: Prepare Env
         run: |
-          cd ${{ env.TARGET_DIR }}/docker
-          touch .env
-          echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
-          echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
-          echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
-          echo SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${{ secrets.POSTGRES_DB }} >> .env
-          echo SPRING_DATASOURCE_USERNAME=${{ secrets.POSTGRES_USER }} >> .env
-          echo SPRING_DATASOURCE_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
-          echo APP_JWT_SECRET=${{ secrets.APP_JWT_SECRET }} >> .env
-          echo RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }} >> .env
-          echo RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }} >> .env
-          echo SPRING_RABBITMQ_USERNAME=${{ secrets.RABBITMQ_DEFAULT_USER }} >> .env
-          echo SPRING_RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_DEFAULT_PASS }} >> .env
-          echo SPRING_RABBITMQ_HOST=rabbitmq >> .env
-          cat .env
+          touch ${{ env.TARGET_DIR }}/docker/.env
+          cp ${{ secrets.ENV_FILE }} ${{ env.TARGET_DIR }}/docker/
 
       - name: Start project
         run: |
           cd ${{ env.TARGET_DIR }}
-          sudo docker compose -f ./docker/docker-compose.yml up --build -d
+          sudo docker compose up --build -d
 
       - name: Validate
         run: |
           cd ${{ env.TARGET_DIR }}
           sleep 15
-          if [ "$(sudo docker compose -f ./docker/docker-compose.yml ps --format json | grep -c "Exited")" -ne 0 ]; then
+          if [ "$(sudo docker compose ps --format json | grep -c "Exited")" -ne 0 ]; then
             echo "Ошибка: один из контейнеров упал!"
-            sudo docker compose -f ./docker/docker-compose.yml logs
+            sudo docker compose logs
             exit 1
           fi
           echo "Деплой успешно завершен и проверен"
