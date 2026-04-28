@@ -1,0 +1,50 @@
+.er_table_card {
+  position: absolute;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+
+.er_table_header {
+  background: #2563eb;
+  padding: 13px;
+  border-radius: 7px 7px 0 0;
+  cursor: grab;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  outline: none;
+  text-align: center;
+}
+
+.er_table_header:active { cursor: grabbing; }
+
+.er_table_separator {
+  height: 2px;
+  background: #1e40af;
+  width: 100%;
+}
+
+.er_column_list {
+  background: white;
+  padding: 4px 0;
+  min-height: 20px;
+}
+
+.er_add_col_btn {
+  width: 100%;
+  border: none;
+  background: #f9fafb;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 0 0 7px 7px;
+  border-top: 1px solid #e5e7eb;
+}
+.er_add_col_btn:hover { background: #eff6ff; }

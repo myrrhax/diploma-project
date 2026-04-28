@@ -1,0 +1,123 @@
+package com.github.myrrhax.diploma_project.web;
+
+import com.github.myrrhax.diploma_project.event.ServerEvent;
+import com.github.myrrhax.diploma_project.model.dto.GrantUserDTO;
+import com.github.myrrhax.diploma_project.model.dto.InviteUserDTO;
+import com.github.myrrhax.diploma_project.model.dto.KickUserDto;
+import com.github.myrrhax.diploma_project.model.dto.ParticipationDto;
+import com.github.myrrhax.diploma_project.model.dto.UserDeletePayload;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
+import com.github.myrrhax.diploma_project.security.TokenUser;
+import com.github.myrrhax.diploma_project.service.AuthorityService;
+import com.github.myrrhax.diploma_project.service.ParticipationService;
+import com.github.myrrhax.shared.model.AuthorityType;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/participations")
+public class ParticipationController {
+    private final ParticipationService participationService;
+    private final AuthorityService authorityService;
+    private final SimpMessagingTemplate messagingTemplate;
+
+    @PostMapping("/invite")
+    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #dto.schemeId, 'INVITE_USERS')")
+    public ResponseEntity<Void> inviteUser(@RequestBody @Validated InviteUserDTO dto,
+                                           @AuthenticationPrincipal TokenUser tokenUser) {
+        participationService.sendInvitation(tokenUser.getToken().userId(),
+                dto.schemeId(),
+                dto.email(),
+                dto.authorities());
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/confirm/{invitationId}")
+    public ResponseEntity<ParticipationDto> confirmParticipation(@PathVariable("invitationId") UUID invitationId,
+                                                                 @AuthenticationPrincipal TokenUser tokenUser) {
+        return ResponseEntity.ok(
+                participationService.confirmParticipation(tokenUser.getToken().userId(), invitationId)
+        );
+    }
+
+    @GetMapping("/schema/{id}")
+    @PreAuthorize("@authorityCheckService.hasAccess(principal.token.userId, #id)")
+    public ResponseEntity<List<ParticipationDto>> getParticipants(@PathVariable UUID id) {
+        return ResponseEntity.ok(
+                participationService.getParticipants(id)
+        );
+    }
+
+    @GetMapping("/my/{id}")
+    public ResponseEntity<ParticipationDto> getMyParticipationInfo(@PathVariable UUID id,
+                                                                   @AuthenticationPrincipal TokenUser user) {
+        return ResponseEntity.ok(
+                participationService.getParticipationInfo(id, user.getToken().userId())
+        );
+    }
+
+    @PostMapping("/grant")
+    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #dto.schemeId, 'ALL')")
+    public ResponseEntity<Void> grantUser(@RequestBody GrantUserDTO dto) {
+        if (dto.authorities().contains(AuthorityType.ALL))
+            throw new ApplicationException("Creator can't grant full access", HttpStatus.BAD_REQUEST);
+
+        ParticipationDto result = authorityService.grantUser(dto.userId(), dto.schemeId(), dto.authorities());
+        messagingTemplate.convertAndSendToUser(result.user().email(), "/queue/schema-events",
+                new ServerEvent.AuthorityChangesEvent(result));
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("schema/{schemaId}/leave")
+    @PreAuthorize("@authorityCheckService.hasAccess(principal.token.userId, #schemaId)")
+    public ResponseEntity<Void> leaveSchema(@PathVariable("schemaId") UUID schemaId,
+                                            @AuthenticationPrincipal TokenUser tokenUser) {
+        UUID userId = tokenUser.getToken().userId();
+        Optional<ParticipationDto> newLeaderInfo = participationService.deleteParticipation(userId, schemaId);
+
+        newLeaderInfo.ifPresent(result ->
+                messagingTemplate.convertAndSendToUser(result.user().email(), "/queue/schema-events",
+                    new ServerEvent.AuthorityChangesEvent(result))
+        );
+
+        messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
+                new ServerEvent.UserDeleteEvent(new UserDeletePayload(userId, schemaId)));
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("schema/{schemaId}/kick")
+    @PreAuthorize("@authorityCheckService.hasAuthority(principal.token.userId, #schemaId, 'ALL')")
+    public ResponseEntity<Void> kickUser(@PathVariable("schemaId") UUID schemaId,
+                                         @RequestBody KickUserDto dto,
+                                         @AuthenticationPrincipal TokenUser tokenUser) {
+        if (tokenUser.getToken().userId().equals(dto.kickedUserID())) {
+            throw new ApplicationException("error.participation.user_cant_kick_himself", HttpStatus.BAD_REQUEST);
+        }
+        participationService.deleteParticipation(dto.kickedUserID(), schemaId);
+
+        messagingTemplate.convertAndSend("/topic/schema/" + schemaId,
+                new ServerEvent.UserDeleteEvent(new UserDeletePayload(dto.kickedUserID(), schemaId)));
+
+        return ResponseEntity.ok().build();
+    }
+}

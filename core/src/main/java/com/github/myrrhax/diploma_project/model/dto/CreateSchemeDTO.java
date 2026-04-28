@@ -3,7 +3,7 @@ package com.github.myrrhax.diploma_project.model.dto;
 import jakarta.validation.constraints.NotEmpty;
 
 public record CreateSchemeDTO(
-        @NotEmpty
+        @NotEmpty(message = "{error.validation.null-value}")
         String name
 ) {
 }

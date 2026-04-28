@@ -8,11 +8,6 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
-    hikari:
-      schema: diploma_schema
-      connection-init-sql: CREATE SCHEMA IF NOT EXISTS diploma_schema
-      connection-timeout: 10000
-
   jpa:
     show-sql: true
     open-in-view: false
@@ -29,23 +24,51 @@ spring:
     password: ${SPRING_RABBITMQ_PASSWORD:guest}
     port: 5672
 
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      timeout: 60000
+
 app:
   jwt:
     secret: ${APP_JWT_SECRET}
     issuer: myrrermdev.space
-    accessTokenTtl: 15m
+    accessTokenTtl: 1d
     refreshTokenTtl: 30d
+
+  files:
+    storage-provider: LOCAL
+    save-dir: ./files
 
   security:
     refresh-cookie-name: Refresh-Token
     refresh-cookie-security: false
     confirmation-code-duration: 1d
+    allowed-origins: "http://localhost:5173"
 
   rabbit:
     send-mail-queue: mails
+    notification-exchange: notifications
+    send-mail-key: send-mail
+
+  invitation:
+    callback-url: http://localhost:5173/invitations?confirm=%s
 
   cache:
     schema-ttl: 15m
+    caches:
+      authorities:
+        ttl: 15m
+      versions:
+        ttl: 15m
+      versionById:
+        ttl: 15m
+
+  jackson:
+    mapper:
+      default-view-inclusion: true
 
 server:
   port: 8000
+  forward-headers-strategy: native

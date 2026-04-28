@@ -5,15 +5,15 @@ import lombok.Setter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.web.access.ExceptionTranslationFilter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.AuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 
 @Setter
 public class JwtSecurityConfigurer extends AbstractHttpConfigurer<JwtSecurityConfigurer, HttpSecurity> {
-    private JwsTokenProvider jwsTokenProvider;
-    private TokenFactory tokenFactory;
+    private TokenAuthenticationDetailsService tokenAuthenticationDetailsService;
     private String refreshCookieName = "Refresh-Token";
 
     @Override
@@ -24,19 +24,20 @@ public class JwtSecurityConfigurer extends AbstractHttpConfigurer<JwtSecurityCon
     }
 
     @Override
-    public void configure(HttpSecurity builder) {
+    public void configure(HttpSecurity builder) throws Exception {
         AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
 
-        var jwtFilter = new AuthenticationFilter(authenticationManager,
-                new TokenAuthenticationConverter(jwsTokenProvider));
+        var jwtFilter = new AuthenticationFilter(authenticationManager, new TokenAuthenticationConverter());
         jwtFilter.setSuccessHandler((req, resp, auth) -> {});
         jwtFilter.setFailureHandler((req, resp, e) ->
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED));
 
         var provider = new PreAuthenticatedAuthenticationProvider();
-        provider.setPreAuthenticatedUserDetailsService(new TokenAuthenticationDetailsService(tokenFactory));
+        provider.setPreAuthenticatedUserDetailsService(tokenAuthenticationDetailsService);
 
-        builder.addFilterAfter(jwtFilter, ExceptionTranslationFilter.class)
-                .authenticationProvider(provider);
+        builder.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .authenticationProvider(provider)
+                .sessionManagement(policy ->
+                        policy.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
     }
 }

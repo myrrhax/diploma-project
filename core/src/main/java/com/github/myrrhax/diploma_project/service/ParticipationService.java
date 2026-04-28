@@ -1,0 +1,224 @@
+package com.github.myrrhax.diploma_project.service;
+
+import com.github.myrrhax.diploma_project.event.SendMailEvent;
+import com.github.myrrhax.diploma_project.mapper.UserMapper;
+import com.github.myrrhax.diploma_project.model.dto.ParticipationDto;
+import com.github.myrrhax.diploma_project.model.dto.UserDTO;
+import com.github.myrrhax.diploma_project.model.entity.AuthorityEntity;
+import com.github.myrrhax.diploma_project.model.entity.InvitationEntity;
+import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
+import com.github.myrrhax.diploma_project.model.entity.UserEntity;
+import com.github.myrrhax.diploma_project.model.exception.ApplicationException;
+import com.github.myrrhax.diploma_project.model.exception.SchemaNotFoundException;
+import com.github.myrrhax.diploma_project.model.exception.UserNotFoundException;
+import com.github.myrrhax.diploma_project.repository.AuthorityRepository;
+import com.github.myrrhax.diploma_project.repository.InvitationRepository;
+import com.github.myrrhax.diploma_project.repository.SchemeRepository;
+import com.github.myrrhax.diploma_project.repository.UserRepository;
+import com.github.myrrhax.shared.model.AuthorityType;
+import com.github.myrrhax.shared.model.MailType;
+import com.github.myrrhax.shared.payload.SchemeInvitationMailPayload;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Slf4j
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class ParticipationService {
+    private final InvitationRepository invitationRepository;
+    private final SchemeRepository schemeRepository;
+    private final UserRepository userRepository;
+    private final ApplicationEventPublisher publisher;
+    private final AuthorityRepository authorityRepository;
+    private final UserMapper userMapper;
+    private final AuthorityService authorityService;
+    private final UserService userService;
+    private final SchemaService schemaService;
+
+    @Value("${app.invitation.callback-url}")
+    private String invitationCallbackUrlTemplate;
+
+    public void sendInvitation(UUID sender, UUID schemeId, String email, List<AuthorityType> authorities) {
+        log.info("Sending invitation for user {} and scheme {} from user {}", email, schemeId, sender);
+        if (!authorities.contains(AuthorityType.READ_SCHEME)) {
+            throw new ApplicationException("error.invitation.must_have_read_authority");
+        }
+
+        SchemeEntity scheme = schemeRepository.findById(schemeId)
+                .orElseThrow(() -> new SchemaNotFoundException(schemeId));
+        if (schemeRepository.containsUserWithEmailInScheme(email, schemeId)) {
+            throw new ApplicationException("error.invitation.user_already_participant",
+                    HttpStatus.BAD_REQUEST,
+                    email,
+                    scheme.getName());
+        }
+        if (invitationRepository.existsByReceiverEmailAndSchemeIdAndIsConfirmedFalse(email, schemeId)) {
+            throw new ApplicationException("error.invitation.already_sent", HttpStatus.BAD_REQUEST, email);
+        }
+
+        UserEntity initiator = userRepository.findById(sender).orElseThrow();
+        Set<AuthorityType> initiatorAuthorities = authorityService.getAuthorities(initiator.getId(), schemeId);
+
+        if (!initiatorAuthorities.contains(AuthorityType.ALL)
+                && (initiatorAuthorities.size() < authorities.size()
+                    || authorities.stream()
+                        .anyMatch(au -> !initiatorAuthorities.contains(au)))) {
+            throw new ApplicationException("error.invitation.forbidden", HttpStatus.FORBIDDEN);
+        }
+        String[] parsedAuthorities = buildAuthorities(authorities);
+        log.info("Applying authorities [{}]", String.join(",", parsedAuthorities));
+
+        InvitationEntity invitation = InvitationEntity.builder()
+                .scheme(scheme)
+                .initiator(initiator)
+                .authorities(parsedAuthorities)
+                .receiverEmail(email)
+                .build();
+        invitationRepository.saveAndFlush(invitation);
+        log.info("Invitation {} was saved in database", invitation.getId());
+
+        publisher.publishEvent(new SendMailEvent<>(this,
+                email,
+                MailType.SCHEME_INVITATION,
+                new SchemeInvitationMailPayload(
+                        scheme.getName(),
+                        initiator.getEmail(),
+                        parsedAuthorities,
+                        buildInvitationUrl(invitation))
+        ));
+    }
+
+    // ToDo кэшировать
+    @Transactional(readOnly = true)
+    public List<ParticipationDto> getParticipants(UUID schemaId) {
+        List<AuthorityEntity> authorities = authorityRepository.findAllBySchemeId(schemaId);
+
+        return authorities.stream()
+                .collect(Collectors.groupingBy(
+                        AuthorityEntity::getUser,
+                        Collectors.mapping(AuthorityEntity::getType, Collectors.toList())
+                ))
+                .entrySet()
+                .stream()
+                .map(entry -> new ParticipationDto(
+                        userMapper.toDto(entry.getKey()),
+                        schemaId,
+                        entry.getValue()
+                ))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public ParticipationDto getParticipationInfo(UUID schemaId, UUID userId) {
+        UserDTO user = userService.getUserById(userId);
+        Set<AuthorityType> userAuthorities = authorityService.getAuthorities(userId, schemaId);
+
+        return new ParticipationDto(
+                user,
+                schemaId,
+                userAuthorities.stream().toList()
+        );
+    }
+
+    @CacheEvict(value = "authorities", allEntries = true)
+    public Optional<ParticipationDto> deleteParticipation(UUID userId, UUID schemaId) {
+        SchemeEntity scheme = schemeRepository.findById(schemaId)
+                .orElseThrow(() -> new SchemaNotFoundException(schemaId));
+        if (scheme.getCreator().getId().equals(userId)) {
+            log.info("Creator of schema {} trying to leave schema",  schemaId);
+            List<ParticipationDto> participations = this.getParticipants(schemaId);
+
+            if (participations.size() == 1) {
+                log.info("Schema {} doesn't have any more users", schemaId);
+                schemaService.deleteScheme(schemaId);
+                return Optional.empty();
+            }
+
+            Optional<ParticipationDto> newLeader = participations.stream()
+                    .filter(p -> !p.user().id().equals(userId))
+                    .sorted((p1, p2) -> Integer.compare(p2.authorities().size(), p1.authorities().size()))
+                    .findFirst();
+            if (newLeader.isPresent()) {
+                ParticipationDto leader = newLeader.get();
+                log.info("New leader was found for schema {}: {}", schemaId, leader.user().email());
+                UserEntity leaderEntity = userRepository.findById(leader.user().id())
+                        .orElseThrow(() -> new UserNotFoundException(leader.user().id()));
+                scheme.setCreator(leaderEntity);
+                schemeRepository.save(scheme);
+                log.info("Creator info was updated for user {} and schema {}", leader.user().email(), schemaId);
+                authorityRepository.save(AuthorityEntity.builder()
+                                .user(leaderEntity)
+                                .scheme(scheme)
+                                .type(AuthorityType.ALL)
+                                .build());
+                log.info("User {} was granted ALL authority for schema {}", leaderEntity.getEmail(), schemaId);
+
+                log.info("Deleting old creator authorities from schema {}", schemaId);
+                authorityRepository.deleteAllForUserAndScheme(schemaId, userId);
+
+                ParticipationDto newUserParticipation = getParticipationInfo(schemaId, leader.user().id());
+                return Optional.of(newUserParticipation);
+            }
+
+            return Optional.empty();
+        } else {
+            log.info("Trying to kick user {} from schema {}", userId, schemaId);
+            authorityRepository.deleteAllForUserAndScheme(schemaId, userId);
+
+            return Optional.empty();
+        }
+    }
+
+    @CacheEvict(value = "authorities", allEntries = true)
+    public ParticipationDto confirmParticipation(UUID userId, UUID invitationId) {
+        UserEntity user = userRepository.findById(userId).orElseThrow();
+        InvitationEntity invitation = invitationRepository.findById(invitationId)
+                .orElseThrow(() -> new ApplicationException("Invitation not found", HttpStatus.NOT_FOUND));
+
+        if (!user.getEmail().equals(invitation.getReceiverEmail())) {
+            throw new ApplicationException("error.invitation.access_denied", HttpStatus.FORBIDDEN);
+        }
+        if (invitation.isConfirmed()) {
+            throw new ApplicationException("error.invitation.already_accepted", HttpStatus.CONFLICT);
+        }
+
+        invitation.setConfirmed(true);
+        invitation.setConfirmedAt(LocalDateTime.now());
+
+        List<AuthorityType> authorityTypes = Arrays.stream(invitation.getAuthorities())
+                .map(AuthorityType::valueOf)
+                .toList();
+        List<AuthorityEntity> authorities = authorityTypes.stream()
+                .map(it -> new AuthorityEntity(user, invitation.getScheme(), it))
+                .toList();
+
+        authorityRepository.saveAll(authorities);
+
+        return new ParticipationDto(userMapper.toDto(user), invitation.getScheme().getId(), authorityTypes);
+    }
+
+    private String[] buildAuthorities(List<AuthorityType> authorities) {
+        return authorities.stream()
+                .map(AuthorityType::name)
+                .toArray(String[]::new);
+    }
+
+    private String buildInvitationUrl(InvitationEntity invitation) {
+        return String.format(invitationCallbackUrlTemplate, invitation.getId());
+    }
+}

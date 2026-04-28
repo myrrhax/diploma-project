@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,6 +42,9 @@ public class VersionEntity extends BaseEntity {
     @JoinColumn(name = "scheme_id")
     SchemeEntity scheme;
 
+    @Column(name = "parent_id", insertable = false, updatable = false)
+    Long parentId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     VersionEntity parent;
@@ -60,4 +64,7 @@ public class VersionEntity extends BaseEntity {
 
     @Column(name = "is_working_copy")
     Boolean isWorkingCopy;
+
+    @Column(name = "versioned_at")
+    LocalDateTime versionedAt;
 }

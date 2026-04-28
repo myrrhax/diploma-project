@@ -16,9 +16,13 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
@@ -49,24 +53,40 @@ public class SecurityConfiguration {
     @SneakyThrows
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    JwsTokenProvider tokenProvider,
-                                                   TokenFactory factory) {
+                                                   TokenAuthenticationDetailsService tokenAuthenticationDetailsService,
+                                                   CorsConfigurationSource corsConfigurationSource) {
         http.httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/api/auth/login",
-                                "/api/auth/register", "/api/auth/refresh").permitAll()
+                                "/api/auth/register", "/api/auth/refresh", "/ws/**").permitAll()
                         .requestMatchers(
                                 "/api/auth/confirm",
                                 "/api/auth/resend-code").hasAuthority(JwtAuthority.ROLE_PRE_VERIFIED.name())
+                        .requestMatchers("/api/users/whoami").hasAnyAuthority(JwtAuthority.ROLE_PRE_VERIFIED.name(), JwtAuthority.ROLE_USER.name())
                         .anyRequest().hasAuthority(JwtAuthority.ROLE_USER.name())
                 )
                 .with(new JwtSecurityConfigurer(), configurer -> {
-                    configurer.setJwsTokenProvider(tokenProvider);
-                    configurer.setTokenFactory(factory);
+                    configurer.setTokenAuthenticationDetailsService(tokenAuthenticationDetailsService);
                     configurer.setRefreshCookieName(refreshCookieName);
                 });
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(@Value("${app.security.allowed-origins}") List<String> allowedOrigins) {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedMethods(List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedOrigins(allowedOrigins);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 }

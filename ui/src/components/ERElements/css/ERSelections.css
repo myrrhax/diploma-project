@@ -1,0 +1,26 @@
+.er_selection_marquee {
+    position: absolute;
+    border: 1px solid #2563eb;
+    background-color: rgba(59, 130, 246, 0.1);
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.er_table_card.selected {
+    outline: 3px solid #3b82f6;
+    outline-offset: 1px;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+.er_relation_group.selected .er_line {
+    stroke: #3b82f6 !important;
+    filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.6));
+}
+
+.er_relation_group.selected text {
+    fill: #2563eb !important;
+}
+
+.er_relation_group.selected circle {
+    fill: #2563eb !important;
+}

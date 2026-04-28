@@ -1,0 +1,73 @@
+.versions-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.versions-header-controls {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-color, #ccc);
+}
+
+.mode-switchers button {
+    background: none;
+    border: 1px solid var(--border-color, #ccc);
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-main, #333);
+}
+
+.mode-switchers button:first-child {
+    border-radius: 4px 0 0 4px;
+    border-right: none;
+}
+
+.mode-switchers button:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+.mode-switchers button.active {
+    background: #eee;
+    font-weight: bold;
+}
+
+.versions-list-container {
+    flex-grow: 1;
+    padding-top: 10px;
+}
+
+.list-version-item {
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-color, #ccc);
+    cursor: pointer;
+    transition: background-color;
+    display: flex;
+    flex-direction: column;
+}
+
+.list-version-item:hover {
+    background-color: var(--bg-color, #f5f5f5);
+}
+
+.list-version-name {
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--text-main, #333);
+}
+
+.list-version-date {
+    font-size: 12px;
+    color: var(--text-secondary, #666);
+}
+
+.list-version-working {
+    border-left: 3px solid blue;
+    margin-left: 25px;
+}
+
+.list-version-working:hover {
+    background-color: rgba(173, 255, 47, 0.3);
+}

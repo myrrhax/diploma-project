@@ -15,13 +15,15 @@ import org.springframework.stereotype.Component;
 public class SendMailEventListener implements ApplicationListener<SendMailEvent<?>> {
     private final RabbitTemplate rabbitTemplate;
 
-    @Value("${app.rabbit.send-mail-queue}")
-    private String sendMailQueue;
+    @Value("${app.rabbit.notification-exchange}")
+    private String exchangeName;
+    @Value("${app.rabbit.send-mail-key}")
+    private String sendMailRouterKey;
 
     @Override
     public void onApplicationEvent(SendMailEvent<?> event) {
         SendMailDto dto = new SendMailDto(event.getReceiverEmail(), event.getMailType(), event.getPayload());
         log.info("Sending email to notification service for user {}", event.getReceiverEmail());
-        rabbitTemplate.convertAndSend(sendMailQueue, dto);
+        rabbitTemplate.convertAndSend(exchangeName, sendMailRouterKey, dto);
     }
 }

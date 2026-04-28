@@ -1,0 +1,84 @@
+.tree-node-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-version-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid var(--border-color, #ccc);
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.tree-version-item:hover {
+  background-color: var(--bg-color, #f5f5f5);
+}
+
+.tree-version-working {
+  border-left: 3px solid blue;
+  background-color: rgba(173, 255, 47, 0.1);
+}
+
+.tree-version-working:hover {
+  background-color: rgba(173, 255, 47, 0.3);
+}
+
+.tree-toggle-wrapper {
+  width: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.tree-toggle-btn {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg-color, #fff);
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  color: var(--text-main, #333);
+  transition: all 0.2s;
+}
+
+.tree-toggle-btn:hover:not(.disabled) {
+  background: #e0e0e0;
+}
+
+.tree-toggle-btn.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: #eee;
+}
+
+.tree-toggle-placeholder {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+}
+
+.tree-version-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-version-name {
+  display: block;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.tree-version-date {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+}

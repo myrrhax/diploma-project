@@ -1,0 +1,72 @@
+.er_zoom_controls {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    align-items: center;    
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    
+    z-index: 100; 
+    padding: 4px;
+    gap: 4px;
+}
+
+.er_zoom_btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: #64748b; 
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.er_zoom_btn:hover {
+    background-color: #f1f5f9; 
+    color: #0f172a; 
+}
+
+.er_zoom_btn:active {
+    background-color: #e2e8f0;
+}
+
+.er_zoom_input_wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2px;
+    color: #475569;
+}
+
+.er_zoom_input {
+    width: 28px;
+    background: transparent;
+    border: none;
+    color: #0f172a; 
+    font-size: 13px;
+    font-weight: 500;
+    text-align: right;
+    padding: 0;
+    outline: none;
+    font-family: inherit;
+    transition: color 0.2s;
+}
+
+.er_zoom_input:focus {
+    color: #2563eb; 
+    box-shadow: 0 1px 0 0 #3b82f6; 
+}
+
+.er_zoom_percent {
+    font-size: 13px;
+    font-weight: 500;
+    margin-left: 2px;
+    user-select: none;
+}

@@ -1,0 +1,2 @@
+DROP INDEX idx_uq_schema_id_receiver_email;
+CREATE INDEX idx_schema_id_receiver_email ON t_invitation(scheme_id, receiver_email);

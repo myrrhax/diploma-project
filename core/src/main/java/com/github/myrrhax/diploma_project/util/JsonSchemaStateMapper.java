@@ -2,12 +2,14 @@ package com.github.myrrhax.diploma_project.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.myrrhax.diploma_project.model.ReferenceMetadata;
 import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -25,16 +27,19 @@ public class JsonSchemaStateMapper {
         objectMapper.registerModule(module);
     }
 
-    public SchemaStateMetadata schemaStateMetadata(String json) {
+    @Named("toMetadata")
+    public SchemaStateMetadata toMetadata(String json) throws Exception {
         if (json == null) return null;
 
         try {
-            return objectMapper.readValue(json, SchemaStateMetadata.class);
+            var state = objectMapper.readValue(json, SchemaStateMetadata.class);
+            state.linkChildren();
+
+            return state;
         } catch (Exception e) {
             log.error("Unable to parse schema state json", e);
+            throw e;
         }
-
-        return null;
     }
 
     public String toJson(SchemaStateMetadata schemaStateMetadata) {

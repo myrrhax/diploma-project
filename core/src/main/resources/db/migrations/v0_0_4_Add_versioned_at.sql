@@ -1,0 +1,2 @@
+ALTER TABLE t_scheme_version
+ADD COLUMN versioned_at TIMESTAMP WITH TIME ZONE;

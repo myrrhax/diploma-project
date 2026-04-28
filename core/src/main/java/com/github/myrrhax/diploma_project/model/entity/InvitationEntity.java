@@ -46,6 +46,9 @@ public class InvitationEntity extends BaseEntity {
     @Column(name = "is_confirmed")
     boolean isConfirmed;
 
+    @Column(name = "receiver_email")
+    String receiverEmail;
+
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "authorities")
     String[] authorities;

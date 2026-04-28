@@ -1,0 +1,170 @@
+.index_modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(2px);
+}
+
+.index_modal_content {
+    background-color: #ffffff;
+    border-radius: 8px;
+    width: 320px;
+    padding: 20px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.index_modal_title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.index_modal_input {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    outline: none;
+    font-size: 14px;
+    color: #0f172a;
+    transition: border-color 0.2s;
+}
+
+.index_modal_input:focus {
+    border-color: #3b82f6;
+}
+
+.index_modal_columns {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px;
+    background-color: #f8fafc;
+}
+
+.index_col_label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 4px 0;
+}
+
+.index_col_name {
+    font-size: 13px;
+    color: #334155;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.index_col_badges {
+    display: flex;
+    gap: 4px;
+}
+
+.index_badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 4px;
+    border-radius: 4px;
+    color: white;
+}
+
+.index_badge.uq { background-color: #10b981; }
+.index_badge.nn { background-color: #64748b; }
+
+.index_modal_actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.index_modal_btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.index_modal_btn.submit {
+    background-color: #3b82f6;
+    color: #ffffff;
+}
+
+.index_modal_btn.submit:hover:not(:disabled) {
+    background-color: #2563eb;
+}
+
+.index_modal_btn.submit:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.index_modal_btn.cancel {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.index_modal_btn.cancel:hover {
+    background-color: #e2e8f0;
+}
+
+.tree-node-subgroup-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 20px;
+}
+
+.tree-node-add-btn {
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    color: #3b82f6;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+.tree-node-add-btn:hover {
+    background-color: #e2e8f0;
+}
+
+.index_modal_checkbox_wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #0f172a;
+    cursor: pointer;
+    padding: 4px 0;
+}
+
+.index_modal_checkbox_wrapper input[type="checkbox"] {
+    cursor: pointer;
+}

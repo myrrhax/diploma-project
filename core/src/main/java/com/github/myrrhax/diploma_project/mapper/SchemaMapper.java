@@ -1,20 +1,19 @@
 package com.github.myrrhax.diploma_project.mapper;
 
-import com.github.myrrhax.diploma_project.model.SchemaStateMetadata;
+import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
 import com.github.myrrhax.diploma_project.model.entity.SchemeEntity;
 import com.github.myrrhax.diploma_project.model.entity.VersionEntity;
-import com.github.myrrhax.diploma_project.model.dto.SchemeDTO;
-import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", imports = {UserMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, VersionMapper.class})
 public interface SchemaMapper {
-    @Mapping(target = "currentVersion", source = "dto")
-    SchemeDTO toSchemeDTO(SchemeEntity scheme, VersionDTO dto);
+    SchemeDTO toDto(SchemeEntity scheme);
 
-    @Mapping(target = "versionId", source = "entity.id")
-    @Mapping(target = "schemeId", source = "entity.scheme.id")
-    @Mapping(target = "currentState", source = "state")
-    VersionDTO toVersionDTO(VersionEntity entity, SchemaStateMetadata state);
+    @Mapping(target = "currentVersion", ignore = true)
+    SchemeDTO toUnversionedDTO(SchemeEntity scheme);
+
+    @Mapping(target = "currentVersion", source = "version")
+    @Mapping(target = "id", source = "scheme.id")
+    SchemeDTO toDto(SchemeEntity scheme, VersionEntity version);
 }

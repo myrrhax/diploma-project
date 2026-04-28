@@ -1,3 +1,25 @@
 databaseChangeLog:
-  - includeAll:
-      path: classpath:db/migrations/
+  - include:
+      file: db/migrations/v0_0_1_Initial.sql
+  - include:
+      file: db/migrations/v0_0_2_Invitation.sql
+  - include:
+      file: db/migrations/v0_0_3_Create_confirmation_table.sql
+  - include:
+      file: db/migrations/v0_0_4_Add_versioned_at.sql
+  - include:
+      file: db/migrations/v0_0_5_Add_receiver_email.sql
+  - include:
+      file: db/migrations/V0_0_6_Drop_schema_uq_idx.sql
+  - include:
+      file: db/migrations/v0_0_7_Rename_dbms_field_and_add_generated_field.sql
+  - include:
+      file: db/migrations/v0_0_8_Add_unique_script_indexes.sql
+  - include:
+      file: db/migrations/v0_0_9_Drop_not_null_from_v_id.sql
+  - include:
+      file: db/migrations/v0_0_10_Add_files_table.sql
+  - include:
+      file: db/migrations/v0_0_11_Add_files_piblic_info.sql
+  - include:
+      file: db/migrations/v0_0_12_change_from_script_to_file_ref.sql

@@ -5,8 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -32,7 +32,6 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ConfirmationEntity extends BaseEntity {
     @Id
-    @Column(name = "user_id")
     UUID userId;
 
     @Size(min = 6, max = 6)
@@ -40,9 +39,9 @@ public class ConfirmationEntity extends BaseEntity {
     @JdbcTypeCode(Types.CHAR)
     String code;
 
-    @MapsId
     @JoinColumn(name = "user_id")
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId
     UserEntity user;
 
     @Column(name = "expires_at")

@@ -1,0 +1,2 @@
+ALTER TABLE t_ddl_scripts
+ALTER COLUMN from_v_id DROP NOT NULL;

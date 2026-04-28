@@ -1,0 +1,70 @@
+/* src/index.css */
+:root {
+  /* Палитра (Blue Theme) */
+  --primary-color: #2563eb;       /* Основной синий */
+  --primary-hover: #1d4ed8;       /* Темно-синий для ховера */
+  --bg-color: #f3f4f6;            /* Светло-серый фон страницы */
+  --card-bg: #ffffff;             /* Белый фон карточек */
+  
+  /* Текст */
+  --text-main: #111827;           /* Почти черный */
+  --text-secondary: #6b7280;      /* Серый текст */
+  --text-inverse: #ffffff;        /* Текст на кнопках */
+
+  /* Границы и формы */
+  --border-color: #e5e7eb;        /* Светлая рамка */
+  --border-focus: #2563eb;        /* Цвет рамки при фокусе */
+  --radius-sm: 8px;               /* Скругление кнопок/инпутов */
+  --radius-lg: 16px;              /* Скругление карточек */
+  
+  /* Состояния */
+  --error-color: #dc2626;
+  --error-bg: #fef2f2;
+  --success-color: #10b981;
+  
+  /* Тени */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Анимации */
+  --transition: all 0.2s ease-in-out;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Глобальный стиль для ссылок */
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+a:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+/* Глобальный спиннер загрузки */
+.loader {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--text-inverse);
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

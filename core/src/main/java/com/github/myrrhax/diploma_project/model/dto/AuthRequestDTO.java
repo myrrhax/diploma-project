@@ -5,11 +5,11 @@ import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 
 public record AuthRequestDTO(
-        @NotNull
-        @Email
+        @NotNull(message = "{error.validation.null-value}")
+        @Email(message = "{error.validation.email}")
         String email,
 
-        @NotNull
-        @Length(min = 6)
+        @NotNull(message = "{error.validation.null-value}")
+        @Length(min = 6, message = "{error.validation.min-password-length}")
         String password
 ) { }

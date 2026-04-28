@@ -1,0 +1,77 @@
+package com.github.myrrhax.diploma_project.event;
+
+import com.github.myrrhax.diploma_project.model.dto.ConnectionChangedPayload;
+import com.github.myrrhax.diploma_project.model.dto.ErrorResponseDTO;
+import com.github.myrrhax.diploma_project.model.dto.MetadataCommandProcessResult;
+import com.github.myrrhax.diploma_project.model.dto.ParticipationDto;
+import com.github.myrrhax.diploma_project.model.dto.SchemaDeletedPayload;
+import com.github.myrrhax.diploma_project.model.dto.UserDeletePayload;
+import com.github.myrrhax.diploma_project.model.dto.VersionDTO;
+import com.github.myrrhax.diploma_project.model.enums.EventType;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import java.util.List;
+
+@AllArgsConstructor
+@Getter
+public abstract sealed class ServerEvent<T> permits ServerEvent.CommandEvent,
+                                                    ServerEvent.SchemaNewVersionEvent,
+                                                    ServerEvent.SchemaVersionDeletedEvent,
+                                                    ServerEvent.HeadChangedEvent,
+                                                    ServerEvent.ConnectionChangedEvent,
+                                                    ServerEvent.ErrorEvent,
+                                                    ServerEvent.AuthorityChangesEvent,
+        ServerEvent.UserDeleteEvent,
+                                                    ServerEvent.SchemaDeleteEvent {
+    private final EventType eventType;
+    private final T payload;
+
+    public static final class CommandEvent extends ServerEvent<MetadataCommandProcessResult> {
+        public CommandEvent(MetadataCommandProcessResult payload) {
+            super(EventType.SCHEMA_UPDATE, payload);
+        }
+    }
+
+    public static final class SchemaNewVersionEvent extends ServerEvent<List<VersionDTO>> {
+        public SchemaNewVersionEvent(List<VersionDTO> payload) { super(EventType.SCHEMA_NEW_VERSION, payload); }
+    }
+
+    public static final class SchemaVersionDeletedEvent extends ServerEvent<List<VersionDTO>> {
+        public SchemaVersionDeletedEvent(List<VersionDTO> payload) { super(EventType.SCHEMA_VERSION_DELETED, payload); }
+    }
+
+    public static final class HeadChangedEvent extends ServerEvent<VersionDTO> {
+        public HeadChangedEvent(VersionDTO payload) { super(EventType.SCHEMA_HEAD_CHANGED,payload); }
+    }
+
+    public static final class ConnectionChangedEvent extends ServerEvent<ConnectionChangedPayload> {
+        public ConnectionChangedEvent(ConnectionChangedPayload payload) {
+            super(EventType.CONNECTION_CHANGED, payload);
+        }
+    }
+
+    public static final class ErrorEvent extends ServerEvent<ErrorResponseDTO> {
+        public ErrorEvent(ErrorResponseDTO payload) {
+            super(EventType.ERROR, payload);
+        }
+    }
+
+    public static final class AuthorityChangesEvent extends ServerEvent<ParticipationDto> {
+        public AuthorityChangesEvent(ParticipationDto payload) {
+            super(EventType.AUTHORITIES_CHANGED, payload);
+        }
+    }
+
+    public static final class SchemaDeleteEvent extends ServerEvent<SchemaDeletedPayload> {
+        public SchemaDeleteEvent(SchemaDeletedPayload payload) {
+            super(EventType.SCHEMA_DELETED, payload);
+        }
+    }
+
+    public static final class UserDeleteEvent extends ServerEvent<UserDeletePayload> {
+        public UserDeleteEvent(UserDeletePayload payload) {
+            super(EventType.USER_KICKED, payload);
+        }
+    }
+}

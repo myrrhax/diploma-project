@@ -1,0 +1,106 @@
+.schema_modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.4);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+.schema_modal_content {
+    background-color: #ffffff;
+    padding: 24px;
+    border-radius: 12px;
+    width: 400px;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.schema_modal_title {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.schema_modal_form_group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 24px;
+}
+
+.schema_modal_label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.schema_modal_input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    outline: none;
+    font-family: inherit;
+}
+
+.schema_modal_input:focus {
+    border-color: #3b82f6;
+    background-color: #ffffff;
+}
+
+.schema_modal_error {
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.schema_modal_actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.schema_modal_btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.schema_modal_btn_cancel {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.schema_modal_btn_cancel:hover {
+    background-color: #e2e8f0;
+}
+
+.schema_modal_btn_create {
+    background-color: #3b82f6;
+    color: #ffffff;
+}
+
+.schema_modal_btn_create:hover {
+    background-color: #2563eb;
+}

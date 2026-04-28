@@ -1,0 +1,72 @@
+import axios from "axios";
+import { authStore } from "../store/AuthStore";
+import type AuthResponse from "../model/AuthResponse";
+
+export const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+const $api = axios.create({
+    baseURL: baseURL + '/api',
+    timeout: 10000,
+    headers: {
+        'Content-Type': 'application/json'
+    }
+});
+
+$api.interceptors.request.use(
+    (cfg) => {
+        const token = authStore.token;
+        const url = cfg.url
+        if (url?.endsWith('/login') || url?.endsWith('/register')) {
+            return cfg;
+        }
+        if (token && cfg.headers) {
+            cfg.headers.Authorization = `Bearer ${token}`;
+        }
+
+        return cfg; 
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+$api.interceptors.response.use(
+    (resp) => {
+        return resp;
+    },
+    async (error) => {
+        const originalRequest = error.config;
+        
+        if (error.response?.status === 401 && !originalRequest.url.endsWith('/login') && !originalRequest.url.endsWith('/register')) {
+            console.log('Original request is not authorized, refreshing tokens');
+            if (!originalRequest._isRetry) {
+                originalRequest._isRetry = true;
+
+                try {
+                    console.log('Sending refresh request');
+                    const response = await axios.post<AuthResponse>(baseURL + '/auth/refresh', { withCredentials: true });
+                    if (response.status === 200 && response.data) {
+                        console.log('User tokens were updated');
+                        authStore.setAuthToken(response.data.accessToken);
+                        authStore.setUser(response.data.user);
+                    }
+
+                    return $api.request(originalRequest);
+                } catch(e) {
+                    console.error(e);
+                    authStore.logout();
+
+                    return Promise.reject(e);
+                }
+            } else {
+                authStore.logout();
+
+                return Promise.reject(error);
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
+
+export default $api;

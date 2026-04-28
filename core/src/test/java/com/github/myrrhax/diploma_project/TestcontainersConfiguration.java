@@ -9,33 +9,11 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 @TestConfiguration(proxyBeanMethods = false)
-class TestcontainersConfiguration {
-
-	@Bean
-	@ServiceConnection
-	MongoDBContainer mongoDbContainer() {
-		return new MongoDBContainer(DockerImageName.parse("mongo:latest"));
-	}
-
+public class TestcontainersConfiguration {
 	@Bean
 	@ServiceConnection
 	PostgreSQLContainer<?> postgresContainer() {
-		return new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"))
-				.withDatabaseName("test_db")
-				.withUsername("test_user")
-				.withPassword("test_password")
-				.withExposedPorts(5432);
-	}
-
-	@Bean
-	PostgreSQLContainer<?> postgresGeneratorContainer() {
-		var container = new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"))
-				.withDatabaseName("postgres")
-				.withUsername("postgres")
-				.withPassword("postgres")
-				.withExposedPorts(5433);
-		container.start();
-		return container;
+		return new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"));
 	}
 
 	@Bean

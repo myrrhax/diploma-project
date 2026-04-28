@@ -1,0 +1,101 @@
+.schema-sidebar {
+    position: relative;
+    width: 0;
+    height: 100%;
+    background: var(--card-bg, #ffffff);
+    border-right: 1px solid var(--border-color, #ccc);
+    transition: 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    z-index: 20;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+}
+
+.schema-sidebar.open {
+    width: 380px;
+}
+
+.sidebar-toggle {
+    position: absolute;
+    right: -24px;
+    top: 20px;
+    width: 24px;
+    height: 40px;
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #ccc);
+    border-left: none;
+    border-radius: 0 4px 4px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary, #666);
+    box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+    z-index: 21;
+}
+
+.sidebar-main-content {
+    width: 380px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.1s;
+    min-height: 0;
+}
+
+.schema-sidebar.open .sidebar-main-content {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.sidebar-top-bar {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color, #ccc);
+}
+
+.sidebar-select {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--bg-color, #f9f9f9);
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 4px;
+    color: var(--text-main, #333);
+    font-size: 15px;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.sidebar-select:focus {
+    border-color: #3b82f6; 
+}
+
+.sidebar-dynamic-area {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: block;
+    min-height: 0;
+}
+
+.sidebar-placeholder {
+    padding: 24px 20px;
+    color: var(--text-secondary, #666);
+    text-align: center;
+}
+
+.sidebar-dynamic-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-dynamic-area::-webkit-scrollbar-thumb {
+    background-color: var(--border-color, #ccc);
+    border-radius: 3px;
+}
+
+.sidebar-dynamic-area::-webkit-scrollbar-track {
+    background: transparent;
+}

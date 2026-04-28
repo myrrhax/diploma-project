@@ -6,13 +6,9 @@ import java.util.UUID;
 
 public class SchemaNotFoundException extends ApplicationException {
     private static final HttpStatus STATUS = HttpStatus.NOT_FOUND;
-    private static final String MESSAGE_TEMPLATE = "Scheme with id %s is not found";
+    private static final String MESSAGE = "error.schema.not_found";
 
     public SchemaNotFoundException(UUID id) {
-        super(MESSAGE_TEMPLATE.formatted(id.toString()), STATUS);
-    }
-
-    public SchemaNotFoundException(UUID id, Throwable cause) {
-        super(MESSAGE_TEMPLATE.formatted(id.toString()), cause, STATUS);
+        super(MESSAGE, STATUS, id);
     }
 }

@@ -1,0 +1,80 @@
+.modal__overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.4);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+.modal__container {
+    background-color: #ffffff;
+    padding: 24px;
+    border-radius: 12px;
+    width: 400px;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.delete_table_header {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #0f172a;
+}
+
+.delete_table_message {
+    margin: 0 0 24px 0;
+    color: #475569;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.delete_table_btn_container {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.delete_table_btn_cancel {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background-color: #f1f5f9;
+    color: #475569;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.delete_table_btn_cancel:hover {
+    background-color: #e2e8f0;
+}
+
+.delete_table_btn_confirm {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    background-color: #ef4444;
+    color: #ffffff;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.delete_table_btn_confirm:hover {
+    background-color: #dc2626;
+}
