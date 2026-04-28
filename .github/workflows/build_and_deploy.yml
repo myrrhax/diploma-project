@@ -37,8 +37,7 @@ jobs:
             cd ${{ env.TARGET_DIR }}
             sudo docker compose down || true
           fi
-          sudo rm -rf ${{ env.TARGET_DIR }}
-          sudo chown -R $USER:$USER ${{ env.TARGET_DIR }}
+          rm -rf ${{ env.TARGET_DIR }}
 
       - name: Copy files
         run: cp -r ./* ${{ env.TARGET_DIR }}/
