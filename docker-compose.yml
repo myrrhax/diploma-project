@@ -94,15 +94,15 @@ services:
       - "80:80"
       - "443:443"
 
-  certbot:
-    image: certbot/certbot
-    depends_on:
-      - ui
-    container_name: certbot
-    volumes:
-      - etc-letsencrypt:/etc/letsencrypt
-      - www-certbot:/var/www/html
-    command: certonly --webroot --webroot-path=/var/www/html --register-unsafely-without-email --agree-tos -d myrrermdev.space
+#  certbot:
+#    image: certbot/certbot
+#    depends_on:
+#      - ui
+#    container_name: certbot
+#    volumes:
+#      - etc-letsencrypt:/etc/letsencrypt
+#      - www-certbot:/var/www/html
+#    command: certonly --webroot --webroot-path=/var/www/html --register-unsafely-without-email --agree-tos -d myrrermdev.space
 
 networks:
   backend:
