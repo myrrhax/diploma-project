@@ -38,6 +38,7 @@ jobs:
             sudo docker compose down || true
           fi
           rm -rf ${{ env.TARGET_DIR }}
+          mkdir ${{ env.TARGET_DIR }}
 
       - name: Copy files
         run: cp -r ./* ${{ env.TARGET_DIR }}/
