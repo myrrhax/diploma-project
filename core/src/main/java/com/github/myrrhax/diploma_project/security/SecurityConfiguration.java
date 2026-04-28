@@ -63,6 +63,11 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/auth/login",
                                 "/api/auth/register", "/api/auth/refresh", "/ws/**").permitAll()
                         .requestMatchers(
+                                    "/swagger-ui/**",
+                                    "/swagger-ui.html",
+                                    "/v3/api-docs/**"
+                            ).permitAll()
+                        .requestMatchers(
                                 "/api/auth/confirm",
                                 "/api/auth/resend-code").hasAuthority(JwtAuthority.ROLE_PRE_VERIFIED.name())
                         .requestMatchers("/api/users/whoami").hasAnyAuthority(JwtAuthority.ROLE_PRE_VERIFIED.name(), JwtAuthority.ROLE_USER.name())
