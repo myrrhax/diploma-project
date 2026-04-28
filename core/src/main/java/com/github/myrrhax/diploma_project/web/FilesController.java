@@ -2,6 +2,8 @@ package com.github.myrrhax.diploma_project.web;
 
 import com.github.myrrhax.diploma_project.model.dto.FileInfoDto;
 import com.github.myrrhax.diploma_project.service.FileStorageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -20,11 +22,13 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/files")
+@Tag(name = "Files", description = "Управление файлами")
 public class FilesController {
     private final FileStorageService fileStorageService;
 
     @GetMapping("{id}")
     @PreAuthorize("@authorityCheckService.hasAccessToFile(principal.token.userId, #id)")
+    @Operation(summary = "Скачивание ресурса")
     public ResponseEntity<Resource> getFile(@PathVariable UUID id) {
         FileInfoDto file = fileStorageService.getFile(id);
         String encodedFileName = URLEncoder.encode(file.preferredName(), StandardCharsets.UTF_8)

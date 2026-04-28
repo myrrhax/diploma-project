@@ -11,7 +11,8 @@ val libVersions = mapOf(
     "liquibase" to "5.0.1",
     "jjwt" to "0.13.0",
     "mapstruct" to "1.6.3",
-    "jedisVersion" to "6.1.0"
+    "jedisVersion" to "6.1.0",
+    "swagger" to "2.8.15"
 )
 
 java {
@@ -44,6 +45,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:${libVersions["jjwt"]}")
     implementation("org.mapstruct:mapstruct:${libVersions["mapstruct"]}")
     implementation("redis.clients:jedis:${libVersions["jedisVersion"]}")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${libVersions["swagger"]}")
 
     compileOnly("org.projectlombok:lombok")
 
