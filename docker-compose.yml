@@ -80,7 +80,7 @@ services:
       dockerfile: ui/Dockerfile
       args:
         - PORT=80
-        - VITE_API_BASE_URL=http://0.0.0.0:8080
+        - VITE_API_BASE_URL=https://myrrermdev.space
     restart: unless-stopped
     depends_on:
       - core
