@@ -35,7 +35,7 @@
 ![Генерация скриптов](./readme/генерация_скриптов.png)
 
 ## Swagger Doc
-[Swagger](https://myrrermdev.space/api/swagger)
+[Swagger](https://myrrermdev.space/api/swagger) \
 [Json](https://myrrermdev.space/api/openapi-docs)
 
 ## Пример работы
