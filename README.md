@@ -5,6 +5,7 @@
 - [Технологии](#технологии)
 - [Функционал](#функционал)
 - [Пример работы](#пример-работы)
+- [Swagger Doc](#swagger-doc)
 - [ToDo](#to-do)
 - [Запуск проекта](#запуск-проекта)
 
@@ -33,6 +34,11 @@
 ### Генерация скриптов
 ![Генерация скриптов](./readme/генерация_скриптов.png)
 
+## Swagger Doc
+[Swagger](https://myrrermdev.space/api/swagger)
+[Json](https://myrrermdev.space/api/openapi-docs)
+
+## Пример работы
 _Пример сгенерированных скриптов (Postgres):_
 
 ``` postgresql
