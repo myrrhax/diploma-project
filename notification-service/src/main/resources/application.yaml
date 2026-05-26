@@ -1,7 +1,7 @@
 spring:
   mail:
     host: live.smtp.mailtrap.io
-    port: 587
+    port: 2525
     username: ${SPRING_MAIL_USERNAME}
     password: ${SPRING_MAIL_PASSWORD}
     properties:
@@ -24,6 +24,7 @@ app:
 
   mail:
     schema-invite-subject: Приглашение для кооперативной разработки
+    from-user: no-reply@myrrermdev.space
 
   concurrent:
-    email-executor-thread-count: 5
+    email-executor-thread-count: 20
