@@ -29,32 +29,31 @@ export const AddReferenceMenu = observer(() => {
     const menuRef = useRef<HTMLDivElement>(null);
     const position = useRef({ x: 0, y: 0 });
     const isDragging = useRef(false);
-    const dragOffset = useRef({ x: 0, y: 0 });
-    
-    const scale = erStore.scale;
+
     useEffect(() => {
         if (referenceStore.isOpen) {
-            position.current = { x: referenceStore.menuX, y: referenceStore.menuY };
+            position.current = {
+                x: referenceStore.menuX,
+                y: referenceStore.menuY
+            };
+
             if (menuRef.current) {
-                menuRef.current.style.transform = `translate(${position.current.x}px, ${position.current.y}px) scale(${scale})`;
+                menuRef.current.style.transform =
+                    `translate(${position.current.x}px, ${position.current.y}px)`;
             }
         }
     }, [referenceStore.isOpen, referenceStore.menuX, referenceStore.menuY]);
 
     useEffect(() => {
-        if (referenceStore.isOpen && menuRef.current) {
-            menuRef.current.style.transform = `translate(${position.current.x}px, ${position.current.y}px) scale(${scale})`;
-        }
-    }, [scale, referenceStore.isOpen]);
-
-    useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (isDragging.current && menuRef.current) {
                 position.current = {
-                    x: e.clientX - dragOffset.current.x,
-                    y: e.clientY - dragOffset.current.y
+                    x: position.current.x + e.movementX / erStore.scale,
+                    y: position.current.y + e.movementY / erStore.scale
                 };
-                menuRef.current.style.transform = `translate(${position.current.x}px, ${position.current.y}px) scale(${erStore.scale})`;
+
+                menuRef.current.style.transform =
+                    `translate(${position.current.x}px, ${position.current.y}px)`;
             }
         };
 
@@ -72,11 +71,8 @@ export const AddReferenceMenu = observer(() => {
     }, []);
 
     const handleMouseDown = (e: React.MouseEvent) => {
+        e.stopPropagation();
         isDragging.current = true;
-        dragOffset.current = {
-            x: e.clientX - position.current.x,
-            y: e.clientY - position.current.y
-        };
     };
 
     if (!referenceStore.isOpen) return null;
