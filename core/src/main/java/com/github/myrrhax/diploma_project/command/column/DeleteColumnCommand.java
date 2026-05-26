@@ -37,12 +37,21 @@ public class DeleteColumnCommand extends MetadataCommand {
             return new ApplicationException(ErrorMessageKey.COLUMN_NOT_FOUND.getKey());
         });
 
-        if (table.getPrimaryKeyParts().contains(columnId) && table.getPrimaryKeyParts().size() == 1) {
-            throw new ApplicationException(ErrorMessageKey.COLUMN_IS_PK.getKey());
+        boolean pkRemoved = false;
+        if (table.getPrimaryKeyParts().contains(columnId)) {
+            if (table.getPrimaryKeyParts().size() == 1) {
+                throw new ApplicationException(ErrorMessageKey.COLUMN_IS_PK.getKey());
+            }
+            table.removePkPart(columnId);
+            pkRemoved = true;
         }
 
         SchemaDifference diff = new SchemaDifference();
         diff.applyDifference(table.removeColumn(column));
+        if (pkRemoved) {
+            metadata.deleteInvalidReferences(table);
+            diff.applyDifference(metadata.deleteInvalidReferences(table));
+        }
         log.info("Column {} was deleted from table {}", columnId, tableId);
         // Каскадное удаление связей
         var refDiff = metadata.deleteInvalidReferences(column);

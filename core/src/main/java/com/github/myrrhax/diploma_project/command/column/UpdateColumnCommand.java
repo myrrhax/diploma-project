@@ -107,6 +107,15 @@ public class UpdateColumnCommand extends MetadataCommand {
         clone.setAutoIncrement(autoIncrement != null ? autoIncrement : column.getAutoIncrement());
         table.updateColumn(clone);
 
+        if (clone.isPkPart() != column.isPkPart()) {
+            if (clone.isPkPart()) {
+                table.addPkPart(clone.getId());
+            } else {
+                table.removePkPart(clone.getId());
+            }
+            metadata.deleteInvalidReferences(table);
+        }
+
         log.info("Column {} was updated for table {}", columnId, tableId);
         SchemaDifference diff = new SchemaDifference();
         diff.upsertColumn(clone);
