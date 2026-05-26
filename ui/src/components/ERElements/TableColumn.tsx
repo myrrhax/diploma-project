@@ -31,6 +31,30 @@ export const TableColumn = observer(({ canModify, col, table }: TableColumnProps
         action();
     };
 
+    const getMenuPositionNearPort = (e: React.MouseEvent<HTMLDivElement>) => {
+        const portRect = e.currentTarget.getBoundingClientRect();
+
+        const wrapper = e.currentTarget.closest('.er_diagram_wrapper');
+        const wrapperRect = wrapper?.getBoundingClientRect();
+
+        if (!wrapperRect) {
+            return {
+                x: table.x + erStore.TABLE_WIDTH + 16,
+                y: table.y
+            };
+        }
+
+        const OFFSET = 16;
+
+        const screenX = portRect.right - wrapperRect.left + OFFSET;
+        const screenY = portRect.top - wrapperRect.top + portRect.height / 2;
+
+        return {
+            x: (screenX - erStore.offsetX) / erStore.scale,
+            y: (screenY - erStore.offsetY) / erStore.scale
+        };
+    };
+
     return (
         <div 
             key={col.id} 
@@ -82,17 +106,21 @@ export const TableColumn = observer(({ canModify, col, table }: TableColumnProps
             
             <div 
                 className={`er_port port_right ${isSource ? 'port_source_active' : ''}`}
-                onClick={(e) => handleModification(() => {
-                    const wrapper = e.currentTarget.closest('.er_port');
-                    const rect = wrapper?.getBoundingClientRect();
-                    referenceStore.handlePortClick(
-                        'right',
-                        table.id,
-                        col.id,
-                        e.clientX - (rect?.left ?? 0), 
-                        e.clientY - (rect?.top ?? 0), 
-                    );
-                })}
+                onClick={(e) => {
+                    e.stopPropagation();
+
+                    handleModification(() => {
+                        const pos = getMenuPositionNearPort(e);
+
+                        referenceStore.handlePortClick(
+                            'right',
+                            table.id,
+                            col.id,
+                            pos.x,
+                            pos.y
+                        );
+                    });
+                }}
                 title="Output (Source)"
             >
                 {isSource && <span className="port_badge badge_right">{srcIdx + 1}</span>}
