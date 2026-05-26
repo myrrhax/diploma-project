@@ -1,6 +1,6 @@
 spring:
   mail:
-    host: smtp.gmail.com
+    host: live.smtp.mailtrap.io
     port: 587
     username: ${SPRING_MAIL_USERNAME}
     password: ${SPRING_MAIL_PASSWORD}
@@ -10,7 +10,7 @@ spring:
           auth: true
           starttls.enable: true
         ssl:
-          trust: smtp.gmail.com
+          trust: live.smtp.mailtrap.io
 
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:localhost}
