@@ -222,7 +222,6 @@ export const ERDiagram = observer(() => {
         >
             {erStore.isEditable && canModify && (
                 <>
-                    <AddReferenceMenu />
                     <DeleteTableModal />
                     <DeleteColumnModal />
                     <EditTableModal />
@@ -242,6 +241,7 @@ export const ERDiagram = observer(() => {
                         }}
                     />
                 )}
+                <AddReferenceMenu />
 
                 <svg className="er_svg_layer">
                     <defs>
