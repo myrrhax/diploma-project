@@ -82,7 +82,17 @@ export const TableColumn = observer(({ canModify, col, table }: TableColumnProps
             
             <div 
                 className={`er_port port_right ${isSource ? 'port_source_active' : ''}`}
-                onClick={(e) => handleModification(() => referenceStore.handlePortClick('right', table.id, col.id, e.clientX, e.clientY))}
+                onClick={(e) => handleModification(() => {
+                    const wrapper = e.currentTarget.closest('.er_port');
+                    const rect = wrapper?.getBoundingClientRect();
+                    referenceStore.handlePortClick(
+                        'right',
+                        table.id,
+                        col.id,
+                        e.clientX - (rect?.left ?? 0), 
+                        e.clientY - (rect?.top ?? 0), 
+                    );
+                })}
                 title="Output (Source)"
             >
                 {isSource && <span className="port_badge badge_right">{srcIdx + 1}</span>}
