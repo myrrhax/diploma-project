@@ -353,11 +353,9 @@ public abstract class AbstractScriptProcessor {
         switch (change.differenceType()) {
             case ADD -> fabric.addTable(scriptBuilder, toTable);
             case DROP -> fabric.appendDropTable(scriptBuilder, fromTable);
-            case UPDATE -> {
-                fabric.appendDropPkConstraint(scriptBuilder, toTable);
-                fabric.appendAndPkConstraint(scriptBuilder, toTable);
-            }
             case RENAME -> fabric.appendRenameTable(scriptBuilder, fromTable, toTable);
+            case DROP_PK -> fabric.appendDropPkConstraint(scriptBuilder, toTable);
+            case ADD_PK -> fabric.appendAndPkConstraint(scriptBuilder, toTable);
         }
     }
 

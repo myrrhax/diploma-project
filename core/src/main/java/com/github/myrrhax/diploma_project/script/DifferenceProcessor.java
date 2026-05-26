@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 
 import static java.util.Map.entry;
@@ -29,14 +30,15 @@ public class DifferenceProcessor {
     private static final int DROP_REFERENCE_PRIORITY = 0;
     private static final int DROP_INDEX_PRIORITY = 1;
     private static final int DROP_TABLE_PRIORITY = 2;
-    private static final int DROP_COLUMN_PRIORITY = 3;
-    private static final int RENAME_TABLE_PRIORITY = 4;
-    private static final int ADD_TABLE_PRIORITY = 5;
-    private static final int RENAME_COLUMN_PRIORITY = 6;
-    private static final int ADD_COLUMN_PRIORITY = 7;
-    private static final int CHANGE_COLUMN_PRIORITY = 8;
-    private static final int CHANGE_TABLE_PRIORITY = 9;
-    private static final int RENAME_INDEX_PRIORITY = 10;
+    private static final int DROP_PK_COLUMNS = 3;
+    private static final int DROP_COLUMN_PRIORITY = 4;
+    private static final int RENAME_TABLE_PRIORITY = 5;
+    private static final int ADD_TABLE_PRIORITY = 6;
+    private static final int RENAME_COLUMN_PRIORITY = 7;
+    private static final int ADD_COLUMN_PRIORITY = 8;
+    private static final int ADD_PK_COLUMNS = 9;
+    private static final int CHANGE_COLUMN_PRIORITY = 10;
+    private static final int RENAME_INDEX_PRIORITY = 11;
     private static final int CHANGE_INDEX_PRIORITY = 12;
     private static final int ADD_INDEX_PRIORITY = 13;
     private static final int RENAME_REFERENCE_PRIORITY = 14;
@@ -52,8 +54,9 @@ public class DifferenceProcessor {
             entry(new Pair<>(MetadataType.INDEX, DifferenceType.ADD), ADD_INDEX_PRIORITY),
             entry(new Pair<>(MetadataType.TABLE, DifferenceType.DROP), DROP_TABLE_PRIORITY),
             entry(new Pair<>(MetadataType.TABLE, DifferenceType.RENAME), RENAME_TABLE_PRIORITY),
-            entry(new Pair<>(MetadataType.TABLE, DifferenceType.UPDATE), CHANGE_TABLE_PRIORITY),
             entry(new Pair<>(MetadataType.TABLE, DifferenceType.ADD), ADD_TABLE_PRIORITY),
+            entry(new Pair<>(MetadataType.TABLE, DifferenceType.DROP_PK), DROP_PK_COLUMNS),
+            entry(new Pair<>(MetadataType.TABLE, DifferenceType.ADD_PK), ADD_PK_COLUMNS),
             entry(new Pair<>(MetadataType.COLUMN, DifferenceType.DROP), DROP_COLUMN_PRIORITY),
             entry(new Pair<>(MetadataType.COLUMN, DifferenceType.RENAME), RENAME_COLUMN_PRIORITY),
             entry(new Pair<>(MetadataType.COLUMN, DifferenceType.UPDATE), CHANGE_COLUMN_PRIORITY),
@@ -167,6 +170,22 @@ public class DifferenceProcessor {
                     || (type == MetadataType.REFERENCE && diffType == DifferenceType.RENAME)) {
                 processedChanges.add(new GenericSchemaChanges<>(change.from(), null, DifferenceType.DROP));
                 processedChanges.add(new GenericSchemaChanges<>(null, change.to(), DifferenceType.ADD));
+            } else if (type == MetadataType.TABLE && diffType == DifferenceType.UPDATE) {
+                // PK was updated
+                TableMetadata fromTable = (TableMetadata) change.from();
+                TableMetadata toTable = (TableMetadata) change.to();
+                Set<UUID> deletedPkParts = new HashSet<>(fromTable.getPrimaryKeyParts());
+                Set<UUID> insertedPkParts = new HashSet<>(toTable.getPrimaryKeyParts());
+
+                deletedPkParts.removeAll(toTable.getPrimaryKeyParts());
+                insertedPkParts.removeAll(fromTable.getPrimaryKeyParts());
+
+                if (deletedPkParts.isEmpty()) {
+                    processedChanges.add(new GenericSchemaChanges<>(fromTable, toTable, DifferenceType.DROP_PK));
+                }
+                if (insertedPkParts.isEmpty()) {
+                    processedChanges.add(new GenericSchemaChanges<>(fromTable, toTable, DifferenceType.ADD_PK));
+                }
             } else {
                 processedChanges.add(change);
             }
@@ -185,7 +204,6 @@ public class DifferenceProcessor {
     public record GenericSchemaChanges<T extends AbstractMetadata<?>>(
             T from,
             T to,
-
             DifferenceType differenceType
     ) {
         public GenericSchemaChanges {
@@ -213,6 +231,9 @@ public class DifferenceProcessor {
         ADD,
         DROP,
         RENAME,
-        UPDATE
+        UPDATE,
+        // Костыль)
+        DROP_PK,
+        ADD_PK
     }
 }
